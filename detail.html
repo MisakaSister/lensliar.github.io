@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>内容详情 - 静态内容管理系统</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <i class="fas fa-cube"></i>
+                    <span>静态内容管理系统</span>
+                </div>
+                <div class="nav-links">
+                    <a href="home.html">首页</a>
+                    <a href="admin.html" id="admin-link">管理后台</a>
+                    <a href="#" onclick="logout()" id="logout-link">退出</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div id="detail-page" class="page active">
+            <div id="detail-container" class="detail-container">
+                <!-- 详情内容将通过JavaScript动态加载 -->
+            </div>
+        </div>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+    
+    <footer>
+        <div class="container">
+            <p>静态网站内容管理系统 &copy; 2023 | 基于GitHub Pages的无后端解决方案</p>
+        </div>
+    </footer>
+    
+    <script src="app.js"></script>
+</body>
+</html>
