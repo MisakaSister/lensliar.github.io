@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 静态内容管理系统</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<!-- 登录页面内容保持不变 -->
+<script src="app.js"></script>
+<header>
+    <div class="container">
+        <nav>
+            <div class="logo">
+                <i class="fas fa-cube"></i>
+                <span>静态内容管理系统</span>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<div class="container">
+    <div id="login-page" class="page active">
+        <div class="login-container">
+            <div class="login-card">
+                <h2>管理员登录</h2>
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" placeholder="输入管理员用户名">
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" placeholder="输入管理员密码">
+                </div>
+                <button class="btn btn-block" onclick="login()">登录</button>
+                <div class="form-group" style="margin-top:20px; text-align:center;">
+                    <p>提示：使用您在GitHub Secrets中设置的管理员凭证</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="notification" class="notification"></div>
+
+<footer>
+    <div class="container">
+        <p>静态网站内容管理系统 &copy; 2023 | 基于GitHub Pages的无后端解决方案</p>
+    </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

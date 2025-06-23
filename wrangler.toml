@@ -1,0 +1,15 @@
+name = "static-cms-worker"
+type = "javascript"
+account_id = "your_account_id"
+workers_dev = true
+kv_namespaces = [
+    { binding = "CONTENT_STORE", id = "your_content_kv_id" },
+    { binding = "AUTH_CONFIG", id = "your_auth_config_kv_id" },
+    { binding = "AUTH_TOKENS", id = "your_auth_tokens_kv_id" }
+]
+
+[build]
+command = "npm install && npm run build"
+
+[build.upload]
+format = "service-worker"

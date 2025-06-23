@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+<!-- 管理页面内容保持不变 -->
+<script src="app.js"></script>
     <header>
         <div class="container">
             <nav>
@@ -23,7 +25,7 @@
             </nav>
         </div>
     </header>
-    
+
     <div class="container">
         <div id="admin-page" class="page active">
             <div class="admin-header">
@@ -32,12 +34,12 @@
                     <button class="btn btn-danger" onclick="logout()">退出管理</button>
                 </div>
             </div>
-            
+
             <div class="admin-actions">
                 <button class="btn" onclick="document.getElementById('article-form').style.display='block'; document.getElementById('image-form').style.display='none';">添加新文章</button>
                 <button class="btn" onclick="document.getElementById('article-form').style.display='none'; document.getElementById('image-form').style.display='block';">添加新图片</button>
             </div>
-            
+
             <div id="article-form" class="content-form">
                 <h3 class="form-title">添加/编辑文章</h3>
                 <div class="form-row">
@@ -70,7 +72,7 @@
                     <button class="btn" onclick="clearArticleForm()">取消</button>
                 </div>
             </div>
-            
+
             <div id="image-form" class="content-form" style="display:none;">
                 <h3 class="form-title">添加/编辑图片</h3>
                 <div class="form-row">
@@ -103,7 +105,7 @@
                     <button class="btn" onclick="clearImageForm()">取消</button>
                 </div>
             </div>
-            
+
             <div class="content-list">
                 <div class="list-header">
                     <h3>内容管理</h3>
@@ -112,14 +114,14 @@
                         <button class="btn" onclick="toggleSection('images')">图片</button>
                     </div>
                 </div>
-                
+
                 <div id="articles-list">
                     <h4 style="margin-bottom:15px;">文章列表</h4>
                     <div id="articles-list-container">
                         <!-- 文章列表将通过JavaScript动态加载 -->
                     </div>
                 </div>
-                
+
                 <div id="images-list" style="display:none;">
                     <h4 style="margin-bottom:15px;">图片列表</h4>
                     <div id="images-list-container">
@@ -129,15 +131,15 @@
             </div>
         </div>
     </div>
-    
+
     <div id="notification" class="notification"></div>
-    
+
     <footer>
         <div class="container">
             <p>静态网站内容管理系统 &copy; 2023 | 基于GitHub Pages的无后端解决方案</p>
         </div>
     </footer>
-    
+
     <script src="app.js"></script>
 </body>
 </html>
