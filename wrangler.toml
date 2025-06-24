@@ -1,11 +1,11 @@
 name = "static-cms-worker"
 type = "javascript"
-account_id = "your_account_id"
+account_id = "451090b48a9de67d8c1aafc805fc124e"
 workers_dev = true
 kv_namespaces = [
-    { binding = "CONTENT_STORE", id = "your_content_kv_id" },
-    { binding = "AUTH_CONFIG", id = "your_auth_config_kv_id" },
-    { binding = "AUTH_TOKENS", id = "your_auth_tokens_kv_id" }
+    { binding = "CONTENT_STORE", id = "e7f3a520cf2843b8a6557d8d83e136ce" },
+    { binding = "AUTH_CONFIG", id = "ced08099f0d74753ad269b47223f5f34" },
+    { binding = "AUTH_TOKENS", id = "d691a68fc1d848e3ab73b27b692ab8cb" }
 ]
 
 [build]
