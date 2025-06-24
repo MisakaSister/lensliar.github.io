@@ -1,0 +1,50 @@
+import bcrypt from 'bcryptjs';
+
+export async function handleAuth(request, env) {
+    const { pathname } = new URL(request.url);
+
+    if (pathname === '/auth/login' && request.method === 'POST') {
+        const { username, password } = await request.json();
+
+        // 验证凭证
+        const isValid = await verifyCredentials(username, password, env);
+
+        if (isValid) {
+            // 创建令牌
+            const token = crypto.randomUUID();
+
+            // 存储令牌到KV
+            await env.AUTH_KV.put(token, JSON.stringify({
+                user: username,
+                expires: Date.now() + 3600000 // 1小时有效期
+            }), { expirationTtl: 3600 });
+
+            return new Response(JSON.stringify({ token }), {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                }
+            });
+        }
+
+        return new Response("Invalid credentials", {
+            status: 401,
+            headers: { 'Access-Control-Allow-Origin': '*' }
+        });
+    }
+
+    return new Response("Not found", {
+        status: 404,
+        headers: { 'Access-Control-Allow-Origin': '*' }
+    });
+}
+
+async function verifyCredentials(username, password, env) {
+    // 检查用户名
+    if (username !== env.ADMIN_USERNAME) return false;
+
+    // 加盐哈希验证
+    const saltedPassword = password + env.PEPPER;
+    return bcrypt.compare(saltedPassword, env.ADMIN_PASSWORD_HASH);
+}

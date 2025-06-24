@@ -1,0 +1,13 @@
+name = "cms-worker"
+main = "src/index.js"
+compatibility_date = "2023-10-01"
+
+kv_namespaces = [
+    { binding = "CONTENT_KV", id = "e7f3a520cf2843b8a6557d8d83e136ce" },
+    { binding = "AUTH_KV", id = "ca2b84e77ada48309b3a68d077862c59" }
+]
+
+[vars]
+ADMIN_USERNAME = "default_username"
+ADMIN_PASSWORD_HASH = "default_hash"
+PEPPER = "default_pepper"

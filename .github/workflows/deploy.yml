@@ -1,0 +1,60 @@
+name: Deploy System
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: |
+          cd worker
+          npm install bcryptjs
+
+      - name: Generate password hash
+        id: hash_password
+        run: |
+          cd worker
+          PEPPER="${{ secrets.PEPPER }}"
+          PASSWORD="${{ secrets.ADMIN_PASSWORD }}"
+          HASH=$(node -e "const bcrypt=require('bcryptjs'); \
+                 const hash=bcrypt.hashSync('$PASSWORD' + '$PEPPER', 10); \
+                 console.log(hash)")
+          echo "HASH_OUTPUT=$HASH" >> $GITHUB_OUTPUT
+
+      - name: Configure Wrangler
+        run: |
+          cd worker
+          npm install -g wrangler
+          wrangler config --api-token "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+
+      - name: Deploy to Cloudflare Worker
+        working-directory: worker
+        run: wrangler publish
+        env:
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD_HASH: ${{ steps.hash_password.outputs.HASH_OUTPUT }}
+          PEPPER: ${{ secrets.PEPPER }}
+
+  deploy-pages:
+    needs: deploy-worker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
