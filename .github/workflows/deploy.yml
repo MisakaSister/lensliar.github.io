@@ -9,31 +9,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 # 更新到最新版本
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
+          cache: ''
 
-      - name: Install dependencies
-        working-directory: worker # 使用 working-directory 更清晰
+      - name: Install worker dependencies
+        working-directory: worker
         run: npm install bcryptjs
 
       - name: Generate password hash
         id: hash_password
         working-directory: worker
         run: |
-          # 更安全的方式 - 避免密码出现在命令行
-          PEPPER="${{ secrets.PEPPER }}"
-          PASSWORD="${{ secrets.ADMIN_PASSWORD }}"
+          # 安全方式：通过环境变量传递敏感数据
+          export PEPPER="${{ secrets.PEPPER }}"
+          export PASSWORD="${{ secrets.ADMIN_PASSWORD }}"
           
-          # 使用子进程避免密码泄露
+          # 使用环境变量而非命令行参数
           HASH=$(node -e "
             const bcrypt = require('bcryptjs');
-            const hash = bcrypt.hashSync(process.env.PASSWORD + process.env.PEPPER, 10);
+            const hash = bcrypt.hashSync(
+              process.env.PASSWORD + process.env.PEPPER, 
+              10
+            );
             console.log(hash);
-          " --input PEPPER="$PEPPER" --input PASSWORD="$PASSWORD")
+          ")
           
           echo "HASH_OUTPUT=$HASH" >> $GITHUB_OUTPUT
 
@@ -44,7 +48,7 @@ jobs:
         working-directory: worker
         run: wrangler publish
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }} # 关键修复
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
           ADMIN_PASSWORD_HASH: ${{ steps.hash_password.outputs.HASH_OUTPUT }}
           PEPPER: ${{ secrets.PEPPER }}
@@ -54,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
