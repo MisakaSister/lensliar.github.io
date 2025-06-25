@@ -19,7 +19,9 @@ jobs:
 
       - name: Install worker dependencies
         working-directory: worker
-        run: npm install bcryptjs
+        run: |
+          npm install bcryptjs
+          npm list bcryptjs
 
       - name: Generate password hash
         id: hash_password
@@ -40,7 +42,13 @@ jobs:
           echo "HASH_OUTPUT=$HASH" >> $GITHUB_OUTPUT
 
       - name: Install Wrangler
-        run: npm install -g wrangler@latest
+        run: |
+          npm install -g wrangler@latest
+          wrangler --version
+
+      - name: Check wrangler configuration
+        working-directory: worker
+        run: wrangler whoami
 
       - name: Deploy to Cloudflare Worker
         working-directory: worker
