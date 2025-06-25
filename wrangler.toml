@@ -1,4 +1,4 @@
-name = "static-cms-worker"
+name = "lensliar"
 type = "javascript"
 account_id = "451090b48a9de67d8c1aafc805fc124e"
 workers_dev = true

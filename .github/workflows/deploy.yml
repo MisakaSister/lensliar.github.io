@@ -43,7 +43,7 @@ jobs:
 
       - name: Install Wrangler
         run: |
-          npm install -g wrangler@latest
+          npm install -g wrangler@4.21.2
           wrangler --version
 
       - name: Check wrangler configuration
