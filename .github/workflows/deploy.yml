@@ -2,44 +2,43 @@ name: Deploy System
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   deploy-worker:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # 更新到最新版
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: worker/package-lock.json
+          cache: ''
 
       - name: Install worker dependencies
         working-directory: worker
         run: |
-          npm ci --omit=dev
+          npm install bcryptjs
+          npm list bcryptjs
 
       - name: Generate password hash
         id: hash_password
         working-directory: worker
         run: |
-          set +x  # 禁用命令回显
           export PEPPER="${{ secrets.PEPPER }}"
           export PASSWORD="${{ secrets.ADMIN_PASSWORD }}"
           
           HASH=$(node -e "
             const bcrypt = require('bcryptjs');
-            const salt = bcrypt.genSaltSync(10);
             const hash = bcrypt.hashSync(
               process.env.PASSWORD + process.env.PEPPER, 
-              salt
+              10
             );
             console.log(hash);
           ")
+          
           echo "HASH_OUTPUT=$HASH" >> $GITHUB_OUTPUT
 
       - name: Install Wrangler
@@ -61,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
