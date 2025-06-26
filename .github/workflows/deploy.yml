@@ -66,6 +66,11 @@ jobs:
   deploy-pages:
     needs: deploy-worker
     runs-on: ubuntu-latest
+    # 添加权限声明
+    permissions:
+      contents: write  # 允许写入内容
+      pages: write     # 允许写入GitHub Pages
+      id-token: write  # 允许使用OIDC令牌
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -73,5 +78,5 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.TK }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
