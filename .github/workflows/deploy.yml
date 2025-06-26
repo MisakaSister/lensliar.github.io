@@ -46,9 +46,14 @@ jobs:
           npm install -g wrangler@4.21.2
           wrangler --version
 
+      - name: Authenticate Wrangler
+        run: wrangler whoami
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
       - name: Deploy to Cloudflare Worker
         working-directory: worker
-        run: wrangler deploy --minify
+        run: wrangler deploy --minify --legacy-env false
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
