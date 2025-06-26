@@ -11,3 +11,4 @@ kv_namespaces = [
 ADMIN_USERNAME = "default_username"
 ADMIN_PASSWORD_HASH = "default_hash"
 PEPPER = "default_pepper"
+account_id = "451090b48a9de67d8c1aafc805fc124e"
