@@ -167,7 +167,7 @@
 
         try {
             const token = localStorage.getItem('authToken');
-            const response = await fetch('https://lensliar.862422848.workers.dev/content', {
+            const response = await fetch(`${API_BASE}/content`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

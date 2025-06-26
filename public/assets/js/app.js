@@ -1,5 +1,8 @@
-// 前端API模块
-const API_BASE = "https://lensliar.862422848.workers.dev";
+// 本地开发时使用
+const API_BASE = "http://localhost:8787";
+
+// 部署时使用
+// const API_BASE = "https://lensliar.862422848.workers.dev";
 
 // 登录函数
 async function login() {
@@ -66,18 +69,14 @@ async function saveContentData(content) {
     }
 }
 
-// 显示通知
+// 通用函数
 function showNotification(message, isSuccess = true) {
-    const notification = document.createElement('div');
+    const notification = document.getElementById('notification');
     notification.textContent = message;
     notification.className = `notification ${isSuccess ? 'success' : 'error'} show`;
-    document.body.appendChild(notification);
 
     setTimeout(() => {
         notification.classList.remove('show');
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
     }, 3000);
 }
 
