@@ -21,7 +21,7 @@ async function login() {
             localStorage.setItem('authToken', token);
             showNotification('登录成功！', true);
             setTimeout(() => {
-                window.location.href = 'home.html';
+                window.location.href = '../index.html';
             }, 1000);
         } else {
             showNotification('用户名或密码错误', false);
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.removeItem('authToken');
             showNotification('您已成功退出', true);
             setTimeout(() => {
-                window.location.href = 'index.html';
+                window.location.href = '../index.html';
             }, 1000);
         });
     }

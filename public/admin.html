@@ -259,7 +259,7 @@
     <nav>
         <div class="logo">内容管理系统</div>
         <div class="nav-links">
-            <a href="home.html">返回首页</a>
+            <a href="index.html">返回首页</a>
             <a href="#" id="logout-link">退出</a>
         </div>
     </nav>
@@ -397,7 +397,7 @@
         if (!localStorage.getItem('authToken')) {
             showNotification('请先登录', false);
             setTimeout(() => {
-                window.location.href = 'index.html';
+                window.location.href = 'login.html';
             }, 1500);
             return;
         }
@@ -743,7 +743,7 @@
         localStorage.removeItem('authToken');
         showNotification('您已成功退出', true);
         setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.href = '../index.html';
         }, 1000);
     }
 
