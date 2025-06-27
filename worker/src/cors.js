@@ -20,10 +20,19 @@ export function handleCors(request,env) {
     const allowedOrigins = getAllowedOrigins(env);
     const origin = request.headers.get("Origin");
 
-    // 检查请求来源是否在允许列表中
-    const isAllowed = allowedOrigins.some(allowedOrigin =>
-        origin === allowedOrigin || origin?.endsWith(allowedOrigin)
-    );
+    // 增强的匹配逻辑
+    const isAllowed = allowedOrigins.some(pattern => {
+        if (pattern.includes('*')) {
+            const regex = new RegExp(`^${pattern.replace(/\./g, '\\.').replace(/\*/g, '.*')}$`);
+            return regex.test(origin);
+        }
+        return origin === pattern;
+    });
+
+    // // 检查请求来源是否在允许列表中
+    // const isAllowed = allowedOrigins.some(allowedOrigin =>
+    //     origin === allowedOrigin || origin?.endsWith(allowedOrigin)
+    // );
 
     // 如果是预检请求，直接返回 CORS 响应
     if (request.method === "OPTIONS") {

@@ -1,10 +1,14 @@
 import bcrypt from 'bcryptjs';
+import {addCorsHeaders, handleCors} from "./cors";
 
 export async function handleAuth(request, env) {
-    const { pathname } = new URL(request.url);
+    // 先处理OPTIONS预检请求
+    const corsResponse = handleCors(request, env);
+    if (corsResponse) return corsResponse;
+    const {pathname} = new URL(request.url);
 
     if (pathname === '/auth/login' && request.method === 'POST') {
-        const { username, password } = await request.json();
+        const {username, password} = await request.json();
 
         // 验证凭证
         const isValid = await verifyCredentials(username, password, env);
@@ -17,26 +21,27 @@ export async function handleAuth(request, env) {
             await env.AUTH_KV.put(token, JSON.stringify({
                 user: username,
                 expires: Date.now() + 3600000 // 1小时有效期
-            }), { expirationTtl: 3600 });
+            }), {expirationTtl: 3600});
 
-            return new Response(JSON.stringify({ token }), {
+            return new Response(JSON.stringify({token}), {
                 status: 200,
                 headers: {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
                 }
             });
+            return addCorsHeaders(request, response, env);
         }
 
         return new Response("Invalid credentials", {
             status: 401,
-            headers: { 'Access-Control-Allow-Origin': '*' }
+            headers: {'Access-Control-Allow-Origin': '*'}
         });
     }
 
     return new Response("Not found", {
         status: 404,
-        headers: { 'Access-Control-Allow-Origin': '*' }
+        headers: {'Access-Control-Allow-Origin': '*'}
     });
 }
 
