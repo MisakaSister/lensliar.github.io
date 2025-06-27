@@ -12,6 +12,7 @@ ADMIN_USERNAME = "default_username"
 ADMIN_PASSWORD_HASH = "default_hash"
 PEPPER = "default_pepper"
 ACCOUNT_ID = "451090b48a9de67d8c1aafc805fc124e"
+ALLOWED_ORIGINS = "https://wengguodong.com,https://www.wengguodong.com,https://misakasister.github.io"
 
 # wrangler.toml (wrangler v3.88.0^)
 [observability.logs]
