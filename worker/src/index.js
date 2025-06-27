@@ -1,6 +1,6 @@
 import {handleAuth} from './auth.js';
 import {handleContent} from './content.js';
-import {handleCors, addCorsHeaders} from './middleware/cors.js';
+import {handleCors, addCorsHeaders} from './cors.js';
 
 export default {
     async fetch(request, env) {
