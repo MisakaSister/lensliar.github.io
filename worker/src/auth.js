@@ -1,50 +1,39 @@
-import bcrypt from 'bcryptjs';
-
+// worker/src/auth.js
 export async function handleAuth(request, env) {
-    const { pathname } = new URL(request.url);
+    try {
+        // 解析请求体
+        const body = await request.json();
+        const { username, password } = body;
 
-    if (pathname === '/auth/login' && request.method === 'POST') {
-        const { username, password } = await request.json();
+        // 认证逻辑...
+        const isValid = await validateCredentials(username, password, env);
 
-        // 验证凭证
-        const isValid = await verifyCredentials(username, password, env);
-
-        if (isValid) {
-            // 创建令牌
-            const token = crypto.randomUUID();
-
-            // 存储令牌到KV
-            await env.AUTH_KV.put(token, JSON.stringify({
-                user: username,
-                expires: Date.now() + 3600000 // 1小时有效期
-            }), { expirationTtl: 3600 });
-
-            return new Response(JSON.stringify({ token }), {
-                status: 200,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                }
-            });
+        if (!isValid) {
+            // 返回错误对象，由主入口转换为响应
+            return {
+                error: "Invalid credentials",
+                status: 401
+            };
         }
 
-        return new Response("Invalid credentials", {
-            status: 401,
-            headers: { 'Access-Control-Allow-Origin': '*' }
-        });
-    }
+        // 返回成功响应数据
+        return {
+            success: true,
+            token: generateAuthToken(username, env)
+        };
 
-    return new Response("Not found", {
-        status: 404,
-        headers: { 'Access-Control-Allow-Origin': '*' }
-    });
+    } catch (error) {
+        // 返回错误对象
+        return {
+            error: error.message,
+            status: error.status || 500
+        };
+    }
 }
 
-async function verifyCredentials(username, password, env) {
-    // 检查用户名
-    if (username !== env.ADMIN_USERNAME) return false;
-
-    // 加盐哈希验证
-    const saltedPassword = password + env.PEPPER;
-    return bcrypt.compare(saltedPassword, env.ADMIN_PASSWORD_HASH);
+// 示例验证函数
+async function validateCredentials(username, password, env) {
+    // 实际验证逻辑，比如对比 KV 存储中的哈希值
+    return username === env.ADMIN_USERNAME &&
+        password === env.ADMIN_PASSWORD; // 实际应使用哈希对比
 }

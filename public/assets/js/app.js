@@ -12,44 +12,62 @@ async function login() {
     try {
         const response = await fetch(`${API_BASE}/auth/login`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password }),
+            credentials: 'include' // 必须添加
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-            const { token } = await response.json();
-            localStorage.setItem('authToken', token);
+            // 从响应中获取 token 或 session cookie
+            const { token } = data;
+            if (token) {
+                localStorage.setItem('authToken', token);
+            }
             showNotification('登录成功！', true);
             setTimeout(() => {
                 window.location.href = 'index.html';
             }, 1000);
         } else {
-            showNotification('用户名或密码错误', false);
+            showNotification(data.error || '用户名或密码错误', false);
         }
     } catch (error) {
-        showNotification('网络错误，请重试', false);
+        showNotification('网络错误，请重试: ' + error.message, false);
     }
 }
 
-// 获取内容数据
+// 获取内容数据 - 关键修改：添加 credentials: 'include'
 async function getContentData() {
     const token = localStorage.getItem('authToken');
 
+    const headers = {};
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
     try {
         const response = await fetch(`${API_BASE}/content`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers,
+            credentials: 'include' // 必须添加
         });
 
         if (response.ok) {
             return await response.json();
+        } else {
+            const errorData = await response.json();
+            console.error('获取内容失败:', errorData.error);
+            return { articles: [], images: [] };
         }
-        return { articles: [], images: [] };
     } catch (error) {
+        console.error('网络错误:', error);
         return { articles: [], images: [] };
     }
 }
 
-// 保存内容数据
+// 保存内容数据 - 关键修改：添加 credentials: 'include'
 async function saveContentData(content) {
     const token = localStorage.getItem('authToken');
 
@@ -58,13 +76,22 @@ async function saveContentData(content) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                ...(token && { Authorization: `Bearer ${token}` })
             },
-            body: JSON.stringify(content)
+            body: JSON.stringify(content),
+            credentials: 'include' // 必须添加
         });
 
-        return response.ok;
+        const data = await response.json();
+
+        if (response.ok) {
+            return true;
+        } else {
+            console.error('保存失败:', data.error);
+            return false;
+        }
     } catch (error) {
+        console.error('网络错误:', error);
         return false;
     }
 }
