@@ -2,9 +2,9 @@
 
 // 允许的源列表（可从环境变量获取）
 export function getAllowedOrigins(env) {
-    if (env.ALLOWED_ORIGINS) {
-        return env.ALLOWED_ORIGINS.split(',');
-    }
+    // if (env.ALLOWED_ORIGINS) {
+    //     return env.ALLOWED_ORIGINS.split(',');
+    // }
 
     // 默认值
     return [
