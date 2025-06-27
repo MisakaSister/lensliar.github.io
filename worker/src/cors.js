@@ -16,7 +16,7 @@ export function getAllowedOrigins(env) {
 }
 
 // 处理 OPTIONS 预检请求的中间件
-export function handleCors(request) {
+export function handleCors(request,env) {
     const allowedOrigins = getAllowedOrigins(env);
     const origin = request.headers.get("Origin");
 
@@ -47,7 +47,7 @@ export function handleCors(request) {
 }
 
 // 为响应添加 CORS 头的中间件
-export function addCorsHeaders(request, response) {
+export function addCorsHeaders(request, response,env) {
     const allowedOrigins = getAllowedOrigins(env);
     const origin = request.headers.get("Origin");
 
