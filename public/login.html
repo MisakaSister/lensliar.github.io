@@ -118,22 +118,20 @@
     </style>
 </head>
 <body>
-<div class="login-container">
-    <div class="login-card">
-        <h2>管理员登录</h2>
+<div class="container">
+    <h1>管理员登录</h1>
+    <form id="login-form">
         <div class="form-group">
-            <label for="username">用户名</label>
-            <input type="text" id="username" placeholder="输入管理员用户名">
+            <label for="username">用户名：</label>
+            <input type="text" id="username" name="username" required>
         </div>
         <div class="form-group">
-            <label for="password">密码</label>
-            <input type="password" id="password" placeholder="输入管理员密码">
+            <label for="password">密码：</label>
+            <input type="password" id="password" name="password" required>
         </div>
-        <button class="btn" onclick="login()">登录</button>
-        <div class="form-group" style="margin-top:20px; text-align:center;">
-            <p>提示：使用您在GitHub Secrets中设置的管理员凭证</p>
-        </div>
-    </div>
+        <button type="submit" id="login-button">登录</button>
+    </form>
+</div>
 </div>
 
 <footer>
