@@ -1,8 +1,8 @@
 // 本地开发时使用
-// const API_BASE = "http://localhost:8787";
+const API_BASE = "http://localhost:8787";
 
 // 部署时使用
-const API_BASE = "https://worker.wengguodong.com";
+// const API_BASE = "https://worker.wengguodong.com";
 
 // 登录函数
 async function login() {
