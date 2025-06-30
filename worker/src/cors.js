@@ -10,31 +10,34 @@ export function getAllowedOrigins(env) {
     // 默认值
     return [
         "https://wengguodong.com",
+        "https://*.wengguodong.com", // 允许所有子域名
         "https://www.wengguodong.com",
         "https://misakasister.github.io"
     ];
+}
+
+// 检查源是否匹配（支持通配符）
+function isOriginAllowed(origin, allowedOrigins) {
+    if (!origin) return false;
+
+    return allowedOrigins.some(pattern => {
+        // 处理通配符
+        if (pattern.includes('*')) {
+            const regex = new RegExp(
+                `^${pattern.replace(/\./g, '\\.').replace(/\*/g, '.*')}$`
+            );
+            return regex.test(origin);
+        }
+        return origin === pattern;
+    });
 }
 
 // 处理 OPTIONS 预检请求的中间件
 export function handleCors(request,env) {
     const allowedOrigins = getAllowedOrigins(env);
     const origin = request.headers.get("Origin");
+    const isAllowed = isOriginAllowed(origin, allowedOrigins);
 
-    // 增强的匹配逻辑
-    const isAllowed = allowedOrigins.some(pattern => {
-        if (pattern.includes('*')) {
-            const regex = new RegExp(`^${pattern.replace(/\./g, '\\.').replace(/\*/g, '.*')}$`);
-            return regex.test(origin);
-        }
-        return origin === pattern;
-    });
-
-    // // 检查请求来源是否在允许列表中
-    // const isAllowed = allowedOrigins.some(allowedOrigin =>
-    //     origin === allowedOrigin || origin?.endsWith(allowedOrigin)
-    // );
-
-    // 如果是预检请求，直接返回 CORS 响应
     if (request.method === "OPTIONS") {
         const headers = {
             "Access-Control-Allow-Origin": isAllowed ? origin : allowedOrigins[0],
@@ -45,13 +48,9 @@ export function handleCors(request,env) {
             "Vary": "Origin"
         };
 
-        return new Response(null, {
-            status: 204, // No Content
-            headers
-        });
+        return new Response(null, { status: 204, headers });
     }
 
-    // 如果不是预检请求，返回 null 继续处理后续逻辑
     return null;
 }
 
