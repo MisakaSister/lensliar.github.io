@@ -24,14 +24,7 @@ export default {
             }
             // 4. 其他请求代理到 GitHub Pages
             else {
-                let githubResponse = await fetch(`https://misakasister.github.io${url.pathname}`, request);
-                // 创建可修改的响应副本
-                response = new Response(githubResponse.body, githubResponse);
-
-                // 删除 GitHub 设置的 CORS 头
-                response.headers.delete("Access-Control-Allow-Origin");
-                response.headers.delete("Vary");
-
+                response = await fetch(`https://misakasister.github.io${url.pathname}`, request);
             }
 
             // 3. 确保响应是 Response 对象
@@ -56,6 +49,6 @@ export default {
         }
 
         // 4. 添加 CORS 头到响应
-        return addCorsHeaders(request, response, env);
+        return addCorsHeaders(request, response,env);
     }
 };
