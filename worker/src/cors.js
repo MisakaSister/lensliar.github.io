@@ -10,7 +10,6 @@ export function getAllowedOrigins(env) {
     // 默认值
     return [
         "https://wengguodong.com",
-        "https://*.wengguodong.com", // 允许所有子域名
         "https://www.wengguodong.com",
         "https://misakasister.github.io"
     ];
