@@ -240,6 +240,7 @@
                 showNotification('加载内容失败', false);
             }
         } catch (error) {
+            console.log('加载内容异常:',error)
             showNotification('网络错误，请重试', false);
         }
     }

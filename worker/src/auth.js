@@ -33,7 +33,7 @@ export async function handleAuth(request, env) {
             return addCorsHeaders(request, response, env);
         }
 
-        return new Response("Invalid credentials", {
+        return new Response("账号密码错误", {
             status: 401,
             headers: {'Access-Control-Allow-Origin': '*'}
         });

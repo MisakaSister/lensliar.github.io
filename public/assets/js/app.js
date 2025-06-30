@@ -35,7 +35,7 @@ async function login() {
             showNotification(data.error || '用户名或密码错误', false);
         }
     } catch (error) {
-        showNotification('网络错误，请重试: ' + error.message, false);
+        showNotification('登录错误： ' + error.message, false);
     }
 }
 

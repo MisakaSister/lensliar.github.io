@@ -427,6 +427,7 @@
                 showNotification('加载内容失败', false);
             }
         } catch (error) {
+            console.log('加载内容异常:',error)
             showNotification('网络错误，请重试', false);
         }
     }
@@ -547,6 +548,7 @@
                 showNotification('保存失败，请重试', false);
             }
         } catch (error) {
+            console.log('保存内容异常:',error)
             showNotification('网络错误，请重试', false);
         }
     }
@@ -588,6 +590,7 @@
                 showNotification('保存失败，请重试', false);
             }
         } catch (error) {
+            console.log('保存图片异常:',error)
             showNotification('网络错误，请重试', false);
         }
     }
@@ -689,6 +692,7 @@
                     showNotification('删除失败，请重试', false);
                 }
             } catch (error) {
+                console.log('删除文章异常',error)
                 showNotification('网络错误，请重试', false);
             }
         }
@@ -733,6 +737,7 @@
                     showNotification('删除失败，请重试', false);
                 }
             } catch (error) {
+                console.log('删除网络异常',error)
                 showNotification('网络错误，请重试', false);
             }
         }
