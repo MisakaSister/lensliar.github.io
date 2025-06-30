@@ -36,6 +36,7 @@ jobs:
               process.env.PASSWORD + process.env.PEPPER , 
               10
             );
+            console.log(hash);
           ")
           
           echo "HASH_OUTPUT=$HASH" >> $GITHUB_OUTPUT
