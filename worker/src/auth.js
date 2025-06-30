@@ -53,5 +53,8 @@ async function verifyCredentials(username, password, env) {
 
     // 加盐哈希验证
     const saltedPassword = password + env.SECRET_PEPPER ;
-    return bcrypt.compare(saltedPassword, env.SECRET_ADMIN_PASSWORD_HASH);
+    // 使用 await 等待比较结果
+    const isValid = await bcrypt.compare(saltedPassword, env.SECRET_ADMIN_PASSWORD_HASH);
+    console.log("Password comparison result:", isValid);
+    return isValid;
 }
