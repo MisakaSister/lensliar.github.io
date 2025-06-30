@@ -46,6 +46,8 @@ export async function handleAuth(request, env) {
 }
 
 async function verifyCredentials(username, password, env) {
+    console.log(username);
+    console.log(env.SECRET_ADMIN_USERNAME)
     // 检查用户名
     if (username !== env.SECRET_ADMIN_USERNAME) return false;
 
