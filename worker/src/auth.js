@@ -47,9 +47,9 @@ export async function handleAuth(request, env) {
 
 async function verifyCredentials(username, password, env) {
     // 检查用户名
-    if (username !== env.ADMIN_USERNAME) return false;
+    if (username !== env.SECRET_ADMIN_USERNAME) return false;
 
     // 加盐哈希验证
-    const saltedPassword = password + env.PEPPER;
-    return bcrypt.compare(saltedPassword, env.ADMIN_PASSWORD_HASH);
+    const saltedPassword = password + env.SECRET_PEPPER ;
+    return bcrypt.compare(saltedPassword, env.SECRET_ADMIN_PASSWORD_HASH);
 }

@@ -33,7 +33,7 @@ jobs:
           HASH=$(node -e "
             const bcrypt = require('bcryptjs');
             const hash = bcrypt.hashSync(
-              process.env.PASSWORD + process.env.PEPPER, 
+              process.env.PASSWORD + process.env.SECRET_PEPPER , 
               10
             );
             console.log(hash);
@@ -56,8 +56,8 @@ jobs:
       - name: Deploy to Cloudflare Worker
         working-directory: worker
         run: |
-          wrangler secret put ADMIN_USERNAME <<< "$ADMIN_USERNAME"
-          wrangler secret put ADMIN_PASSWORD_HASH <<< "$ADMIN_PASSWORD_HASH"
+          wrangler secret put SECRET_ADMIN_USERNAME  <<< "$ADMIN_USERNAME"
+          wrangler secret put SECRET_ADMIN_PASSWORD_HASH <<< "$ADMIN_PASSWORD_HASH"
           wrangler secret put PEPPER <<< "$PEPPER"
           wrangler deploy --minify --legacy-env false
         env:
