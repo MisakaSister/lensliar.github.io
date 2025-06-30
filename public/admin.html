@@ -595,34 +595,34 @@
         }
     }
 
-    // 获取当前内容
-    async function getCurrentContent() {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE}/content`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (response.ok) {
-            return await response.json();
-        }
-        return { articles: [], images: [] };
-    }
+    // // 获取当前内容
+    // async function getCurrentContent() {
+    //     const token = localStorage.getItem('authToken');
+    //     const response = await fetch(`${API_BASE}/content`, {
+    //         headers: {
+    //             'Authorization': `Bearer ${token}`
+    //         }
+    //     });
+    //
+    //     if (response.ok) {
+    //         return await response.json();
+    //     }
+    //     return { articles: [], images: [] };
+    // }
 
     // 保存内容数据
-    async function saveContentData(content, token) {
-        const response = await fetch(`${API_BASE}/content`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(content)
-        });
-
-        return response.ok;
-    }
+    // async function saveContentData(content) {
+    //     const response = await fetch(`${API_BASE}/content`, {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //             'Authorization': `Bearer ${token}`
+    //         },
+    //         body: JSON.stringify(content)
+    //     });
+    //
+    //     return response.ok;
+    // }
 
     // 清空文章表单
     function clearArticleForm() {

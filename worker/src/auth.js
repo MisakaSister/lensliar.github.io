@@ -46,17 +46,12 @@ export async function handleAuth(request, env) {
 }
 
 async function verifyCredentials(username, password, env) {
-    console.log('输入名称:',username);
-    console.log('输出名称：',env.SECRET_ADMIN_USERNAME)
     // 检查用户名
     if (username !== env.SECRET_ADMIN_USERNAME) return false;
 
     // 加盐哈希验证
     const saltedPassword = password + env.SECRET_PEPPER ;
-    console.log('加盐哈希验证:',saltedPassword);
-    console.log('actions:',env.SECRET_ADMIN_PASSWORD_HASH);
     // 使用 await 等待比较结果
     const isValid = await bcrypt.compare(saltedPassword, env.SECRET_ADMIN_PASSWORD_HASH);
-    console.log("Password comparison result:", isValid);
     return isValid;
 }
