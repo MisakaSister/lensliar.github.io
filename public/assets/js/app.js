@@ -4,40 +4,7 @@
 // 部署时使用
 const API_BASE = "https://worker.wengguodong.com";
 
-// 登录函数
-async function login() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-
-    try {
-        const response = await fetch(`${API_BASE}/auth/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password }),
-            credentials: 'include' // 必须添加
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            // 从响应中获取 token 或 session cookie
-            const { token } = data;
-            if (token) {
-                localStorage.setItem('authToken', token);
-            }
-            showNotification('登录成功！', true);
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1000);
-        } else {
-            showNotification(data.error || '用户名或密码错误', false);
-        }
-    } catch (error) {
-        showNotification('登录错误： ' + error.message, false);
-    }
-}
+// 通用工具函数库
 
 // 获取内容数据 - 关键修改：添加 credentials: 'include'
 async function getContentData() {
@@ -107,27 +74,4 @@ function showNotification(message, isSuccess = true) {
     }, 3000);
 }
 
-// 初始化公共功能
-document.addEventListener('DOMContentLoaded', function() {
-    // 检查是否已登录
-    if (localStorage.getItem('authToken')) {
-        const adminLink = document.getElementById('admin-link');
-        const logoutLink = document.getElementById('logout-link');
-
-        if (adminLink) adminLink.style.display = 'block';
-        if (logoutLink) logoutLink.style.display = 'block';
-    }
-
-    // 绑定退出按钮
-    const logoutBtn = document.getElementById('logout-link');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            localStorage.removeItem('authToken');
-            showNotification('您已成功退出', true);
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1000);
-        });
-    }
-});
+// 全局工具函数 - 供所有页面使用

@@ -1,5 +1,6 @@
 import {handleAuth} from './auth.js';
 import {handleContent} from './content.js';
+import {handleUpload} from './upload.js';
 import {handleCors, addCorsHeaders} from './cors.js';
 
 export default {
@@ -22,7 +23,11 @@ export default {
             else if (url.pathname.startsWith('/content')) {
                 response = await handleContent(request, env);
             }
-            // 4. 其他请求代理到 GitHub Pages
+            // 4. 处理图片上传请求
+            else if (url.pathname.startsWith('/upload')) {
+                response = await handleUpload(request, env);
+            }
+            // 5. 其他请求代理到 GitHub Pages
             else {
                 response = await fetch(`https://misakasister.github.io${url.pathname}`, request);
             }
