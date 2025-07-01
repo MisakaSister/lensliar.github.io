@@ -21,133 +21,136 @@
 <div class="container">
     <div class="admin-header">
         <h1 class="page-title">内容管理后台</h1>
-        <div>
+        <div class="admin-actions">
+            <button class="btn btn-success" onclick="openAddModal('article')">+ 添加文章</button>
+            <button class="btn btn-success" onclick="openAddModal('image')">+ 批量上传图片</button>
             <button class="btn btn-danger" onclick="logout()">退出管理</button>
         </div>
     </div>
 
-    <div class="admin-actions">
-        <button class="btn" onclick="showForm('article')">添加新文章</button>
-        <button class="btn" onclick="showForm('image')">添加新图片</button>
-    </div>
-
-    <div id="article-form" class="content-form">
-        <h3 class="form-title">添加/编辑文章</h3>
-        <div class="form-row">
-            <div class="form-col">
-                <div class="form-group">
-                    <label for="article-title">文章标题</label>
-                    <input type="text" id="article-title" placeholder="输入文章标题">
-                </div>
-            </div>
-            <div class="form-col">
-                <div class="form-group">
-                    <label for="article-category">分类</label>
-                    <input type="text" id="article-category" placeholder="输入分类">
-                </div>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="article-content">内容</label>
-            <textarea id="article-content" placeholder="输入文章内容"></textarea>
-        </div>
-        <div class="form-group">
-            <label for="article-image">封面图片URL</label>
-            <input type="text" id="article-image" placeholder="输入图片URL">
-            <div class="image-preview" id="article-image-preview">
-                <span>图片预览</span>
-            </div>
-        </div>
-        <div style="display:flex; gap:10px; margin-top:20px;">
-            <button class="btn btn-success" onclick="saveArticle()">保存文章</button>
-            <button class="btn" onclick="clearArticleForm()">取消</button>
+    <!-- 内容列表区域 -->
+    <div class="content-tabs">
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="switchTab('articles')">📝 文章管理</button>
+            <button class="tab-btn" onclick="switchTab('images')">🖼️ 图片管理</button>
         </div>
     </div>
 
-    <div id="image-form" class="content-form" style="display:none;">
-        <h3 class="form-title">添加/编辑图片</h3>
-        <div class="form-row">
-            <div class="form-col">
-                <div class="form-group">
-                    <label for="image-title">图片标题</label>
-                    <input type="text" id="image-title" placeholder="输入图片标题">
-                </div>
-            </div>
-            <div class="form-col">
-                <div class="form-group">
-                    <label for="image-category">分类</label>
-                    <input type="text" id="image-category" placeholder="输入分类">
-                </div>
+    <!-- 文章列表 -->
+    <div id="articles-tab" class="tab-content active">
+        <div class="content-list-header">
+            <h3>📝 文章列表</h3>
+            <div class="list-stats">
+                <span id="articles-count">加载中...</span>
             </div>
         </div>
-        
-        <div class="form-group">
-            <label for="image-files">选择图片文件</label>
-            <input type="file" id="image-files" accept="image/*" multiple onchange="handleMultipleFileSelect(event)">
-            <div style="margin-top: 10px; color: #666; font-size: 0.9rem;">
-                📁 支持多文件选择 | 格式：JPG, PNG, GIF, WebP | 单文件最大 5MB
-            </div>
-            <div id="upload-progress" style="display: none; margin-top: 15px;">
-                <div style="margin-bottom: 10px; font-weight: 500; color: #333;">上传进度：</div>
-                <div id="upload-progress-list"></div>
-                <div id="upload-summary" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px; font-size: 0.9rem;"></div>
-            </div>
-        </div>
-        
-        <div class="form-group">
-            <label>图片预览</label>
-            <div id="images-preview-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 10px;">
-                <div class="image-preview-placeholder" style="aspect-ratio: 1; border: 2px dashed #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 0.9rem;">
-                    选择文件后显示预览
-                </div>
-            </div>
-        </div>
-        
-        <div class="form-group">
-            <label for="image-description">图片描述</label>
-            <textarea id="image-description" placeholder="输入图片描述（所有图片共用）"></textarea>
-        </div>
-        <div style="display:flex; gap:10px; margin-top:20px;">
-            <button class="btn btn-success" id="save-images-btn" onclick="saveImages()" disabled>上传并保存图片</button>
-            <button class="btn" onclick="clearImageForm()">取消</button>
+        <div id="articles-list-container" class="content-list">
+            <div class="loading-placeholder">正在加载文章列表...</div>
         </div>
     </div>
 
-    <div class="content-list">
-        <div class="list-header">
-            <h3>内容管理</h3>
-            <div>
-                <button class="btn" onclick="toggleSection('articles')">文章</button>
-                <button class="btn" onclick="toggleSection('images')">图片</button>
+    <!-- 图片列表 -->
+    <div id="images-tab" class="tab-content">
+        <div class="content-list-header">
+            <h3>🖼️ 图片列表</h3>
+            <div class="list-stats">
+                <span id="images-count">加载中...</span>
             </div>
         </div>
+        <div id="images-list-container" class="content-list">
+            <div class="loading-placeholder">正在加载图片列表...</div>
+        </div>
+    </div>
+</div>
 
-        <div id="articles-list">
-            <h4 style="margin-bottom:15px;">文章列表</h4>
-            <div id="articles-list-container">
-                <!-- 文章列表将通过JavaScript动态加载 -->
-                <div class="list-item">
-                    <div class="list-item-title">示例文章</div>
-                    <div class="list-actions">
-                        <button class="btn">编辑</button>
-                        <button class="btn btn-danger">删除</button>
+<!-- 添加文章模态框 -->
+<div id="article-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="article-modal-title">添加新文章</h3>
+            <span class="close" onclick="closeModal('article')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="article-form">
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="article-title">文章标题 *</label>
+                            <input type="text" id="article-title" placeholder="输入文章标题" required>
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="article-category">分类</label>
+                            <input type="text" id="article-category" placeholder="输入分类">
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div id="images-list" style="display:none;">
-            <h4 style="margin-bottom:15px;">图片列表</h4>
-            <div id="images-list-container">
-                <!-- 图片列表将通过JavaScript动态加载 -->
-                <div class="list-item">
-                    <div class="list-item-title">示例图片</div>
-                    <div class="list-actions">
-                        <button class="btn">编辑</button>
-                        <button class="btn btn-danger">删除</button>
+                <div class="form-group">
+                    <label for="article-content">文章内容 *</label>
+                    <textarea id="article-content" placeholder="输入文章内容" rows="8" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>封面图片</label>
+                    <div class="image-upload-section">
+                        <input type="file" id="article-image-file" accept="image/*" onchange="handleArticleImageSelect(event)">
+                        <div class="upload-hint">选择图片文件作为文章封面（可选）</div>
+                        <div id="article-image-preview" class="image-preview-small">
+                            <span>暂无图片</span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn" onclick="closeModal('article')">取消</button>
+            <button type="button" class="btn btn-success" onclick="saveArticle()" id="save-article-btn">保存文章</button>
+        </div>
+    </div>
+</div>
+
+<!-- 添加图片模态框 -->
+<div id="image-modal" class="modal">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h3>批量上传图片</h3>
+            <span class="close" onclick="closeModal('image')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="image-form">
+                <div class="form-group">
+                    <label for="image-category">图片分类</label>
+                    <input type="text" id="image-category" placeholder="输入图片分类（可选）">
+                </div>
+                <div class="form-group">
+                    <label for="image-files">选择图片文件 *</label>
+                    <input type="file" id="image-files" accept="image/*" multiple onchange="handleMultipleFileSelect(event)" required>
+                    <div class="upload-hint">
+                        📁 支持多文件选择 | 格式：JPG, PNG, GIF, WebP | 单文件最大 5MB
+                    </div>
+                    <div id="upload-progress" style="display: none; margin-top: 15px;">
+                        <div class="progress-header">上传进度：</div>
+                        <div id="upload-progress-list"></div>
+                        <div id="upload-summary" class="upload-summary"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>图片预览</label>
+                    <div id="images-preview-container" class="images-preview-grid">
+                        <div class="image-preview-placeholder">
+                            选择文件后显示预览
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="image-description">图片描述</label>
+                    <textarea id="image-description" placeholder="输入图片描述（所有图片共用，可选）" rows="3"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn" onclick="closeModal('image')">取消</button>
+            <button type="button" class="btn btn-success" onclick="saveImages()" id="save-images-btn" disabled>上传并保存图片</button>
         </div>
     </div>
 </div>
@@ -159,8 +162,6 @@
 <div id="notification" class="notification"></div>
 
 <script src="/assets/js/app.js"></script>
-<!-- JavaScript functionality moved to admin.js -->
-</script>
 <script src="/assets/js/admin.js"></script>
 </body>
 </html>
