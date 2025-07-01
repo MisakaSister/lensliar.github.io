@@ -100,154 +100,259 @@ function updateArticlePreview() {
     }
 }
 
-// 更新图片预览
-function updateImagePreview() {
-    const url = document.getElementById('image-url').value;
-    const preview = document.getElementById('image-preview');
+// 🗑️ 已移除的旧函数
+// updateImagePreview(), toggleImageSource(), handleFileSelect() 
+// 这些函数已被新的多图上传功能替代
 
-    if (url) {
-        preview.innerHTML = `<img src="${url}" alt="预览">`;
-    } else {
-        preview.innerHTML = '<span>图片预览</span>';
-    }
-}
-
-// 切换图片来源
-function toggleImageSource() {
-    const selectedSource = document.querySelector('input[name="image-source"]:checked').value;
-    const urlGroup = document.getElementById('url-input-group');
-    const uploadGroup = document.getElementById('upload-input-group');
-    const preview = document.getElementById('image-preview');
-    const progressDiv = document.getElementById('upload-progress');
-
-    if (selectedSource === 'url') {
-        urlGroup.style.display = 'block';
-        uploadGroup.style.display = 'none';
-        // 清空文件选择
-        document.getElementById('image-file').value = '';
-    } else {
-        urlGroup.style.display = 'none';
-        uploadGroup.style.display = 'block';
-        // 清空URL输入
-        document.getElementById('image-url').value = '';
+// 🖼️ 处理多文件选择
+function handleMultipleFileSelect(event) {
+    const files = Array.from(event.target.files);
+    const previewContainer = document.getElementById('images-preview-container');
+    const saveButton = document.getElementById('save-images-btn');
+    
+    // 清空之前的预览
+    previewContainer.innerHTML = '';
+    
+    if (files.length === 0) {
+        previewContainer.innerHTML = '<div class="image-preview-placeholder" style="aspect-ratio: 1; border: 2px dashed #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 0.9rem;">选择文件后显示预览</div>';
+        saveButton.disabled = true;
+        return;
     }
     
-    // 重置预览和进度条
-    preview.innerHTML = '<span>图片预览</span>';
-    progressDiv.style.display = 'none';
-}
-
-// 处理文件选择
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    const preview = document.getElementById('image-preview');
-
-    if (file) {
-        // 检查文件大小 (5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            showNotification('文件大小超过5MB限制', false);
-            event.target.value = '';
-            preview.innerHTML = '<span>图片预览</span>';
+    // 验证文件
+    let validFiles = [];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    
+    files.forEach((file, index) => {
+        if (!allowedTypes.includes(file.type)) {
+            showNotification(`文件 "${file.name}" 格式不支持`, false);
             return;
         }
-
-        // 检查文件类型
-        if (!file.type.startsWith('image/')) {
-            showNotification('请选择图片文件', false);
-            event.target.value = '';
-            preview.innerHTML = '<span>图片预览</span>';
+        
+        if (file.size > maxSize) {
+            showNotification(`文件 "${file.name}" 大小超过5MB限制`, false);
             return;
         }
-
-        // 显示预览
+        
+        validFiles.push(file);
+        
+        // Create preview
         const reader = new FileReader();
         reader.onload = function(e) {
-            preview.innerHTML = `<img src="${e.target.result}" alt="预览">`;
+            const previewItem = document.createElement('div');
+            previewItem.className = 'image-preview-item';
+            previewItem.style.cssText = `
+                position: relative;
+                aspect-ratio: 1;
+                border-radius: 8px;
+                overflow: hidden;
+                border: 2px solid #e0e0e0;
+                background: #f8f9fa;
+            `;
+            
+            previewItem.innerHTML = `
+                <img src="${e.target.result}" 
+                     style="width: 100%; height: 100%; object-fit: cover;" 
+                     alt="Preview">
+                <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white; padding: 8px 6px 4px; font-size: 0.75rem; line-height: 1.2;">
+                    <div style="font-weight: 500; margin-bottom: 2px;">${file.name}</div>
+                    <div style="opacity: 0.9;">${(file.size/1024/1024).toFixed(1)}MB</div>
+                </div>
+            `;
+            
+            previewContainer.appendChild(previewItem);
         };
         reader.readAsDataURL(file);
-    } else {
-        preview.innerHTML = '<span>图片预览</span>';
+    });
+    
+    // 存储有效文件到全局变量
+    window.selectedFiles = validFiles;
+    saveButton.disabled = validFiles.length === 0;
+    
+    // 更新按钮文本
+    if (validFiles.length > 0) {
+        saveButton.textContent = `上传并保存 ${validFiles.length} 个图片`;
     }
 }
 
-// 上传图片到Cloudflare
-async function uploadImageToCloudflare(file) {
-    const token = localStorage.getItem('authToken');
-    const formData = new FormData();
-    formData.append('file', file);
+// 🚀 保存多个图片
+async function saveImages() {
+    const title = document.getElementById('image-title').value;
+    const category = document.getElementById('image-category').value;
+    const description = document.getElementById('image-description').value;
+    const files = window.selectedFiles || [];
 
-    // 显示进度条
-    const progressDiv = document.getElementById('upload-progress');
-    const progressBar = document.getElementById('upload-progress-bar');
-    const statusDiv = document.getElementById('upload-status');
-    
-    progressDiv.style.display = 'block';
-    progressBar.style.width = '0%';
-    statusDiv.textContent = '准备上传...';
-
-    try {
-        // 使用XMLHttpRequest来支持进度监控
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            
-            // 监听上传进度
-            xhr.upload.addEventListener('progress', (e) => {
-                if (e.lengthComputable) {
-                    const percentage = Math.round((e.loaded / e.total) * 100);
-                    progressBar.style.width = percentage + '%';
-                    statusDiv.textContent = `上传中... ${percentage}%`;
-                }
-            });
-
-            // 监听状态变化
-            xhr.addEventListener('load', () => {
-                if (xhr.status === 200) {
-                    try {
-                        const result = JSON.parse(xhr.responseText);
-                        progressBar.style.width = '100%';
-                        statusDiv.textContent = '上传完成！';
-                        
-                        // 3秒后隐藏进度条
-                        setTimeout(() => {
-                            progressDiv.style.display = 'none';
-                        }, 3000);
-                        
-                        resolve(result.url);
-                    } catch (parseError) {
-                        reject(new Error('解析响应失败'));
-                    }
-                } else {
-                    try {
-                        const error = JSON.parse(xhr.responseText);
-                        reject(new Error(error.message || '上传失败'));
-                    } catch {
-                        reject(new Error(`上传失败 (状态码: ${xhr.status})`));
-                    }
-                }
-            });
-
-            xhr.addEventListener('error', () => {
-                reject(new Error('网络错误，上传失败'));
-            });
-
-            xhr.addEventListener('timeout', () => {
-                reject(new Error('上传超时'));
-            });
-
-            // 配置并发送请求
-            xhr.open('POST', `${API_BASE}/upload`);
-            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-            xhr.withCredentials = true;
-            xhr.timeout = 30000; // 30秒超时
-            xhr.send(formData);
-        });
-
-    } catch (error) {
-        // 隐藏进度条并显示错误
-        progressDiv.style.display = 'none';
-        console.error('上传图片错误:', error);
-        throw error;
+    if (!title) {
+        showNotification('图片标题不能为空', false);
+        return;
     }
+    
+    if (files.length === 0) {
+        showNotification('请选择要上传的图片文件', false);
+        return;
+    }
+
+    const progressContainer = document.getElementById('upload-progress');
+    const progressList = document.getElementById('upload-progress-list');
+    const summary = document.getElementById('upload-summary');
+    const saveButton = document.getElementById('save-images-btn');
+    
+    // 显示进度条
+    progressContainer.style.display = 'block';
+    progressList.innerHTML = '';
+    saveButton.disabled = true;
+    saveButton.textContent = '上传中...';
+    
+    const uploadResults = [];
+    const currentTime = new Date().toISOString();
+    
+    try {
+        // 逐个上传文件
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            
+            // 创建进度条
+            const progressItem = document.createElement('div');
+            progressItem.style.cssText = 'margin-bottom: 8px; padding: 8px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #3498db;';
+            progressItem.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-size: 0.9rem; font-weight: 500;">${file.name}</span>
+                    <span id="status-${i}" style="font-size: 0.8rem; color: #3498db;">准备上传...</span>
+                </div>
+                <div style="background-color: #e0e0e0; border-radius: 3px; overflow: hidden; height: 4px;">
+                    <div id="progress-${i}" style="height: 100%; background-color: #3498db; width: 0%; transition: width 0.3s ease;"></div>
+                </div>
+            `;
+            progressList.appendChild(progressItem);
+            
+            try {
+                // 更新状态
+                document.getElementById(`status-${i}`).textContent = '上传中...';
+                document.getElementById(`status-${i}`).style.color = '#f39c12';
+                
+                // 上传图片
+                const imageUrl = await uploadImageToCloudflareWithProgress(file, i);
+                
+                // 更新进度
+                document.getElementById(`progress-${i}`).style.width = '100%';
+                document.getElementById(`status-${i}`).textContent = '上传成功';
+                document.getElementById(`status-${i}`).style.color = '#27ae60';
+                
+                // 生成图片数据
+                const imageTitle = files.length === 1 ? title : `${title} (${i + 1})`;
+                
+                uploadResults.push({
+                    id: Date.now() + i, // 确保ID唯一
+                    title: imageTitle,
+                    category,
+                    description,
+                    url: imageUrl,
+                    date: new Date().toISOString().split('T')[0],
+                    uploadTime: currentTime,
+                    fileName: file.name,
+                    fileSize: file.size,
+                    source: 'upload'
+                });
+                
+            } catch (error) {
+                document.getElementById(`progress-${i}`).style.backgroundColor = '#e74c3c';
+                document.getElementById(`status-${i}`).textContent = '上传失败';
+                document.getElementById(`status-${i}`).style.color = '#e74c3c';
+                console.error(`上传文件 ${file.name} 失败:`, error);
+            }
+        }
+        
+        // 保存到KV存储
+        if (uploadResults.length > 0) {
+            const currentContent = await getCurrentContent();
+            currentContent.images.push(...uploadResults);
+            
+            const response = await saveContentData(currentContent);
+            
+            if (response) {
+                summary.innerHTML = `
+                    <div style="color: #27ae60; font-weight: 500; margin-bottom: 5px;">
+                        ✅ 成功上传 ${uploadResults.length} 个图片
+                    </div>
+                    <div style="color: #666;">
+                        上传时间: ${new Date(currentTime).toLocaleString('zh-CN')}
+                    </div>
+                `;
+                
+                showNotification(`成功上传 ${uploadResults.length} 个图片！`, true);
+                
+                // 延迟清空表单和刷新列表
+                setTimeout(() => {
+                    clearImageForm();
+                    renderImagesList(currentContent.images);
+                }, 2000);
+                
+            } else {
+                summary.innerHTML = '<div style="color: #e74c3c;">❌ 保存到数据库失败</div>';
+                showNotification('保存失败，请重试', false);
+            }
+        } else {
+            summary.innerHTML = '<div style="color: #e74c3c;">❌ 没有文件上传成功</div>';
+            showNotification('所有文件上传失败', false);
+        }
+        
+    } catch (error) {
+        console.error('批量上传异常:', error);
+        summary.innerHTML = '<div style="color: #e74c3c;">❌ 上传过程中发生错误</div>';
+        showNotification('上传异常，请重试', false);
+    } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = '上传并保存图片';
+    }
+}
+
+// 🔄 带进度的图片上传函数
+async function uploadImageToCloudflareWithProgress(file, index) {
+    const token = localStorage.getItem('authToken');
+    
+    return new Promise((resolve, reject) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const xhr = new XMLHttpRequest();
+        
+        // 进度监听
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+                const percentComplete = (e.loaded / e.total) * 100;
+                const progressBar = document.getElementById(`progress-${index}`);
+                if (progressBar) {
+                    progressBar.style.width = percentComplete + '%';
+                }
+            }
+        });
+        
+        xhr.addEventListener('load', () => {
+            if (xhr.status === 200) {
+                try {
+                    const result = JSON.parse(xhr.responseText);
+                    if (result.success) {
+                        resolve(result.url);
+                    } else {
+                        reject(new Error(result.error || '上传失败'));
+                    }
+                } catch (e) {
+                    reject(new Error('解析响应失败'));
+                }
+            } else {
+                reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+            }
+        });
+        
+        xhr.addEventListener('error', () => {
+            reject(new Error('网络错误'));
+        });
+        
+        xhr.open('POST', `${API_BASE}/upload`);
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        xhr.send(formData);
+    });
 }
 
 // 显示表单
@@ -324,85 +429,37 @@ async function saveContentData(contentData) {
     return response.ok;
 }
 
-// 保存图片
-async function saveImage() {
-    const title = document.getElementById('image-title').value;
-    const category = document.getElementById('image-category').value;
-    const description = document.getElementById('image-description').value;
-    const selectedSource = document.querySelector('input[name="image-source"]:checked').value;
-
-    if (!title) {
-        showNotification('图片标题不能为空', false);
-        return;
-    }
-
-    let imageUrl = '';
-
-    try {
-        if (selectedSource === 'url') {
-            // URL模式
-            imageUrl = document.getElementById('image-url').value;
-            if (!imageUrl) {
-                showNotification('请输入图片URL', false);
-                return;
-            }
-        } else {
-            // 上传模式
-            const fileInput = document.getElementById('image-file');
-            const file = fileInput.files[0];
-            
-            if (!file) {
-                showNotification('请选择要上传的图片文件', false);
-                return;
-            }
-
-            // 上传图片到Cloudflare
-            imageUrl = await uploadImageToCloudflare(file);
-        }
-
-        // 保存图片数据
-        const currentContent = await getCurrentContent();
-
-        if (window.editingImageId) {
-            // 编辑模式 - 更新现有图片
-            const imageIndex = currentContent.images.findIndex(i => i.id === window.editingImageId);
-            if (imageIndex !== -1) {
-                currentContent.images[imageIndex] = {
-                    ...currentContent.images[imageIndex],
-                    title,
-                    category,
-                    description,
-                    url: imageUrl
-                };
-                showNotification('图片已更新', true);
-            }
-        } else {
-            // 新增模式
-            const newImage = {
-                id: Date.now(),
-                title,
-                category,
-                description,
-                url: imageUrl,
-                date: new Date().toISOString().split('T')[0]
-            };
-            currentContent.images.push(newImage);
-            showNotification('图片已保存', true);
-        }
-
-        const response = await saveContentData(currentContent);
-
-        if (response) {
-            clearImageForm();
-            renderImagesList(currentContent.images);
-        } else {
-            showNotification('保存失败，请重试', false);
-        }
-
-    } catch (error) {
-        console.log('保存图片异常:', error);
-        showNotification('网络错误，请重试', false);
-    }
+// 🔍 预览图片
+function viewImage(imageUrl) {
+    // 创建模态窗口预览图片
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        cursor: pointer;
+    `;
+    
+    modal.innerHTML = `
+        <div style="max-width: 90%; max-height: 90%; position: relative;">
+            <img src="${imageUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px;" alt="图片预览">
+            <div style="position: absolute; top: -40px; right: 0; color: white; font-size: 24px; cursor: pointer; background: rgba(0,0,0,0.5); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">×</div>
+        </div>
+    `;
+    
+    // 点击关闭
+    modal.addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+    
+    document.body.appendChild(modal);
 }
 
 // 获取当前内容
@@ -424,22 +481,26 @@ function clearArticleForm() {
 function clearImageForm() {
     document.getElementById('image-title').value = '';
     document.getElementById('image-category').value = '';
-    document.getElementById('image-url').value = '';
-    document.getElementById('image-file').value = '';
+    document.getElementById('image-files').value = '';
     document.getElementById('image-description').value = '';
-    document.getElementById('image-preview').innerHTML = '<span>图片预览</span>';
     
-    // 重置为URL模式
-    document.querySelector('input[name="image-source"][value="url"]').checked = true;
-    document.getElementById('url-input-group').style.display = 'block';
-    document.getElementById('upload-input-group').style.display = 'none';
+    // 重置预览容器
+    const previewContainer = document.getElementById('images-preview-container');
+    previewContainer.innerHTML = '<div class="image-preview-placeholder" style="aspect-ratio: 1; border: 2px dashed #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 0.9rem;">选择文件后显示预览</div>';
     
     // 隐藏上传进度
     document.getElementById('upload-progress').style.display = 'none';
     
-    // 清除编辑状态并重置按钮文本
+    // 清空文件选择
+    delete window.selectedFiles;
+    
+    // 重置按钮状态
+    const saveButton = document.getElementById('save-images-btn');
+    saveButton.disabled = true;
+    saveButton.textContent = '上传并保存图片';
+    
+    // 清除编辑状态
     delete window.editingImageId;
-    document.getElementById('save-image-btn').textContent = '保存图片';
 }
 
 // 切换内容部分
@@ -465,7 +526,7 @@ async function editArticle(id) {
             document.getElementById('article-category').value = article.category;
             document.getElementById('article-content').value = article.content;
             document.getElementById('article-image').value = article.image || '';
-            updateArticlePreview();
+            // updateArticlePreview(); // 文章预览功能保留
 
             document.getElementById('article-form').scrollIntoView({ behavior: 'smooth' });
             showNotification('正在编辑文章: ' + article.title, true);
@@ -498,43 +559,10 @@ async function deleteArticle(id) {
     }
 }
 
-// 编辑图片
+// 🗑️ 编辑图片功能已移除
+// 由于改为纯上传模式，编辑功能不再适用
 async function editImage(id) {
-    try {
-        const content = await getCurrentContent();
-        const image = content.images.find(i => i.id === id);
-
-        if (image) {
-            // 显示图片表单
-            showForm('image');
-            
-            // 填充表单数据
-            document.getElementById('image-title').value = image.title;
-            document.getElementById('image-category').value = image.category || '';
-            document.getElementById('image-description').value = image.description || '';
-            
-            // 编辑时统一使用URL模式显示现有图片
-            document.querySelector('input[name="image-source"][value="url"]').checked = true;
-            document.getElementById('url-input-group').style.display = 'block';
-            document.getElementById('upload-input-group').style.display = 'none';
-            document.getElementById('image-url').value = image.url;
-            document.getElementById('image-file').value = '';
-            
-            // 更新预览
-            updateImagePreview();
-
-            document.getElementById('image-form').scrollIntoView({ behavior: 'smooth' });
-            showNotification('正在编辑图片: ' + image.title, true);
-            
-            // 存储正在编辑的图片ID，用于更新而不是新增
-            window.editingImageId = id;
-            
-            // 更新按钮文本
-            document.getElementById('save-image-btn').textContent = '更新图片';
-        }
-    } catch (error) {
-        showNotification('编辑失败，请重试', false);
-    }
+    showNotification('编辑功能已移除，请删除后重新上传图片', false);
 }
 
 // 删除图片

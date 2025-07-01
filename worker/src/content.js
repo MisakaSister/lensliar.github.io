@@ -214,6 +214,9 @@ function validateAndSanitizeContent(data) {
                 description: sanitizeInput(image.description || ''),
                 category: sanitizeInput(image.category || ''),
                 date: image.date || new Date().toISOString().split('T')[0],
+                uploadTime: image.uploadTime || null,
+                fileName: sanitizeInput(image.fileName || ''),
+                fileSize: parseInt(image.fileSize) || null,
                 source: image.source || 'url'
             };
         });
