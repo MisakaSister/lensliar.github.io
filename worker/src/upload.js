@@ -12,6 +12,19 @@ export async function handleUpload(request, env) {
             });
         }
 
+        // 🔒 基础速率限制
+        const rateLimitResult = await checkUploadRateLimit(request, env);
+        if (!rateLimitResult.allowed) {
+            return new Response(JSON.stringify({
+                error: rateLimitResult.error
+            }), {
+                status: 429,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+
         // 验证权限
         const authResult = await verifyAuth(request, env);
         if (!authResult.success) {
@@ -40,11 +53,11 @@ export async function handleUpload(request, env) {
             });
         }
 
-        // 验证文件类型
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (!allowedTypes.includes(file.type)) {
+        // 🔒 增强文件验证
+        const validationResult = validateUploadFile(file);
+        if (!validationResult.valid) {
             return new Response(JSON.stringify({
-                error: "Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed."
+                error: validationResult.error
             }), {
                 status: 400,
                 headers: {
@@ -53,23 +66,8 @@ export async function handleUpload(request, env) {
             });
         }
 
-        // 验证文件大小 (5MB限制)
-        if (file.size > 5 * 1024 * 1024) {
-            return new Response(JSON.stringify({
-                error: "File size exceeds 5MB limit"
-            }), {
-                status: 400,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
-
-        // 生成唯一的文件名
-        const timestamp = Date.now();
-        const randomString = crypto.randomUUID().split('-')[0];
-        const fileExtension = getFileExtension(file.type);
-        const fileName = `images/${timestamp}-${randomString}.${fileExtension}`;
+        // 🔒 生成安全的文件名
+        const fileName = await generateSecureFileName(file.type);
 
         // 上传到R2存储
         await env.IMAGES_BUCKET.put(fileName, file.stream(), {
@@ -80,7 +78,8 @@ export async function handleUpload(request, env) {
             customMetadata: {
                 uploadedBy: authResult.user,
                 uploadedAt: new Date().toISOString(),
-                originalName: file.name || 'unknown'
+                originalName: sanitizeFileName(file.name || 'unknown'),
+                clientIP: request.headers.get('CF-Connecting-IP') || 'unknown'
             }
         });
 
@@ -144,4 +143,86 @@ function getFileExtension(mimeType) {
         'image/webp': 'webp'
     };
     return extensions[mimeType] || 'jpg';
-} 
+}
+
+// 🔒 增强文件验证
+function validateUploadFile(file) {
+    // 检查文件存在
+    if (!file) {
+        return { valid: false, error: 'No file provided' };
+    }
+
+    // 检查文件名
+    if (file.name && file.name.length > 255) {
+        return { valid: false, error: 'Filename too long' };
+    }
+
+    // 检查MIME类型
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        return { 
+            valid: false, 
+            error: "Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed." 
+        };
+    }
+
+    // 检查文件大小 (5MB限制)
+    if (file.size > 5 * 1024 * 1024) {
+        return { 
+            valid: false, 
+            error: "File size exceeds 5MB limit" 
+        };
+    }
+
+    // 检查最小文件大小 (避免空文件)
+    if (file.size < 100) {
+        return { 
+            valid: false, 
+            error: "File too small" 
+        };
+    }
+
+    return { valid: true };
+}
+
+// 🔒 生成安全的文件名
+async function generateSecureFileName(mimeType) {
+    const timestamp = Date.now();
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+    const randomString = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    const fileExtension = getFileExtension(mimeType);
+    return `images/${timestamp}-${randomString}.${fileExtension}`;
+}
+
+// 🔒 清理文件名
+function sanitizeFileName(filename) {
+    if (typeof filename !== 'string') return 'unknown';
+    
+    return filename
+        .replace(/[^a-zA-Z0-9.-]/g, '_')  // 只保留安全字符
+        .substring(0, 100)  // 限制长度
+        .trim();
+}
+
+// 🔒 上传速率限制
+async function checkUploadRateLimit(request, env) {
+    const clientIP = request.headers.get('CF-Connecting-IP') || 
+                     request.headers.get('X-Forwarded-For') || 
+                     'unknown';
+    
+    const key = `upload_attempts:${clientIP}`;
+    const current = await env.AUTH_KV.get(key);
+    
+    if (current && parseInt(current) > 10) { // 每小时10次上传
+        return { 
+            allowed: false, 
+            error: 'Too many upload attempts. Please try again later.' 
+        };
+    }
+    
+    const count = current ? parseInt(current) + 1 : 1;
+    await env.AUTH_KV.put(key, count.toString(), { expirationTtl: 3600 });
+    
+    return { allowed: true };
+}

@@ -1,6 +1,7 @@
 import {handleAuth} from './auth.js';
 import {handleContent} from './content.js';
 import {handleUpload} from './upload.js';
+import {handlePublicContent} from './public.js';
 import {handleCors, addCorsHeaders} from './cors.js';
 
 export default {
@@ -19,15 +20,19 @@ export default {
             if (url.pathname.startsWith('/auth')) {
                 response = await handleAuth(request, env);
             }
-            // 3. 处理内容请求
+            // 3. 处理公开内容请求（无需认证）
+            else if (url.pathname.startsWith('/public/content')) {
+                response = await handlePublicContent(request, env);
+            }
+            // 4. 处理管理员内容请求（需要认证）
             else if (url.pathname.startsWith('/content')) {
                 response = await handleContent(request, env);
             }
-            // 4. 处理图片上传请求
+            // 5. 处理图片上传请求（需要认证）
             else if (url.pathname.startsWith('/upload')) {
                 response = await handleUpload(request, env);
             }
-            // 5. 其他请求代理到 GitHub Pages
+            // 6. 其他请求代理到 GitHub Pages
             else {
                 response = await fetch(`https://misakasister.github.io${url.pathname}`, request);
             }

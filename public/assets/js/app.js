@@ -6,26 +6,52 @@ const API_BASE = "https://worker.wengguodong.com";
 
 // 通用工具函数库
 
-// 获取内容数据 - 关键修改：添加 credentials: 'include'
+// 🌟 获取公开内容数据（无需认证）
 async function getContentData() {
+    try {
+        const response = await fetch(`${API_BASE}/public/content`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            return await response.json();
+        } else {
+            console.error('获取内容失败:', response.status);
+            return { articles: [], images: [] };
+        }
+    } catch (error) {
+        console.error('网络错误:', error);
+        return { articles: [], images: [] };
+    }
+}
+
+// 🔒 获取管理员内容数据（需要认证）
+async function getAdminContentData() {
     const token = localStorage.getItem('authToken');
 
-    const headers = {};
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+    if (!token) {
+        console.error('No auth token found');
+        return { articles: [], images: [] };
     }
 
     try {
         const response = await fetch(`${API_BASE}/content`, {
-            headers,
-            credentials: 'include' // 必须添加
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
         });
 
         if (response.ok) {
             return await response.json();
         } else {
             const errorData = await response.json();
-            console.error('获取内容失败:', errorData.error);
+            console.error('获取管理员内容失败:', errorData.error);
             return { articles: [], images: [] };
         }
     } catch (error) {

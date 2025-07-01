@@ -24,10 +24,11 @@ document.addEventListener('DOMContentLoaded', function() {
 // 加载内容
 async function loadContent() {
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE}/content`, {
+        // 🌟 使用公开API，无需认证
+        const response = await fetch(`${API_BASE}/public/content`, {
+            method: 'GET',
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             credentials: 'include'
         });
@@ -36,10 +37,11 @@ async function loadContent() {
             const content = await response.json();
             renderContent(content);
         } else {
+            console.error('加载内容失败:', response.status);
             showNotification('加载内容失败', false);
         }
     } catch (error) {
-        console.log('加载内容异常:', error);
+        console.error('加载内容异常:', error);
         showNotification('网络错误，请重试', false);
     }
 }
