@@ -174,6 +174,7 @@ async function saveArticle() {
         if (imageFile) {
             showNotification('正在上传封面图片...', true);
             imageUrl = await uploadSingleImage(imageFile);
+            console.log('🔍 上传成功，图片URL:', imageUrl);
         }
         
         const currentContent = await getAdminContentData();
@@ -383,9 +384,9 @@ function handleMultipleFileSelect(event) {
             
             previewItem.innerHTML = `
                 <img src="${e.target.result}" alt="Preview">
-                <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white; padding: 8px 6px 4px; font-size: 0.75rem; line-height: 1.2;">
-                    <div style="font-weight: 500; margin-bottom: 2px;">${file.name}</div>
-                    <div style="opacity: 0.9;">${(file.size/1024/1024).toFixed(1)}MB</div>
+                <div class="preview-overlay">
+                    <div class="preview-filename">${file.name}</div>
+                    <div class="preview-filesize">${(file.size/1024/1024).toFixed(1)}MB</div>
                 </div>
             `;
             
