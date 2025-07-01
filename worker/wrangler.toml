@@ -10,7 +10,7 @@ kv_namespaces = [
 # R2存储桶配置（用于存储图片）
 [[r2_buckets]]
 binding = "IMAGES_BUCKET"
-bucket_name = "lensliar-images"
+bucket_name = "images"
 
 [vars]
 ACCOUNT_ID = "451090b48a9de67d8c1aafc805fc124e"
