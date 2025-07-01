@@ -2,18 +2,18 @@
 export async function handleContent(request, env) {
     try {
         if (request.method === 'GET') {
-            // 从 KV 获取内容
-            const content = await env.CONTENT_KV.get("homepage", "json");
+        // 从 KV 获取内容
+        const content = await env.CONTENT_KV.get("homepage", "json");
 
-            if (!content) {
+        if (!content) {
                 // 如果没有内容，返回默认结构
-                return {
+            return {
                     articles: [],
                     images: []
-                };
-            }
+            };
+        }
 
-            return content;
+        return content;
 
         } else if (request.method === 'POST') {
             // 验证权限
