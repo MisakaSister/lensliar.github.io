@@ -80,50 +80,35 @@
                 </div>
             </div>
         </div>
+        
         <div class="form-group">
-            <label>图片来源</label>
-            <div class="image-source-selector">
-                <label style="display: flex; align-items: center; gap: 5px; margin-bottom: 10px;">
-                    <input type="radio" name="image-source" value="url" checked onchange="toggleImageSource()">
-                    <strong>使用URL链接</strong> - 输入现有图片的网址
-                </label>
-                <label style="display: flex; align-items: center; gap: 5px;">
-                    <input type="radio" name="image-source" value="upload" onchange="toggleImageSource()">
-                    <strong>上传图片文件</strong> - 上传到Cloudflare存储
-                </label>
-            </div>
-        </div>
-        
-        <div class="form-group" id="url-input-group">
-            <label for="image-url">图片URL</label>
-            <input type="text" id="image-url" placeholder="输入图片URL">
-        </div>
-        
-        <div class="form-group" id="upload-input-group" style="display: none;">
-            <label for="image-file">选择图片文件</label>
-            <input type="file" id="image-file" accept="image/*" onchange="handleFileSelect(event)">
+            <label for="image-files">选择图片文件</label>
+            <input type="file" id="image-files" accept="image/*" multiple onchange="handleMultipleFileSelect(event)">
             <div style="margin-top: 10px; color: #666; font-size: 0.9rem;">
-                支持格式：JPG, PNG, GIF, WebP (最大 5MB)
+                📁 支持多文件选择 | 格式：JPG, PNG, GIF, WebP | 单文件最大 5MB
             </div>
-            <div id="upload-progress" style="display: none; margin-top: 10px;">
-                <div style="background-color: #f0f0f0; border-radius: 4px; overflow: hidden;">
-                    <div id="upload-progress-bar" style="height: 6px; background-color: #3498db; width: 0%; transition: width 0.3s ease;"></div>
-                </div>
-                <div id="upload-status" style="margin-top: 5px; font-size: 0.9rem; color: #666;"></div>
+            <div id="upload-progress" style="display: none; margin-top: 15px;">
+                <div style="margin-bottom: 10px; font-weight: 500; color: #333;">上传进度：</div>
+                <div id="upload-progress-list"></div>
+                <div id="upload-summary" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px; font-size: 0.9rem;"></div>
             </div>
         </div>
         
         <div class="form-group">
-            <div class="image-preview" id="image-preview">
-                <span>图片预览</span>
+            <label>图片预览</label>
+            <div id="images-preview-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 10px;">
+                <div class="image-preview-placeholder" style="aspect-ratio: 1; border: 2px dashed #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 0.9rem;">
+                    选择文件后显示预览
+                </div>
             </div>
         </div>
+        
         <div class="form-group">
             <label for="image-description">图片描述</label>
-            <textarea id="image-description" placeholder="输入图片描述"></textarea>
+            <textarea id="image-description" placeholder="输入图片描述（所有图片共用）"></textarea>
         </div>
         <div style="display:flex; gap:10px; margin-top:20px;">
-            <button class="btn btn-success" id="save-image-btn" onclick="saveImage()">保存图片</button>
+            <button class="btn btn-success" id="save-images-btn" onclick="saveImages()" disabled>上传并保存图片</button>
             <button class="btn" onclick="clearImageForm()">取消</button>
         </div>
     </div>
