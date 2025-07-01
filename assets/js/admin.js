@@ -32,6 +32,20 @@ async function loadAllContent() {
     try {
         const content = await getAdminContentData();
         
+        // 🔍 调试：检查加载的数据
+        console.log('🔍 页面加载 - 获取到的数据:', {
+            articles: content.articles?.length || 0,
+            images: content.images?.length || 0
+        });
+        
+        if (content.images && content.images.length > 0) {
+            console.log('🔍 图片列表前5项:', content.images.slice(0, 5).map(img => ({
+                id: img.id,
+                title: img.title,
+                url: img.url ? img.url.substring(0, 50) + '...' : 'no url'
+            })));
+        }
+        
         // 渲染文章列表
         renderArticlesList(content.articles || []);
         updateArticlesCount(content.articles?.length || 0);
@@ -465,8 +479,11 @@ async function saveImages() {
                 // 🎯 优化命名：使用原文件名（去掉扩展名）
                 const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
                 
+                // 🔧 生成更安全的唯一ID
+                const uniqueId = Date.now() + Math.random() * 1000 + i;
+                
                 uploadResults.push({
-                    id: Date.now() + i, // 确保ID唯一
+                    id: Math.floor(uniqueId), // 确保ID唯一
                     title: fileNameWithoutExt, // 🔥 直接使用文件名，不添加序号
                     category: category || '默认',
                     description,
@@ -489,11 +506,27 @@ async function saveImages() {
         // 保存到数据库
         if (uploadResults.length > 0) {
             const currentContent = await getAdminContentData();
+            
+            // 🔍 调试：检查数据保存前后的状态
+            console.log('🔍 保存前图片数量:', currentContent.images.length);
+            console.log('🔍 要添加的新图片数量:', uploadResults.length);
+            console.log('🔍 新图片数据:', uploadResults);
+            
             currentContent.images.unshift(...uploadResults); // 添加到开头
+            
+            console.log('🔍 合并后图片数量:', currentContent.images.length);
+            console.log('🔍 完整数据准备保存:', {
+                articles: currentContent.articles.length,
+                images: currentContent.images.length
+            });
             
             const success = await saveContentData(currentContent);
             
             if (success) {
+                // 🔍 保存成功后重新验证数据
+                const verifyContent = await getAdminContentData();
+                console.log('🔍 保存后验证 - 图片数量:', verifyContent.images.length);
+                
                 summary.innerHTML = `
                     <div style="color: #27ae60; font-weight: 500; margin-bottom: 5px;">
                         ✅ 成功上传 ${uploadResults.length} 张图片
@@ -505,9 +538,9 @@ async function saveImages() {
                 
                 showNotification(`成功上传 ${uploadResults.length} 张图片！`, true);
                 
-                // 刷新图片列表
-                renderImagesList(currentContent.images);
-                updateImagesCount(currentContent.images.length);
+                // 使用重新获取的数据刷新列表
+                renderImagesList(verifyContent.images);
+                updateImagesCount(verifyContent.images.length);
                 
                 // 延迟关闭模态框
                 setTimeout(() => {
@@ -692,9 +725,35 @@ async function getAdminContentData() {
     return await response.json();
 }
 
-// 💾 保存内容数据
+// 💾 保存内容数据（增强版本）
 async function saveContentData(contentData) {
     const token = localStorage.getItem('authToken');
+    
+    // 🔧 数据完整性检查
+    if (!contentData || !contentData.articles || !contentData.images) {
+        console.error('🔍 数据结构错误:', contentData);
+        throw new Error('数据结构不完整');
+    }
+    
+    // 🔍 调试：检查要保存的数据
+    console.log('🔍 正在保存数据:', {
+        articles: contentData.articles?.length || 0,
+        images: contentData.images?.length || 0
+    });
+    
+    // 🔧 ID唯一性检查
+    const imageIds = contentData.images.map(img => img.id);
+    const duplicateIds = imageIds.filter((id, index) => imageIds.indexOf(id) !== index);
+    if (duplicateIds.length > 0) {
+        console.warn('🔍 发现重复ID:', duplicateIds);
+        // 修复重复ID
+        contentData.images.forEach((img, index) => {
+            if (duplicateIds.includes(img.id)) {
+                img.id = Date.now() + Math.random() * 1000 + index;
+                console.log('🔧 修复重复ID:', img.id);
+            }
+        });
+    }
     
     const response = await fetch(`${API_BASE}/content`, {
         method: 'POST',
@@ -705,6 +764,22 @@ async function saveContentData(contentData) {
         credentials: 'include',
         body: JSON.stringify(contentData)
     });
+
+    // 🔍 调试：检查保存响应
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🔍 保存失败:', response.status, errorText);
+        
+        // 尝试解析错误信息
+        try {
+            const errorData = JSON.parse(errorText);
+            throw new Error(errorData.error || '保存失败');
+        } catch (e) {
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+    } else {
+        console.log('🔍 保存成功');
+    }
 
     return response.ok;
 }
