@@ -22,10 +22,11 @@ async function loadDetailContent() {
     const { type, id } = detailData;
 
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE}/content`, {
+        // 🌟 使用公开API，无需认证
+        const response = await fetch(`${API_BASE}/public/content`, {
+            method: 'GET',
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             credentials: 'include'
         });

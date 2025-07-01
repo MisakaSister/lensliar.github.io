@@ -31,22 +31,15 @@ document.addEventListener('DOMContentLoaded', function() {
 // 加载内容
 async function loadContent() {
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE}/content`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
-            credentials: 'include'
-        });
-
-        if (response.ok) {
-            const content = await response.json();
+        // 🔒 使用管理员专用API函数
+        const content = await getAdminContentData();
+        if (content && (content.articles || content.images)) {
             renderContent(content);
         } else {
             showNotification('加载内容失败', false);
         }
     } catch (error) {
-        console.log('加载内容异常:', error);
+        console.error('加载内容异常:', error);
         showNotification('网络错误，请重试', false);
     }
 }
@@ -414,18 +407,8 @@ async function saveImage() {
 
 // 获取当前内容
 async function getCurrentContent() {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(`${API_BASE}/content`, {
-        headers: {
-            'Authorization': `Bearer ${token}`
-        },
-        credentials: 'include'
-    });
-
-    if (response.ok) {
-        return await response.json();
-    }
-    return { articles: [], images: [] };
+    // 🔒 使用管理员专用API函数
+    return await getAdminContentData();
 }
 
 // 清空文章表单
