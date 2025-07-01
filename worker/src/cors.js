@@ -58,10 +58,21 @@ export function addCorsHeaders(request, response,env) {
     const allowedOrigins = getAllowedOrigins(env);
     const origin = request.headers.get("Origin");
 
-    // 检查请求来源是否在允许列表中
-    const isAllowed = allowedOrigins.some(allowedOrigin =>
-        origin === allowedOrigin || origin?.endsWith(allowedOrigin)
-    );
+    // 🔒 严格的域名验证 - 防止DNS劫持
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+        if (!origin) return false;
+        
+        // 精确匹配
+        if (origin === allowedOrigin) return true;
+        
+        // 子域名匹配（必须以.开头）
+        if (allowedOrigin.startsWith('.')) {
+            return origin.endsWith(allowedOrigin);
+        }
+        
+        // 不允许其他模式匹配
+        return false;
+    });
 
     // 克隆响应以便修改头
     const newResponse = new Response(response.body, response);
@@ -73,9 +84,28 @@ export function addCorsHeaders(request, response,env) {
         newResponse.headers.set("Vary", "Origin");
     }
 
-    // 添加安全头
+    // 🔒 添加完整的安全头
     newResponse.headers.set("X-Content-Type-Options", "nosniff");
     newResponse.headers.set("X-Frame-Options", "DENY");
+    newResponse.headers.set("X-XSS-Protection", "1; mode=block");
+    newResponse.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    newResponse.headers.set("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
+    
+    // 🔒 内容安全策略 - 防止XSS攻击
+    const csp = [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: https:",
+        "font-src 'self' data:",
+        "connect-src 'self' https://worker.wengguodong.com",
+        "frame-ancestors 'none'",
+        "base-uri 'self'",
+        "form-action 'self'"
+    ].join('; ');
+    
+    newResponse.headers.set("Content-Security-Policy", csp);
+    newResponse.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
 
     return newResponse;
 }

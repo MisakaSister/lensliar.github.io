@@ -1,13 +1,15 @@
 // worker/src/upload.js
 export async function handleUpload(request, env) {
     try {
+        // 🔒 严格的HTTP方法验证
         if (request.method !== 'POST') {
             return new Response(JSON.stringify({
                 error: "Method not allowed"
             }), {
                 status: 405,
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Allow': 'POST' // 明确指示允许的方法
                 }
             });
         }
@@ -131,6 +133,15 @@ async function verifyAuth(request, env) {
         return { success: false, error: 'Token expired' };
     }
 
+    // 🔒 验证会话指纹（防止会话劫持）
+    if (tokenData.sessionFingerprint) {
+        const currentFingerprint = await generateSessionFingerprint(request);
+        if (tokenData.sessionFingerprint !== currentFingerprint) {
+            await env.AUTH_KV.delete(token);
+            return { success: false, error: 'Session security validation failed' };
+        }
+    }
+
     return { success: true, user: tokenData.user };
 }
 
@@ -225,4 +236,20 @@ async function checkUploadRateLimit(request, env) {
     await env.AUTH_KV.put(key, count.toString(), { expirationTtl: 3600 });
     
     return { allowed: true };
+}
+
+// 🔒 生成会话指纹（与auth.js保持一致）
+async function generateSessionFingerprint(request) {
+    const components = [
+        request.headers.get('User-Agent') || '',
+        request.headers.get('Accept-Language') || '',
+        request.headers.get('CF-Connecting-IP') || ''
+    ];
+    
+    const fingerprint = components.join('|');
+    const encoder = new TextEncoder();
+    const data = encoder.encode(fingerprint);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = new Uint8Array(hashBuffer);
+    return Array.from(hashArray, b => b.toString(16).padStart(2, '0')).join('');
 }

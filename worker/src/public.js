@@ -1,6 +1,19 @@
 // worker/src/public.js - 公开内容API
 export async function handlePublicContent(request, env) {
     try {
+        // 🔒 严格的HTTP方法验证
+        if (request.method !== 'GET') {
+            return new Response(JSON.stringify({
+                error: "Method not allowed"
+            }), {
+                status: 405,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Allow': 'GET' // 明确指示只允许GET
+                }
+            });
+        }
+
         if (request.method === 'GET') {
             // 🌟 公开API - 无需认证
             const content = await env.CONTENT_KV.get("homepage", "json");

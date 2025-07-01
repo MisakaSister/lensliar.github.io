@@ -1,6 +1,19 @@
 // worker/src/content.js
 export async function handleContent(request, env) {
     try {
+        // 🔒 严格的HTTP方法验证
+        if (!['GET', 'POST'].includes(request.method)) {
+            return new Response(JSON.stringify({
+                error: "Method not allowed"
+            }), {
+                status: 405,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Allow': 'GET, POST' // 明确指示允许的方法
+                }
+            });
+        }
+
         if (request.method === 'GET') {
             // 🔒 添加认证检查 - 管理员专用API
             const authResult = await verifyAuth(request, env);
@@ -112,7 +125,32 @@ async function verifyAuth(request, env) {
         return { success: false, error: 'Token expired' };
     }
 
+    // 🔒 验证会话指纹（防止会话劫持）
+    if (tokenData.sessionFingerprint) {
+        const currentFingerprint = await generateSessionFingerprint(request);
+        if (tokenData.sessionFingerprint !== currentFingerprint) {
+            await env.AUTH_KV.delete(token);
+            return { success: false, error: 'Session security validation failed' };
+        }
+    }
+
     return { success: true, user: tokenData.user };
+}
+
+// 🔒 生成会话指纹（与auth.js保持一致）
+async function generateSessionFingerprint(request) {
+    const components = [
+        request.headers.get('User-Agent') || '',
+        request.headers.get('Accept-Language') || '',
+        request.headers.get('CF-Connecting-IP') || ''
+    ];
+    
+    const fingerprint = components.join('|');
+    const encoder = new TextEncoder();
+    const data = encoder.encode(fingerprint);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = new Uint8Array(hashBuffer);
+    return Array.from(hashArray, b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // 🔒 验证和清理内容数据
@@ -164,6 +202,11 @@ function validateAndSanitizeContent(data) {
                 throw new Error('Image description too long (max 1000 characters)');
             }
 
+            // 🔒 验证图片URL安全性
+            if (!validateUrl(image.url)) {
+                throw new Error('Invalid or unsafe image URL');
+            }
+
             return {
                 id: parseInt(image.id) || Date.now(),
                 title: sanitizeInput(image.title),
@@ -188,15 +231,59 @@ function validateAndSanitizeContent(data) {
     }
 }
 
-// 🔒 基本XSS防护 - 清理用户输入
+// 🔒 增强XSS防护 - 清理用户输入
 function sanitizeInput(input) {
     if (typeof input !== 'string') return input;
     
     return input
+        // HTML实体编码
+        .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#x27;')
         .replace(/\//g, '&#x2F;')
+        // 移除危险脚本模式
+        .replace(/javascript:/gi, '')
+        .replace(/vbscript:/gi, '')
+        .replace(/on\w+\s*=/gi, '')
+        .replace(/<script[^>]*>.*?<\/script>/gi, '')
+        .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
+        .replace(/expression\s*\(/gi, '')
         .trim();
+}
+
+// 🔒 验证URL安全性
+function validateUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    
+    try {
+        const parsedUrl = new URL(url);
+        
+        // 只允许HTTP/HTTPS协议
+        if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+            return false;
+        }
+        
+        // 防止本地网络访问
+        const hostname = parsedUrl.hostname.toLowerCase();
+        const forbiddenHosts = [
+            'localhost', '127.0.0.1', '0.0.0.0',
+            '10.', '172.16.', '172.17.', '172.18.',
+            '172.19.', '172.20.', '172.21.', '172.22.',
+            '172.23.', '172.24.', '172.25.', '172.26.',
+            '172.27.', '172.28.', '172.29.', '172.30.',
+            '172.31.', '192.168.'
+        ];
+        
+        const isDangerous = forbiddenHosts.some(host => 
+            hostname === host || hostname.startsWith(host)
+        );
+        
+        if (isDangerous) return false;
+        
+        return true;
+    } catch {
+        return false;
+    }
 }
