@@ -251,7 +251,7 @@ function renderImages() {
                 ${image.category ? `<span>${escapeHtml(image.category)}</span> • ` : ''}
                 <span>${formatDate(image.createdAt)}</span>
             </div>
-            ${image.description ? `<div class="card-content">${escapeHtml(image.description)}</div>` : ''}
+            ${image.description ? `<div class="card-content">${escapeHtml(image.description).substring(0, 100)}${image.description.length > 100 ? '...' : ''}</div>` : ''}
             <div class="card-actions">
                 <button class="btn-modern btn-primary btn-small" onclick="viewImage('${image.url}')">
                     查看
