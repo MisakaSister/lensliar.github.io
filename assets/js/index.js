@@ -59,13 +59,8 @@ function renderContent(content) {
     content.articles.forEach(article => {
         const articleElement = document.createElement('div');
         articleElement.className = 'card';
-        
-        // 🔍 调试：检查图片URL
-        console.log(`文章 "${article.title}" 图片URL:`, article.image);
-        
-        const imageUrl = article.image || 'https://via.placeholder.com/600x400';
         articleElement.innerHTML = `
-                <img src="${imageUrl}" alt="${article.title}" class="card-img" onerror="console.error('图片加载失败:', '${imageUrl}'); this.src='https://via.placeholder.com/600x400';">
+                <img src="${article.image || 'https://via.placeholder.com/600x400'}" alt="${article.title}" class="card-img">
                 <div class="card-body">
                     <h3 class="card-title">${article.title}</h3>
                     <p class="card-text">${article.content.substring(0, 100)}...</p>

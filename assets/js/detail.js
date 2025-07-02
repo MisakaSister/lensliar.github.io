@@ -67,10 +67,6 @@ async function loadDetailContent() {
 // 渲染文章详情
 function renderArticleDetail(article) {
     const container = document.getElementById('detail-container');
-    
-    // 🔍 调试：检查图片URL
-    console.log(`文章详情 "${article.title}" 图片URL:`, article.image);
-    
     container.innerHTML = `
             <div class="detail-header">
                 <h1 class="detail-title">${article.title}</h1>
@@ -79,7 +75,7 @@ function renderArticleDetail(article) {
                     <span>发布日期: ${article.date || '未知日期'}</span>
                 </div>
             </div>
-            ${article.image ? `<img src="${article.image}" alt="${article.title}" class="detail-image" onerror="console.error('详情页图片加载失败:', '${article.image}');">` : ''}
+            ${article.image ? `<img src="${article.image}" alt="${article.title}" class="detail-image">` : ''}
             <div class="detail-content">${article.content}</div>
             <button class="btn back-btn" onclick="window.history.back()">返回</button>
         `;
