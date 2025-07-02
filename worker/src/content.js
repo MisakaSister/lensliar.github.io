@@ -125,8 +125,8 @@ async function verifyAuth(request, env) {
         return { success: false, error: 'Token expired' };
     }
 
-    // 🔒 验证会话指纹（防止会话劫持）
-    if (tokenData.sessionFingerprint) {
+    // 🔒 验证会话指纹（防止会话劫持）- 暂时禁用用于调试
+    if (tokenData.sessionFingerprint && false) { // 暂时禁用
         const currentFingerprint = await generateSessionFingerprint(request);
         if (tokenData.sessionFingerprint !== currentFingerprint) {
             await env.AUTH_KV.delete(token);

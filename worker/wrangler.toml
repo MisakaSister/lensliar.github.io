@@ -14,7 +14,7 @@ bucket_name = "images"
 
 [vars]
 ACCOUNT_ID = "451090b48a9de67d8c1aafc805fc124e"
-ALLOWED_ORIGINS = "https://wengguodong.com,https://www.wengguodong.com,https://misakasister.github.io"
+ALLOWED_ORIGINS = "https://wengguodong.com,https://www.wengguodong.com,https://lensliar.github.io,https://misakasister.github.io"
 
 [observability.logs]
 enabled = true

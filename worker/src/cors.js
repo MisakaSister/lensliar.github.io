@@ -10,7 +10,8 @@ export function getAllowedOrigins(env) {
     // 默认值
     return [
         "https://wengguodong.com",
-        "https://www.wengguodong.com",
+        "https://www.wengguodong.com", 
+        "https://lensliar.github.io",
         "https://misakasister.github.io"
     ];
 }
