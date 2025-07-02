@@ -23,11 +23,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    // 绑定退出按钮
-    document.getElementById('logout-link').addEventListener('click', function(e) {
-        e.preventDefault();
-        logout();
-    });
+    // 绑定退出按钮 - 添加空值检查
+    const logoutLink = document.getElementById('logout-link');
+    if (logoutLink) {
+        logoutLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+    }
 
     // 初始化模态框关闭事件
     setupModalEvents();
@@ -88,18 +91,22 @@ async function loadAllContent() {
 
 // 更新统计信息
 function updateStats() {
-    document.getElementById('articles-count').textContent = articlesData.length;
-    document.getElementById('images-count').textContent = imagesData.length;
-    
-    // 更新详细统计
+    const articlesCountEl = document.getElementById('articles-count');
+    const imagesCountEl = document.getElementById('images-count');
     const articlesStats = document.getElementById('articles-stats');
     const imagesStats = document.getElementById('images-stats');
     
-    const filteredArticles = getFilteredData('articles');
-    const filteredImages = getFilteredData('images');
+    if (articlesCountEl) articlesCountEl.textContent = articlesData.length;
+    if (imagesCountEl) imagesCountEl.textContent = imagesData.length;
     
-    articlesStats.textContent = `共 ${articlesData.length} 篇文章${filteredArticles.length !== articlesData.length ? ` (筛选后 ${filteredArticles.length} 篇)` : ''}`;
-    imagesStats.textContent = `共 ${imagesData.length} 张图片${filteredImages.length !== imagesData.length ? ` (筛选后 ${filteredImages.length} 张)` : ''}`;
+    // 更新详细统计
+    if (articlesStats && imagesStats) {
+        const filteredArticles = getFilteredData('articles');
+        const filteredImages = getFilteredData('images');
+        
+        articlesStats.textContent = `共 ${articlesData.length} 篇文章${filteredArticles.length !== articlesData.length ? ` (筛选后 ${filteredArticles.length} 篇)` : ''}`;
+        imagesStats.textContent = `共 ${imagesData.length} 张图片${filteredImages.length !== imagesData.length ? ` (筛选后 ${filteredImages.length} 张)` : ''}`;
+    }
 }
 
 // 切换标签页
@@ -108,11 +115,13 @@ function switchTab(tab) {
     
     // 更新标签按钮状态
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`${tab}-tab-btn`).classList.add('active');
+    const tabBtn = document.getElementById(`${tab}-tab-btn`);
+    if (tabBtn) tabBtn.classList.add('active');
     
     // 更新内容显示
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    document.getElementById(`${tab}-tab`).classList.add('active');
+    const tabContent = document.getElementById(`${tab}-tab`);
+    if (tabContent) tabContent.classList.add('active');
     
     // 渲染内容
     renderCurrentTab();
@@ -160,6 +169,12 @@ function getPaginatedData(type) {
 function renderArticles() {
     const container = document.getElementById('articles-container');
     const paginationContainer = document.getElementById('articles-pagination');
+    
+    if (!container) {
+        console.error('articles-container not found');
+        return;
+    }
+    
     const paginatedData = getPaginatedData('articles');
     
     if (paginatedData.data.length === 0) {
@@ -170,7 +185,7 @@ function renderArticles() {
                 <p>点击"新建文章"按钮创建您的第一篇文章</p>
             </div>
         `;
-        paginationContainer.innerHTML = '';
+        if (paginationContainer) paginationContainer.innerHTML = '';
         return;
     }
     
@@ -205,6 +220,12 @@ function renderArticles() {
 function renderImages() {
     const container = document.getElementById('images-container');
     const paginationContainer = document.getElementById('images-pagination');
+    
+    if (!container) {
+        console.error('images-container not found');
+        return;
+    }
+    
     const paginatedData = getPaginatedData('images');
     
     if (paginatedData.data.length === 0) {
@@ -215,7 +236,7 @@ function renderImages() {
                 <p>点击"上传图片"按钮上传您的第一张图片</p>
             </div>
         `;
-        paginationContainer.innerHTML = '';
+        if (paginationContainer) paginationContainer.innerHTML = '';
         return;
     }
     
@@ -249,6 +270,8 @@ function renderImages() {
 // 渲染分页组件
 function renderPagination(type, paginatedData) {
     const container = document.getElementById(`${type}-pagination`);
+    if (!container) return;
+    
     const { totalPages, currentPage: page, total } = paginatedData;
     
     if (totalPages <= 1) {
