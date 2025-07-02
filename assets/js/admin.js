@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!localStorage.getItem('authToken')) {
         showNotification('请先登录', false);
         setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.href = 'login.html';
         }, 1500);
         return;
     }
@@ -25,21 +25,27 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 加载内容
+    console.log('🔍 Admin页面初始化 - 开始加载内容...');
     loadContent();
 });
 
 // 加载内容
 async function loadContent() {
     try {
+        console.log('🔍 开始调用getAdminContentData...');
         // 🔒 使用管理员专用API函数
         const content = await getAdminContentData();
+        console.log('🔍 getAdminContentData返回结果:', content);
+        
         if (content && (content.articles || content.images)) {
+            console.log('🔍 内容加载成功，开始渲染...');
             renderContent(content);
         } else {
+            console.log('🔍 内容为空或加载失败');
             showNotification('加载内容失败', false);
         }
     } catch (error) {
-        console.error('加载内容异常:', error);
+        console.error('🔍 加载内容异常:', error);
         showNotification('网络错误，请重试', false);
     }
 }
