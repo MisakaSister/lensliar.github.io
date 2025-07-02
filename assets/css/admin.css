@@ -1,5 +1,21 @@
 /* admin.css - 管理页面样式 */
 
+/* 重置基础样式以避免冲突 */
+.admin-container * {
+    box-sizing: border-box;
+}
+
+.admin-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* 覆盖body样式仅在管理页面 */
+body.admin-page {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 /* 导航栏样式 */
 header {
     background-color: #2c3e50;
@@ -42,17 +58,7 @@ nav {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* 现代化管理后台样式 */
-* {
-    box-sizing: border-box;
-}
-
-body {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
+/* 管理后台容器 */
 .admin-container {
     max-width: 1400px;
     margin: 0 auto;
@@ -94,6 +100,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    text-decoration: none;
 }
 
 .btn-primary {
@@ -174,7 +181,8 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.content-grid {
+/* 重新定义content-grid以避免冲突 */
+.admin-container .content-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
@@ -197,7 +205,7 @@ body {
 
 .card-header {
     display: flex;
-    justify-content: between;
+    justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 15px;
 }
@@ -491,7 +499,7 @@ body {
         gap: 10px;
     }
 
-    .content-grid {
+    .admin-container .content-grid {
         grid-template-columns: 1fr;
     }
 
