@@ -420,15 +420,43 @@ textarea {
 footer {
     background-color: var(--primary);
     color: white;
-    text-align: center;
-    padding: 30px 0;
-    margin-top: 50px;
+    padding: 40px 0 20px;
+    margin-top: auto;
 }
 
-footer p {
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.footer-section h3 {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.footer-section p {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
     margin: 0;
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px 0;
+    text-align: center;
+}
+
+.footer-bottom p {
+    margin: 0;
+    opacity: 0.9;
     font-size: 0.9rem;
-    opacity: 0.8;
 }
 
 .notification {
@@ -664,4 +692,23 @@ footer p {
 .empty-state h3 {
     color: white;
     margin-bottom: 10px;
+}
+
+/* Modal样式 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.active {
+    display: flex;
 }
