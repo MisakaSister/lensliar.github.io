@@ -39,9 +39,7 @@ export async function handleImages(request, env) {
             return await updateImageAlbum(imageId, request, env);
         }
 
-        if (pathname === '/images/sync' && method === 'POST') {
-            return await syncImagesFromR2(request, env);
-        }
+
 
         return new Response(JSON.stringify({
             error: 'Not Found'
@@ -431,121 +429,7 @@ async function updateImageAlbum(albumId, request, env) {
     }
 }
 
-// 从R2同步图片到相册
-async function syncImagesFromR2(request, env) {
-    try {
-        // 列出R2中的所有图片
-        const r2Objects = await env.IMAGES_BUCKET.list({
-            prefix: 'images/',
-            include: ['customMetadata', 'httpMetadata']
-        });
 
-        if (r2Objects.objects.length === 0) {
-            return new Response(JSON.stringify({
-                success: true,
-                message: 'No images found in R2',
-                total: 0
-            }), {
-                status: 200,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
-
-        // 获取现有相册列表，避免重复同步
-        const existingAlbums = await env.IMAGES_KV.list({
-            prefix: 'album_'
-        });
-        
-        const existingImageUrls = new Set();
-        for (const key of existingAlbums.keys) {
-            try {
-                const album = await env.IMAGES_KV.get(key.name, 'json');
-                if (album && album.images) {
-                    album.images.forEach(img => {
-                        existingImageUrls.add(img.url);
-                    });
-                }
-            } catch (error) {
-                console.error(`Failed to check existing album ${key.name}:`, error);
-            }
-        }
-
-        // 为每个R2图片创建单独的相册
-        let syncedCount = 0;
-        for (const obj of r2Objects.objects) {
-            const imageUrl = `https://images.wengguodong.com/${obj.key}`;
-            
-            // 跳过已存在的图片
-            if (existingImageUrls.has(imageUrl)) {
-                continue;
-            }
-
-            const albumId = generateAlbumId();
-            const imageName = obj.customMetadata?.originalName || obj.key.split('/').pop();
-            
-            const album = {
-                id: albumId,
-                title: imageName,
-                description: '从R2同步的图片',
-                category: '同步相册',
-                tags: ['R2同步'],
-                images: [{
-                    url: imageUrl,
-                    fileName: obj.key,
-                    title: imageName,
-                    alt: imageName,
-                    caption: '',
-                    width: null,
-                    height: null,
-                    size: obj.size,
-                    type: obj.httpMetadata?.contentType || 'image/jpeg'
-                }],
-                imageCount: 1,
-                coverImage: {
-                    url: imageUrl,
-                    fileName: obj.key,
-                    title: imageName,
-                    alt: imageName,
-                    caption: '',
-                    size: obj.size,
-                    type: obj.httpMetadata?.contentType || 'image/jpeg'
-                },
-                uploadedBy: 'R2同步',
-                createdAt: obj.customMetadata?.uploadedAt || obj.uploaded.toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-
-            // 保存相册
-            await env.IMAGES_KV.put(`album_${albumId}`, JSON.stringify(album));
-            syncedCount++;
-        }
-
-        return new Response(JSON.stringify({
-            success: true,
-            message: `Synced ${syncedCount} new images from R2 (${r2Objects.objects.length} total found)`,
-            synced: syncedCount,
-            total: r2Objects.objects.length
-        }), {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-    } catch (error) {
-        console.error('Sync images error:', error);
-        return new Response(JSON.stringify({
-            error: 'Failed to sync images from R2'
-        }), {
-            status: 500,
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-    }
-}
 
 // 生成相册ID
 function generateAlbumId() {
