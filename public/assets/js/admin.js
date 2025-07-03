@@ -937,8 +937,16 @@ async function saveImages() {
                 const result = await response.json();
                 console.log('Album created successfully:', result);
                 
-                // 添加到本地数据
-                imagesData.unshift(result.album);
+                // 重新从API加载数据，确保数据同步
+                try {
+                    const updatedImages = await loadImages();
+                    imagesData = updatedImages;
+                    console.log('Images data reloaded from API:', imagesData.length);
+                } catch (reloadError) {
+                    console.error('Failed to reload images:', reloadError);
+                    // 如果重新加载失败，回退到添加到本地数据
+                    imagesData.unshift(result.album);
+                }
                 
                 // 更新摘要
                 progressSummary.innerHTML = `
@@ -1143,8 +1151,16 @@ async function deleteAlbum(id) {
             throw new Error(`删除失败: ${error}`);
         }
         
-        // 从本地数据中移除
-        imagesData.splice(index, 1);
+        // 重新从API加载数据，确保数据同步
+        try {
+            const updatedImages = await loadImages();
+            imagesData = updatedImages;
+            console.log('Images data reloaded after deletion:', imagesData.length);
+        } catch (reloadError) {
+            console.error('Failed to reload images after deletion:', reloadError);
+            // 如果重新加载失败，回退到从本地数据中移除
+            imagesData.splice(index, 1);
+        }
         
         showNotification(`${itemName}删除成功`, true);
         updateStats();
@@ -1329,10 +1345,18 @@ function showEditAlbumModal(album) {
             
             const result = await response.json();
             
-            // 更新本地数据
-            const index = imagesData.findIndex(item => item.id === album.id);
-            if (index !== -1) {
-                imagesData[index] = result.album;
+            // 重新从API加载数据，确保数据同步
+            try {
+                const updatedImages = await loadImages();
+                imagesData = updatedImages;
+                console.log('Images data reloaded after update:', imagesData.length);
+            } catch (reloadError) {
+                console.error('Failed to reload images after update:', reloadError);
+                // 如果重新加载失败，回退到更新本地数据
+                const index = imagesData.findIndex(item => item.id === album.id);
+                if (index !== -1) {
+                    imagesData[index] = result.album;
+                }
             }
             
             showNotification('相册更新成功', true);
