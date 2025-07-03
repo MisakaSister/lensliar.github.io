@@ -33,6 +33,12 @@ async function login() {
                 window.location.href = 'admin.html';
             }, 1000);
         } else {
+            console.log('登录失败详情:', {
+                status: response.status,
+                statusText: response.statusText,
+                error: data.error,
+                headers: Object.fromEntries(response.headers.entries())
+            });
             showNotification(data.error || '用户名或密码错误', false);
         }
     } catch (error) {
