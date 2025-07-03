@@ -187,6 +187,7 @@ nav {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
     margin-bottom: 30px;
+    align-items: stretch;
 }
 
 .content-card {
@@ -196,6 +197,9 @@ nav {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
     border: 1px solid #e9ecef;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .content-card:hover {
@@ -216,6 +220,13 @@ nav {
     color: #2c3e50;
     margin: 0 0 8px 0;
     line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+    max-height: 2.8em; /* 2行的高度 (1.4 * 2) */
 }
 
 .card-meta {
@@ -232,6 +243,22 @@ nav {
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+    max-height: 4.8em; /* 3行的高度 (1.6 * 3) */
+    position: relative;
+    flex-grow: 1;
+}
+
+.card-content::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 50px;
+    height: 1.6em;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.9), white);
+    pointer-events: none;
 }
 
 .card-image {
@@ -246,6 +273,8 @@ nav {
     display: flex;
     gap: 10px;
     justify-content: flex-end;
+    margin-top: auto;
+    padding-top: 15px;
 }
 
 .btn-small {
