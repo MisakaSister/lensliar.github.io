@@ -113,29 +113,88 @@ function setupModalEvents() {
 // 加载所有内容
 async function loadAllContent() {
     try {
-        console.log('调用getAdminContentData...');
-        const content = await getAdminContentData();
-        console.log('获取到的内容:', content);
+        console.log('开始加载内容...');
         
-        if (content) {
-            articlesData = content.articles || [];
-            imagesData = content.images || [];
-            
-            // 更新统计信息
-            updateStats();
-            
-            // 渲染当前标签页内容
-            renderCurrentTab();
-            
-            console.log(`内容加载完成: ${articlesData.length} 篇文章, ${imagesData.length} 张图片`);
+        // 并行加载文章和图片数据
+        const [articlesResult, imagesResult] = await Promise.allSettled([
+            loadArticles(),
+            loadImages()
+        ]);
+        
+        // 处理文章数据
+        if (articlesResult.status === 'fulfilled') {
+            articlesData = articlesResult.value || [];
         } else {
-            console.log('内容为空');
-            showEmptyState();
+            console.error('加载文章失败:', articlesResult.reason);
+            articlesData = [];
         }
+        
+        // 处理图片数据
+        if (imagesResult.status === 'fulfilled') {
+            imagesData = imagesResult.value || [];
+        } else {
+            console.error('加载图片失败:', imagesResult.reason);
+            imagesData = [];
+        }
+        
+        // 更新统计信息
+        updateStats();
+        
+        // 渲染当前标签页内容
+        renderCurrentTab();
+        
+        console.log(`内容加载完成: ${articlesData.length} 篇文章, ${imagesData.length} 张图片`);
+        
     } catch (error) {
         console.error('加载内容失败:', error);
         showNotification('加载内容失败: ' + error.message, false);
         showEmptyState();
+    }
+}
+
+// 加载文章数据
+async function loadArticles() {
+    try {
+        const response = await fetch(`${API_BASE}/content`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result.articles || [];
+    } catch (error) {
+        console.error('加载文章失败:', error);
+        throw error;
+    }
+}
+
+// 加载图片数据
+async function loadImages() {
+    try {
+        const response = await fetch(`${API_BASE}/images`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result.images || [];
+    } catch (error) {
+        console.error('加载图片失败:', error);
+        throw error;
     }
 }
 
@@ -1000,6 +1059,20 @@ async function deleteImage(id) {
             return;
         }
         
+        // 调用删除API
+        const response = await fetch(`${API_BASE}/images/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            }
+        });
+        
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`删除失败: ${error}`);
+        }
+        
+        // 从本地数据中移除
         imagesData.splice(index, 1);
         
         showNotification('图片删除成功', true);
@@ -1009,6 +1082,47 @@ async function deleteImage(id) {
     } catch (error) {
         console.error('删除图片失败:', error);
         showNotification('删除失败: ' + error.message, false);
+    }
+}
+
+// 同步R2图片
+async function syncImagesFromR2() {
+    const syncBtn = document.getElementById('sync-images-btn');
+    if (!syncBtn) return;
+    
+    try {
+        syncBtn.disabled = true;
+        syncBtn.textContent = '同步中...';
+        
+        const response = await fetch(`${API_BASE}/images/sync`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`同步失败: ${error}`);
+        }
+        
+        const result = await response.json();
+        showNotification(`同步成功，共同步了 ${result.total} 张图片`, true);
+        
+        // 重新加载图片数据
+        await loadImages().then(images => {
+            imagesData = images;
+            updateStats();
+            renderCurrentTab();
+        });
+        
+    } catch (error) {
+        console.error('同步R2图片失败:', error);
+        showNotification('同步失败: ' + error.message, false);
+    } finally {
+        syncBtn.disabled = false;
+        syncBtn.textContent = '同步R2图片';
     }
 }
 

@@ -3,6 +3,7 @@ import { handleAuth } from './auth.js';
 import { handleContent } from './content.js';
 import { handlePublicAPI } from './public.js';
 import { handleUpload } from './upload.js';
+import { handleImages } from './images.js';
 
 export default {
     async fetch(request, env, ctx) {
@@ -30,6 +31,12 @@ export default {
             // 🔒 文件上传API (需要认证)
             if (pathname.startsWith('/upload')) {
                 const response = await handleUpload(request, env);
+                return addCorsHeaders(request, response, env);
+            }
+
+            // 🔒 图片管理API (需要认证)
+            if (pathname.startsWith('/images')) {
+                const response = await handleImages(request, env);
                 return addCorsHeaders(request, response, env);
             }
 
