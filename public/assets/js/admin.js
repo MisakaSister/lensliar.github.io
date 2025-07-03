@@ -217,7 +217,7 @@ function renderArticles() {
                 ${article.category ? `<span>${escapeHtml(article.category)}</span> • ` : ''}
                 <span>${formatDate(article.createdAt)}</span>
             </div>
-            ${article.imageUrl ? `<img src="${article.imageUrl}" alt="${escapeHtml(article.title)}" class="card-image" onerror="this.style.display='none'">` : ''}
+            ${article.imageUrl ? `<img src="${decodeHtmlEntities(article.imageUrl)}" alt="${escapeHtml(article.title)}" class="card-image" onerror="this.style.display='none'">` : ''}
             <div class="card-content">${escapeHtml(article.content || '').substring(0, 150)}${article.content && article.content.length > 150 ? '...' : ''}</div>
             <div class="card-actions">
                 <button class="btn-modern btn-primary btn-small" onclick="editArticle('${article.id}')">
@@ -818,7 +818,7 @@ async function editArticle(id) {
         const previewContainer = document.getElementById('article-image-preview');
         previewContainer.innerHTML = `
             <div class="preview-item">
-                <img src="${article.imageUrl}" alt="当前封面" class="preview-image">
+                <img src="${decodeHtmlEntities(article.imageUrl)}" alt="当前封面" class="preview-image">
                 <button type="button" class="preview-remove" onclick="removeArticleImage()">×</button>
             </div>
         `;
