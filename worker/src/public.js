@@ -126,6 +126,7 @@ async function getPublicContent(request, env) {
 
         return new Response(JSON.stringify({
             articles: publicArticles,
+            images: [], // 新架构下图片不在KV中存储，返回空数组
             pagination: {
                 page,
                 limit,
