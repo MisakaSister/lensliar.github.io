@@ -56,10 +56,10 @@ async function loadContent() {
 // 解码HTML实体 - 增强版，处理多重编码
 function decodeHtmlEntities(text) {
     if (!text || typeof text !== 'string') return text;
-    
+
     let decoded = text;
     let previousDecoded = '';
-    
+
     // 循环解码直到没有更多实体可解码
     while (decoded !== previousDecoded) {
         previousDecoded = decoded;
@@ -67,14 +67,14 @@ function decodeHtmlEntities(text) {
         textarea.innerHTML = decoded;
         decoded = textarea.value;
     }
-    
+
     return decoded;
 }
 
 // 解码文章内容中的图片URL
 function decodeContentImages(content) {
     if (!content || typeof content !== 'string') return content;
-    
+
     // 匹配所有img标签的src属性
     return content.replace(/<img([^>]*?)src=["']([^"']*?)["']([^>]*?)>/gi, function(match, beforeSrc, src, afterSrc) {
         const decodedSrc = decodeHtmlEntities(src);
@@ -99,7 +99,7 @@ function renderContent(content) {
     content.articles.forEach(article => {
         const articleElement = document.createElement('div');
         articleElement.className = 'card';
-        const imageUrl = article.coverImage?.url ? decodeHtmlEntities(article.coverImage.url) : 'https://via.placeholder.com/600x400';
+        const imageUrl = article.coverImage?.url ? decodeHtmlEntities(article.coverImage.url) : 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg';
         articleElement.innerHTML = `
                 <img src="${imageUrl}" alt="${article.title}" class="card-img">
                 <div class="card-body">
@@ -125,7 +125,7 @@ function renderContent(content) {
     content.images.forEach(album => {
         const albumElement = document.createElement('div');
         albumElement.className = 'card';
-        const imageUrl = album.coverImage?.url || album.url || 'https://via.placeholder.com/600x400';
+        const imageUrl = album.coverImage?.url || album.url || 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg';
         albumElement.innerHTML = `
                 <img src="${decodeHtmlEntities(imageUrl)}" alt="${album.title}" class="card-img" onclick="viewDetail('album', '${album.id}')">
                 <div class="card-body">
@@ -209,17 +209,17 @@ function openImageViewer(imageId) {
 
     currentImages = imagesData;
     currentImageIndex = currentImages.findIndex(img => img.id === imageId);
-    
+
     const viewer = document.getElementById('image-viewer');
     const viewerImage = document.getElementById('viewer-image');
     const viewerTitle = document.getElementById('viewer-title');
     const imageCounter = document.getElementById('image-counter');
-    
+
     if (viewer && viewerImage && viewerTitle && imageCounter) {
         viewerImage.src = decodeHtmlEntities(image.url);
         viewerTitle.textContent = image.title;
         imageCounter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
-        
+
         viewer.style.display = 'block';
         viewer.classList.add('active');
         resetZoom();
@@ -253,7 +253,7 @@ function updateViewerImage() {
     const viewerImage = document.getElementById('viewer-image');
     const viewerTitle = document.getElementById('viewer-title');
     const imageCounter = document.getElementById('image-counter');
-    
+
     if (viewerImage && viewerTitle && imageCounter) {
         viewerImage.src = decodeHtmlEntities(image.url);
         viewerTitle.textContent = image.title;
@@ -282,4 +282,4 @@ function applyZoom() {
     if (viewerImage) {
         viewerImage.style.transform = `scale(${currentZoom})`;
     }
-} 
+}
