@@ -1156,46 +1156,7 @@ async function deleteAlbum(id) {
     }
 }
 
-// 同步R2图片
-async function syncImagesFromR2() {
-    const syncBtn = document.getElementById('sync-images-btn');
-    if (!syncBtn) return;
-    
-    try {
-        syncBtn.disabled = true;
-        syncBtn.textContent = '同步中...';
-        
-        const response = await fetch(`${API_BASE}/images/sync`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            const error = await response.text();
-            throw new Error(`同步失败: ${error}`);
-        }
-        
-        const result = await response.json();
-        showNotification(`同步成功，共同步了 ${result.total} 张图片`, true);
-        
-        // 重新加载图片数据
-        await loadImages().then(images => {
-            imagesData = images;
-            updateStats();
-            renderCurrentTab();
-        });
-        
-    } catch (error) {
-        console.error('同步R2图片失败:', error);
-        showNotification('同步失败: ' + error.message, false);
-    } finally {
-        syncBtn.disabled = false;
-        syncBtn.textContent = '同步R2图片';
-    }
-}
+
 
 // 查看相册
 function viewAlbum(id) {
