@@ -73,28 +73,37 @@ async function getImages(request, env) {
         const category = url.searchParams.get('category') || '';
 
         // 获取所有图片KV键
+        console.log('🔍 Listing albums from IMAGES_KV with prefix: album_');
         const listResult = await env.IMAGES_KV.list({
             prefix: 'album_'
         });
 
-        console.log('Found album keys:', listResult.keys.map(k => k.name));
+        console.log('📋 Found album keys:', listResult.keys.map(k => k.name));
+        console.log('📊 Total keys found:', listResult.keys.length);
 
         const images = [];
         
         // 批量获取图片数据
         for (const key of listResult.keys) {
             try {
+                console.log(`🔄 Loading album data for key: ${key.name}`);
                 const imageData = await env.IMAGES_KV.get(key.name, 'json');
                 if (imageData) {
                     images.push(imageData);
-                    console.log(`Loaded album ${key.name}:`, imageData.title);
+                    console.log(`✅ Loaded album ${key.name}:`, {
+                        title: imageData.title,
+                        imageCount: imageData.imageCount,
+                        createdAt: imageData.createdAt
+                    });
                 } else {
-                    console.log(`No data found for key ${key.name}`);
+                    console.log(`❌ No data found for key ${key.name}`);
                 }
             } catch (error) {
-                console.error(`Failed to get image ${key.name}:`, error);
+                console.error(`❌ Failed to get album ${key.name}:`, error);
             }
         }
+
+        console.log('📈 Total albums loaded:', images.length);
 
         // 按创建时间排序（最新的在前）
         images.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -213,16 +222,29 @@ async function saveImageAlbum(request, env) {
         };
 
         // 保存到IMAGES_KV
+        const kvKey = `album_${albumId}`;
         console.log('Saving album to IMAGES_KV:', {
-            key: `album_${albumId}`,
-            album: album
+            key: kvKey,
+            albumId: albumId,
+            title: album.title,
+            imageCount: album.imageCount
         });
         
-        await env.IMAGES_KV.put(`album_${albumId}`, JSON.stringify(album));
-        
-        // 验证保存是否成功
-        const savedAlbum = await env.IMAGES_KV.get(`album_${albumId}`, 'json');
-        console.log('Album saved successfully:', savedAlbum ? 'YES' : 'NO');
+        try {
+            await env.IMAGES_KV.put(kvKey, JSON.stringify(album));
+            console.log('✅ Album saved to KV successfully');
+            
+            // 验证保存是否成功
+            const savedAlbum = await env.IMAGES_KV.get(kvKey, 'json');
+            if (savedAlbum) {
+                console.log('✅ Album verification successful:', savedAlbum.title);
+            } else {
+                console.log('❌ Album verification failed - not found in KV');
+            }
+        } catch (kvError) {
+            console.error('❌ Failed to save album to KV:', kvError);
+            throw new Error('Failed to save album to KV storage');
+        }
 
         return new Response(JSON.stringify({
             success: true,

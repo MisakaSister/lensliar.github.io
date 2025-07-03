@@ -125,9 +125,12 @@ async function getPublicContent(request, env) {
         }));
 
         // 获取相册数据
+        console.log('🔍 Getting albums from IMAGES_KV for public API');
         const albumKeys = await env.IMAGES_KV.list({
             prefix: 'album_'
         });
+
+        console.log('📋 Found album keys for public API:', albumKeys.keys.map(k => k.name));
 
         const albumPromises = albumKeys.keys.map(key => 
             env.IMAGES_KV.get(key.name, 'json')
@@ -135,11 +138,20 @@ async function getPublicContent(request, env) {
 
         const albums = await Promise.all(albumPromises);
 
+        console.log('📊 Albums loaded for public API:', albums.length);
+        console.log('📷 Albums data:', albums.map(a => a ? {
+            id: a.id, 
+            title: a.title, 
+            imageCount: a.imageCount 
+        } : null));
+
         // 过滤和排序相册
         const filteredAlbums = albums
             .filter(album => album && album.images && album.images.length > 0)
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
             .slice(0, 20); // 最多返回20个相册
+
+        console.log('✅ Filtered albums for public API:', filteredAlbums.length);
 
         // 构造公开的相册数据
         const publicAlbums = filteredAlbums.map(album => ({
