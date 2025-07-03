@@ -3,78 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>认证调试页面</title>
+    <title>API调试测试</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
-        .success { background: #d4edda; border-color: #c3e6cb; }
-        .error { background: #f8d7da; border-color: #f5c6cb; }
-        .info { background: #d1ecf1; border-color: #bee5eb; }
-        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
-        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
-        input { padding: 8px; margin: 5px; width: 200px; }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { border-left: 4px solid #28a745; }
+        .error { border-left: 4px solid #dc3545; }
+        input {
+            width: 200px;
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
-    <h1>🔍 认证系统调试页面</h1>
-    
-    <div class="section info">
-        <h3>当前状态</h3>
-        <p>API Base: <code id="api-base"></code></p>
-        <p>当前Token: <code id="current-token">检查中...</code></p>
-        <p>Token长度: <span id="token-length">-</span></p>
-    </div>
-    
-    <div class="section">
+    <h1>API调试测试页面</h1>
+
+    <div class="test-section">
         <h3>1. 测试公开API</h3>
-        <button onclick="testPublicAPI()">测试公开内容API</button>
-        <div id="public-result"></div>
+        <button onclick="testPublicAPI()">测试获取公开内容</button>
+        <div id="public-result" class="result"></div>
     </div>
-    
-    <div class="section">
-        <h3>2. 登录测试</h3>
+
+    <div class="test-section">
+        <h3>2. 测试登录API</h3>
         <div>
-            <input type="text" id="username" placeholder="用户名" value="admin">
-            <input type="password" id="password" placeholder="密码">
+            <input type="text" id="test-username" placeholder="用户名" value="admin">
+            <input type="password" id="test-password" placeholder="密码" value="">
             <button onclick="testLogin()">测试登录</button>
         </div>
-        <div id="login-result"></div>
+        <div id="login-result" class="result"></div>
     </div>
-    
-    <div class="section">
-        <h3>3. 认证API测试</h3>
-        <button onclick="testAuthenticatedAPI()">测试认证内容API</button>
-        <button onclick="clearToken()">清除Token</button>
-        <div id="auth-result"></div>
+
+    <div class="test-section">
+        <h3>3. 测试认证API</h3>
+        <button onclick="testAuthAPI()">测试获取管理员内容</button>
+        <div id="auth-result" class="result"></div>
     </div>
-    
-    <div class="section">
-        <h3>4. 上传测试</h3>
-        <input type="file" id="test-file" accept="image/*">
-        <button onclick="testUpload()">测试图片上传</button>
-        <div id="upload-result"></div>
+
+    <div class="test-section">
+        <h3>4. 网络连接测试</h3>
+        <button onclick="testConnectivity()">测试网络连接</button>
+        <div id="connectivity-result" class="result"></div>
     </div>
 
     <script>
         const API_BASE = "https://worker.wengguodong.com";
-        
-        // 更新当前状态
-        function updateStatus() {
-            document.getElementById('api-base').textContent = API_BASE;
-            const token = localStorage.getItem('authToken');
-            if (token) {
-                document.getElementById('current-token').textContent = token.substring(0, 20) + '...';
-                document.getElementById('token-length').textContent = token.length + ' 字符';
-            } else {
-                document.getElementById('current-token').textContent = '无Token';
-                document.getElementById('token-length').textContent = '0';
-            }
-        }
-        
-        // 测试公开API
+
         async function testPublicAPI() {
             const resultDiv = document.getElementById('public-result');
-            resultDiv.innerHTML = '<p>测试中...</p>';
+            resultDiv.textContent = '测试中...';
             
             try {
                 const response = await fetch(`${API_BASE}/public/content`, {
@@ -84,48 +99,29 @@
                     },
                     credentials: 'include'
                 });
-                
+
                 const data = await response.json();
                 
-                if (response.ok) {
-                    resultDiv.innerHTML = `
-                        <div class="success">
-                            <h4>✅ 公开API测试成功</h4>
-                            <p>状态码: ${response.status}</p>
-                            <pre>${JSON.stringify(data, null, 2)}</pre>
-                        </div>
-                    `;
-                } else {
-                    resultDiv.innerHTML = `
-                        <div class="error">
-                            <h4>❌ 公开API测试失败</h4>
-                            <p>状态码: ${response.status}</p>
-                            <pre>${JSON.stringify(data, null, 2)}</pre>
-                        </div>
-                    `;
-                }
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `状态: ${response.status}\n响应: ${JSON.stringify(data, null, 2)}`;
             } catch (error) {
-                resultDiv.innerHTML = `
-                    <div class="error">
-                        <h4>❌ 公开API请求异常</h4>
-                        <p>${error.message}</p>
-                    </div>
-                `;
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `错误: ${error.message}`;
             }
         }
-        
-        // 测试登录
+
         async function testLogin() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
             const resultDiv = document.getElementById('login-result');
+            const username = document.getElementById('test-username').value;
+            const password = document.getElementById('test-password').value;
             
             if (!username || !password) {
-                resultDiv.innerHTML = '<div class="error">请输入用户名和密码</div>';
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '请输入用户名和密码';
                 return;
             }
-            
-            resultDiv.innerHTML = '<p>登录中...</p>';
+
+            resultDiv.textContent = '登录中...';
             
             try {
                 const response = await fetch(`${API_BASE}/auth/login`, {
@@ -136,158 +132,97 @@
                     body: JSON.stringify({ username, password }),
                     credentials: 'include'
                 });
-                
+
                 const data = await response.json();
                 
-                if (response.ok && data.token) {
+                if (response.ok) {
+                    resultDiv.className = 'result success';
                     localStorage.setItem('authToken', data.token);
-                    updateStatus();
-                    resultDiv.innerHTML = `
-                        <div class="success">
-                            <h4>✅ 登录成功</h4>
-                            <p>Token: ${data.token.substring(0, 20)}...</p>
-                        </div>
-                    `;
                 } else {
-                    resultDiv.innerHTML = `
-                        <div class="error">
-                            <h4>❌ 登录失败</h4>
-                            <p>状态码: ${response.status}</p>
-                            <p>错误: ${data.error}</p>
-                        </div>
-                    `;
+                    resultDiv.className = 'result error';
                 }
+                
+                resultDiv.textContent = `状态: ${response.status}\n响应: ${JSON.stringify(data, null, 2)}`;
             } catch (error) {
-                resultDiv.innerHTML = `
-                    <div class="error">
-                        <h4>❌ 登录请求异常</h4>
-                        <p>${error.message}</p>
-                    </div>
-                `;
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `错误: ${error.message}`;
             }
         }
-        
-        // 测试认证API
-        async function testAuthenticatedAPI() {
-            const token = localStorage.getItem('authToken');
+
+        async function testAuthAPI() {
             const resultDiv = document.getElementById('auth-result');
+            const token = localStorage.getItem('authToken');
             
             if (!token) {
-                resultDiv.innerHTML = '<div class="error">请先登录获取Token</div>';
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '没有找到认证token，请先登录';
                 return;
             }
-            
-            resultDiv.innerHTML = '<p>测试认证API中...</p>';
+
+            resultDiv.textContent = '测试中...';
             
             try {
                 const response = await fetch(`${API_BASE}/content`, {
-                    method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     credentials: 'include'
                 });
-                
+
                 const data = await response.json();
                 
                 if (response.ok) {
-                    resultDiv.innerHTML = `
-                        <div class="success">
-                            <h4>✅ 认证API测试成功</h4>
-                            <p>状态码: ${response.status}</p>
-                            <pre>${JSON.stringify(data, null, 2)}</pre>
-                        </div>
-                    `;
+                    resultDiv.className = 'result success';
                 } else {
-                    resultDiv.innerHTML = `
-                        <div class="error">
-                            <h4>❌ 认证API测试失败</h4>
-                            <p>状态码: ${response.status}</p>
-                            <p>错误: ${data.error}</p>
-                            <pre>${JSON.stringify(data, null, 2)}</pre>
-                        </div>
-                    `;
+                    resultDiv.className = 'result error';
                 }
+                
+                resultDiv.textContent = `状态: ${response.status}\n响应: ${JSON.stringify(data, null, 2)}`;
             } catch (error) {
-                resultDiv.innerHTML = `
-                    <div class="error">
-                        <h4>❌ 认证API请求异常</h4>
-                        <p>${error.message}</p>
-                    </div>
-                `;
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `错误: ${error.message}`;
             }
         }
-        
-        // 测试上传
-        async function testUpload() {
+
+        async function testConnectivity() {
+            const resultDiv = document.getElementById('connectivity-result');
+            resultDiv.textContent = '测试中...';
+            
+            const tests = [
+                { name: 'API基础连接', url: API_BASE },
+                { name: 'CORS预检', url: `${API_BASE}/auth/login`, method: 'OPTIONS' },
+                { name: 'DNS解析', url: 'https://www.cloudflare.com/cdn-cgi/trace' }
+            ];
+
+            let results = [];
+            
+            for (const test of tests) {
+                try {
+                    const startTime = Date.now();
+                    const response = await fetch(test.url, {
+                        method: test.method || 'GET',
+                        mode: 'cors'
+                    });
+                    const endTime = Date.now();
+                    
+                    results.push(`✓ ${test.name}: ${response.status} (${endTime - startTime}ms)`);
+                } catch (error) {
+                    results.push(`✗ ${test.name}: ${error.message}`);
+                }
+            }
+            
+            resultDiv.className = 'result';
+            resultDiv.textContent = results.join('\n');
+        }
+
+        // 页面加载时显示当前状态
+        window.onload = function() {
             const token = localStorage.getItem('authToken');
-            const fileInput = document.getElementById('test-file');
-            const resultDiv = document.getElementById('upload-result');
-            
-            if (!token) {
-                resultDiv.innerHTML = '<div class="error">请先登录获取Token</div>';
-                return;
+            if (token) {
+                document.querySelector('h1').textContent += ' (已有token)';
             }
-            
-            if (!fileInput.files[0]) {
-                resultDiv.innerHTML = '<div class="error">请选择一个图片文件</div>';
-                return;
-            }
-            
-            resultDiv.innerHTML = '<p>上传中...</p>';
-            
-            try {
-                const formData = new FormData();
-                formData.append('file', fileInput.files[0]);
-                
-                const response = await fetch(`${API_BASE}/upload`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: formData,
-                    credentials: 'include'
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    resultDiv.innerHTML = `
-                        <div class="success">
-                            <h4>✅ 上传测试成功</h4>
-                            <p>状态码: ${response.status}</p>
-                            <pre>${JSON.stringify(data, null, 2)}</pre>
-                        </div>
-                    `;
-                } else {
-                    resultDiv.innerHTML = `
-                        <div class="error">
-                            <h4>❌ 上传测试失败</h4>
-                            <p>状态码: ${response.status}</p>
-                            <p>错误: ${data.error}</p>
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                resultDiv.innerHTML = `
-                    <div class="error">
-                        <h4>❌ 上传请求异常</h4>
-                        <p>${error.message}</p>
-                    </div>
-                `;
-            }
-        }
-        
-        // 清除Token
-        function clearToken() {
-            localStorage.removeItem('authToken');
-            updateStatus();
-            document.getElementById('auth-result').innerHTML = '<div class="info">Token已清除</div>';
-        }
-        
-        // 页面加载时更新状态
-        updateStatus();
+        };
     </script>
 </body>
 </html> 

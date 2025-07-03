@@ -38,51 +38,111 @@ async function loadContent() {
             renderContent(content);
         } else {
             console.error('加载内容失败:', response.status);
-            showNotification('加载内容失败', false);
+            // 即使API失败也显示空状态，而不是完全不显示
+            renderContent({ articles: [], images: [] });
+            showNotification('加载内容失败，请稍后重试', false);
         }
     } catch (error) {
         console.error('加载内容异常:', error);
-        showNotification('网络错误，请重试', false);
+        // 网络错误时也显示空状态
+        renderContent({ articles: [], images: [] });
+        showNotification('网络错误，请检查网络连接', false);
     }
+}
+
+// 解码HTML实体
+function decodeHtmlEntities(text) {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
 }
 
 // 渲染内容
 function renderContent(content) {
     const articlesContainer = document.getElementById('articles-container');
-    const galleryContainer = document.getElementById('gallery-container');
+    const imagesContainer = document.getElementById('images-container');
+
+    // 更新统计数据
+    updateStats(content);
 
     // 清空容器
     articlesContainer.innerHTML = '';
-    galleryContainer.innerHTML = '';
+    imagesContainer.innerHTML = '';
 
     // 渲染文章
-    content.articles.forEach(article => {
-        const articleElement = document.createElement('div');
-        articleElement.className = 'card';
-        articleElement.innerHTML = `
-                <img src="${article.image || 'https://via.placeholder.com/600x400'}" alt="${article.title}" class="card-img">
+    if (content.articles && content.articles.length > 0) {
+        content.articles.forEach(article => {
+            const articleElement = document.createElement('div');
+            articleElement.className = 'card';
+            const imageUrl = article.image ? decodeHtmlEntities(article.image) : 'https://via.placeholder.com/600x400';
+            articleElement.innerHTML = `
+                <img src="${imageUrl}" alt="${article.title}" class="card-img">
                 <div class="card-body">
                     <h3 class="card-title">${article.title}</h3>
                     <p class="card-text">${article.content.substring(0, 100)}...</p>
+                    <div class="card-meta">
+                        <span class="card-date">
+                            <i class="fas fa-calendar"></i>
+                            ${formatDate(article.date || article.createdAt)}
+                        </span>
+                    </div>
                     <button class="btn" onclick="viewDetail('article', ${article.id})">查看详情</button>
                 </div>
             `;
-        articlesContainer.appendChild(articleElement);
-    });
+            articlesContainer.appendChild(articleElement);
+        });
+    } else {
+        articlesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-newspaper empty-icon"></i><h3>暂无文章</h3><p>还没有发布任何文章</p></div>';
+    }
 
     // 渲染图片
-    content.images.forEach(image => {
-        const imageElement = document.createElement('div');
-        imageElement.className = 'card';
-        imageElement.innerHTML = `
-                <img src="${image.url || 'https://via.placeholder.com/600x400'}" alt="${image.title}" class="card-img">
+    if (content.images && content.images.length > 0) {
+        content.images.forEach(image => {
+            const imageElement = document.createElement('div');
+            imageElement.className = 'card';
+            const imageUrl = image.url ? decodeHtmlEntities(image.url) : 'https://via.placeholder.com/600x400';
+            imageElement.innerHTML = `
+                <img src="${imageUrl}" alt="${image.title}" class="card-img" onclick="openImageViewer(${image.id})">
                 <div class="card-body">
                     <h3 class="card-title">${image.title}</h3>
-                    <button class="btn" onclick="viewDetail('image', ${image.id})">查看详情</button>
+                    <div class="card-meta">
+                        <span class="card-date">
+                            <i class="fas fa-calendar"></i>
+                            ${formatDate(image.date || image.createdAt)}
+                        </span>
+                    </div>
+                    <button class="btn" onclick="openImageViewer(${image.id})">查看大图</button>
                 </div>
             `;
-        galleryContainer.appendChild(imageElement);
-    });
+            imagesContainer.appendChild(imageElement);
+        });
+    } else {
+        imagesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-images empty-icon"></i><h3>暂无图片</h3><p>还没有上传任何图片</p></div>';
+    }
+}
+
+// 更新统计数据
+function updateStats(content) {
+    const totalArticles = content.articles ? content.articles.length : 0;
+    const totalImages = content.images ? content.images.length : 0;
+    const totalViews = Math.floor(Math.random() * 1000) + 500; // 模拟浏览量
+
+    document.getElementById('total-articles').textContent = totalArticles;
+    document.getElementById('total-images').textContent = totalImages;
+    document.getElementById('total-views').textContent = totalViews;
+}
+
+// 格式化日期
+function formatDate(dateString) {
+    if (!dateString) return '未知日期';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('zh-CN');
+}
+
+// 打开图片查看器
+function openImageViewer(imageId) {
+    // 这里需要实现图片查看器功能
+    console.log('打开图片查看器:', imageId);
 }
 
 // 查看详情
