@@ -1,92 +1,65 @@
-import {handleAuth} from './auth.js';
-import {handleContent} from './content.js';
-import {handleUpload} from './upload.js';
-import {handlePublicContent} from './public.js';
-import {handleCors, addCorsHeaders} from './cors.js';
+import { handleCors } from './cors.js';
+import { handleAuth } from './auth.js';
+import { handleContent } from './content.js';
+import { handlePublicAPI } from './public.js';
+import { handleUpload } from './upload.js';
 
 export default {
-    async fetch(request, env) {
-
-        const url = new URL(request.url);
-
-        // 1. 首先应用 CORS 中间件
-        const corsResponse = handleCors(request, env);
-        if (corsResponse) return corsResponse;
-
-        let response;
+    async fetch(request, env, ctx) {
+        // 处理预检请求
+        if (request.method === 'OPTIONS') {
+            return handleCors(request);
+        }
 
         try {
-            // 🔒 严格的路由匹配和安全验证
-            const pathname = url.pathname.toLowerCase();
-            
-            // 2. 处理认证请求
-            if (pathname.startsWith('/auth/') && pathname.length > 6) {
-                response = await handleAuth(request, env);
+            const url = new URL(request.url);
+            const pathname = url.pathname;
+
+            // 🔒 管理员认证API
+            if (pathname.startsWith('/auth')) {
+                const response = await handleAuth(request, env);
+                return handleCors(request, response);
             }
-            // 3. 处理公开内容请求（精确匹配）
-            else if (pathname === '/public/content') {
-                response = await handlePublicContent(request, env);
+
+            // 🔒 内容管理API (需要认证)
+            if (pathname.startsWith('/content')) {
+                const response = await handleContent(request, env);
+                return handleCors(request, response);
             }
-            // 4. 处理管理员内容请求（精确匹配）
-            else if (pathname === '/content') {
-                response = await handleContent(request, env);
+
+            // 🔒 文件上传API (需要认证)
+            if (pathname.startsWith('/upload')) {
+                const response = await handleUpload(request, env);
+                return handleCors(request, response);
             }
-            // 5. 处理图片上传请求（精确匹配）
-            else if (pathname === '/upload') {
-                response = await handleUpload(request, env);
+
+            // 🌟 公开API (无需认证)
+            if (pathname.startsWith('/api') || pathname === '/') {
+                const response = await handlePublicAPI(request);
+                return handleCors(request, response);
             }
-            // 🔒 6. 限制代理范围 - 只代理安全的静态文件
-            else {
-                // 验证请求路径安全性
-                const securityCheck = validateProxyPath(url.pathname);
-                if (!securityCheck.safe) {
-                    return new Response(JSON.stringify({
-                        error: "Path not allowed"
-                    }), {
-                        status: 403,
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
+
+            // 404 处理
+            return handleCors(request, new Response(JSON.stringify({
+                error: 'Not Found'
+            }), {
+                status: 404,
+                headers: {
+                    'Content-Type': 'application/json'
                 }
+            }));
 
-                // 🔒 安全的代理请求 - 不转发敏感头信息
-                const safeHeaders = new Headers();
-                safeHeaders.set('User-Agent', 'Cloudflare-Worker');
-                safeHeaders.set('Accept', request.headers.get('Accept') || '*/*');
-                
-                const proxyRequest = new Request(`https://misakasister.github.io${url.pathname}`, {
-                    method: 'GET', // 强制只使用GET方法
-                    headers: safeHeaders
-                });
-
-                response = await fetch(proxyRequest);
-            }
-
-            // 3. 确保响应是 Response 对象
-            if (!(response instanceof Response)) {
-                response = new Response(JSON.stringify(response), {
-                    status: 200,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-            }
         } catch (error) {
-            // 🔒 错误处理 - 不泄露敏感信息
-            console.error('Worker error:', error.message);
-            response = new Response(JSON.stringify({
+            console.error('Worker error:', error);
+            return handleCors(request, new Response(JSON.stringify({
                 error: 'Internal Server Error'
             }), {
                 status: 500,
                 headers: {
                     'Content-Type': 'application/json'
                 }
-            });
+            }));
         }
-
-        // 4. 添加 CORS 头到响应
-        return addCorsHeaders(request, response,env);
     }
 };
 

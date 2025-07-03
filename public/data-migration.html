@@ -6,159 +6,594 @@
     <title>数据迁移工具</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 900px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            line-height: 1.6;
         }
-        .section {
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .step {
             background: #f8f9fa;
             padding: 20px;
             margin: 20px 0;
             border-radius: 8px;
-            border: 1px solid #dee2e6;
+            border-left: 4px solid #007bff;
         }
-        .result {
-            background: white;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            font-family: monospace;
-            white-space: pre-wrap;
-            max-height: 400px;
-            overflow-y: auto;
+        
+        .step h3 {
+            margin-top: 0;
+            color: #007bff;
         }
+        
         button {
             background: #007bff;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
+            padding: 12px 24px;
+            border-radius: 6px;
             cursor: pointer;
-            margin: 5px;
+            font-size: 16px;
+            margin: 10px 5px;
         }
-        button.success {
-            background: #28a745;
+        
+        button:hover {
+            background: #0056b3;
         }
+        
         button:disabled {
             background: #6c757d;
             cursor: not-allowed;
         }
-        .info {
-            background: #d1ecf1;
-            border: 1px solid #bee5eb;
-            color: #0c5460;
+        
+        .success {
+            color: #28a745;
+            background: #d4edda;
             padding: 15px;
-            border-radius: 4px;
+            border-radius: 6px;
             margin: 10px 0;
         }
-        input {
-            padding: 8px;
-            margin: 5px;
-            border: 1px solid #ccc;
+        
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        
+        .warning {
+            color: #856404;
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        
+        .info {
+            color: #004085;
+            background: #cce7ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        
+        .progress {
+            background: #f1f1f1;
+            border-radius: 10px;
+            padding: 3px;
+            margin: 10px 0;
+        }
+        
+        .progress-bar {
+            background: #007bff;
+            height: 20px;
+            border-radius: 8px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .log {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        
+        .config-section {
+            background: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .config-section h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
             border-radius: 4px;
-            width: 200px;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <h1>数据迁移工具</h1>
-    <div class="info">
-        <strong>说明：</strong>此工具将把旧的批量存储格式迁移到新的单独存储格式。
-    </div>
-
-    <div class="section">
-        <h3>1. 登录验证</h3>
-        <div>
-            <input type="text" id="username" placeholder="用户名" value="admin">
-            <input type="password" id="password" placeholder="密码">
-            <button onclick="login()">登录</button>
+    <div class="container">
+        <h1>📦 数据迁移工具</h1>
+        
+        <div class="info">
+            <strong>迁移说明：</strong>
+            <p>此工具将现有的批量存储数据迁移到新的单独存储格式：</p>
+            <ul>
+                <li>每篇文章存储为一个独立的KV对</li>
+                <li>每篇文章包含完整的信息（标题、内容、图片、附件等）</li>
+                <li>支持更丰富的元数据和SEO信息</li>
+                <li>提供更好的性能和并发支持</li>
+            </ul>
         </div>
-        <div id="login-status" class="result"></div>
-    </div>
 
-    <div class="section">
-        <h3>2. 检查和迁移</h3>
-        <button onclick="checkAndMigrate()" id="migrate-btn" class="success" disabled>检查并迁移数据</button>
-        <div id="migrate-result" class="result"></div>
+        <div class="config-section">
+            <h3>🔧 配置信息</h3>
+            <div>
+                <label for="apiUrl">API地址：</label>
+                <input type="text" id="apiUrl" placeholder="https://your-worker.your-subdomain.workers.dev">
+            </div>
+            <div>
+                <label for="username">用户名：</label>
+                <input type="text" id="username" placeholder="admin">
+            </div>
+            <div>
+                <label for="password">密码：</label>
+                <input type="password" id="password" placeholder="输入密码">
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>步骤 1: 备份现有数据</h3>
+            <p>首先获取现有数据并创建备份</p>
+            <button onclick="backupData()">备份数据</button>
+            <div id="backupResult"></div>
+        </div>
+
+        <div class="step">
+            <h3>步骤 2: 数据格式转换</h3>
+            <p>将现有数据转换为新的存储格式</p>
+            <button onclick="convertData()" disabled id="convertBtn">转换数据</button>
+            <div id="convertResult"></div>
+        </div>
+
+        <div class="step">
+            <h3>步骤 3: 迁移数据</h3>
+            <p>将转换后的数据上传到新的存储格式</p>
+            <button onclick="migrateData()" disabled id="migrateBtn">开始迁移</button>
+            <div class="progress hidden" id="migrateProgress">
+                <div class="progress-bar" id="migrateProgressBar">0%</div>
+            </div>
+            <div id="migrateResult"></div>
+        </div>
+
+        <div class="step">
+            <h3>步骤 4: 验证迁移结果</h3>
+            <p>检查迁移后的数据完整性</p>
+            <button onclick="verifyMigration()" disabled id="verifyBtn">验证数据</button>
+            <div id="verifyResult"></div>
+        </div>
+
+        <div class="log hidden" id="migrationLog"></div>
     </div>
 
     <script>
-        const API_BASE = "https://worker.wengguodong.com";
-        let authToken = null;
+        let authToken = '';
+        let backupData = null;
+        let convertedData = null;
+        let migrationResults = [];
 
+        // 获取API配置
+        function getApiConfig() {
+            return {
+                apiUrl: document.getElementById('apiUrl').value.trim(),
+                username: document.getElementById('username').value.trim(),
+                password: document.getElementById('password').value.trim()
+            };
+        }
+
+        // 显示消息
+        function showMessage(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+
+        // 记录日志
+        function log(message) {
+            const logContainer = document.getElementById('migrationLog');
+            logContainer.classList.remove('hidden');
+            logContainer.innerHTML += `[${new Date().toLocaleTimeString()}] ${message}<br>`;
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // 更新进度条
+        function updateProgress(percent) {
+            const progressBar = document.getElementById('migrateProgressBar');
+            progressBar.style.width = percent + '%';
+            progressBar.textContent = Math.round(percent) + '%';
+        }
+
+        // 登录获取token
         async function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const statusDiv = document.getElementById('login-status');
+            const config = getApiConfig();
             
-            if (!username || !password) {
-                statusDiv.textContent = '请输入用户名和密码';
-                return;
+            if (!config.apiUrl || !config.username || !config.password) {
+                throw new Error('请填写完整的API配置信息');
             }
 
-            statusDiv.textContent = '登录中...';
-            
             try {
-                const response = await fetch(`${API_BASE}/auth/login`, {
+                const response = await fetch(`${config.apiUrl}/auth/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ username, password }),
-                    credentials: 'include'
+                    body: JSON.stringify({
+                        username: config.username,
+                        password: config.password
+                    })
                 });
 
-                const data = await response.json();
+                const result = await response.json();
                 
-                if (response.ok) {
-                    authToken = data.token;
-                    statusDiv.textContent = '登录成功！';
-                    document.getElementById('migrate-btn').disabled = false;
-                } else {
-                    statusDiv.textContent = `登录失败: ${data.error}`;
+                if (!response.ok) {
+                    throw new Error(result.error || '登录失败');
                 }
+
+                authToken = result.token;
+                log('登录成功');
+                
             } catch (error) {
-                statusDiv.textContent = `登录错误: ${error.message}`;
+                throw new Error(`登录失败: ${error.message}`);
             }
         }
 
-        async function checkAndMigrate() {
-            const resultDiv = document.getElementById('migrate-result');
-            
-            if (!authToken) {
-                resultDiv.textContent = '请先登录';
-                return;
-            }
-
-            resultDiv.textContent = '检查和迁移数据中...\n';
-            
+        // 备份现有数据
+        async function backupData() {
             try {
-                // 测试新API
-                const response = await fetch(`${API_BASE}/content`, {
+                showMessage('backupResult', '正在备份数据...', 'info');
+                
+                await login();
+                
+                const config = getApiConfig();
+                const response = await fetch(`${config.apiUrl}/content`, {
+                    method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
                         'Content-Type': 'application/json'
-                    },
-                    credentials: 'include'
+                    }
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    let result = '✅ 新格式API工作正常\n';
-                    result += `文章数量: ${data.articles.length}\n`;
-                    result += `图片数量: ${data.images.length}\n\n`;
-                    result += '数据已经使用新的单独存储格式！';
-                    resultDiv.textContent = result;
-                } else {
-                    resultDiv.textContent = `API错误: ${response.status}`;
+                if (!response.ok) {
+                    throw new Error('获取数据失败');
                 }
+
+                const data = await response.json();
+                backupData = data;
+                
+                // 创建备份文件
+                const backupBlob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const backupUrl = URL.createObjectURL(backupBlob);
+                
+                const downloadLink = document.createElement('a');
+                downloadLink.href = backupUrl;
+                downloadLink.download = `backup_${new Date().toISOString().slice(0, 10)}.json`;
+                downloadLink.click();
+                
+                showMessage('backupResult', 
+                    `✅ 备份成功！<br>
+                    文章数量: ${data.articles?.length || 0}<br>
+                    图片数量: ${data.images?.length || 0}<br>
+                    备份文件已下载`, 'success');
+                
+                document.getElementById('convertBtn').disabled = false;
+                log(`备份完成 - 文章: ${data.articles?.length || 0}, 图片: ${data.images?.length || 0}`);
                 
             } catch (error) {
-                resultDiv.textContent = `错误: ${error.message}`;
+                showMessage('backupResult', `❌ 备份失败: ${error.message}`, 'error');
+                log(`备份失败: ${error.message}`);
             }
         }
+
+        // 转换数据格式
+        async function convertData() {
+            try {
+                showMessage('convertResult', '正在转换数据格式...', 'info');
+                
+                if (!backupData) {
+                    throw new Error('请先备份数据');
+                }
+
+                const articles = backupData.articles || [];
+                const images = backupData.images || [];
+                
+                // 转换文章数据
+                convertedData = articles.map(article => {
+                    // 查找相关图片
+                    const relatedImages = images.filter(img => 
+                        img.category === article.category || 
+                        img.title.includes(article.title) ||
+                        article.content.includes(img.url)
+                    );
+
+                    // 构造新的文章格式
+                    return {
+                        id: article.id || `article_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        title: article.title || '',
+                        content: article.content || '',
+                        summary: article.summary || article.content?.substring(0, 200) || '',
+                        category: article.category || '',
+                        tags: article.tags || [],
+                        
+                        // 封面图片（使用第一张相关图片或文章中的图片）
+                        coverImage: article.image ? {
+                            url: article.image,
+                            alt: article.title,
+                            caption: ''
+                        } : (relatedImages.length > 0 ? {
+                            url: relatedImages[0].url,
+                            alt: relatedImages[0].title,
+                            caption: relatedImages[0].description || ''
+                        } : null),
+                        
+                        // 文章中的图片集合
+                        images: relatedImages.map(img => ({
+                            id: img.id || `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                            url: img.url,
+                            alt: img.title || '',
+                            caption: img.description || '',
+                            width: null,
+                            height: null,
+                            size: null
+                        })),
+                        
+                        // 附件（暂时为空）
+                        attachments: [],
+                        
+                        // 元数据
+                        author: 'Admin',
+                        status: 'published',
+                        visibility: 'public',
+                        
+                        // 时间戳
+                        createdAt: article.createdAt || article.date || new Date().toISOString(),
+                        updatedAt: article.updatedAt || new Date().toISOString(),
+                        publishedAt: article.createdAt || article.date || new Date().toISOString(),
+                        
+                        // SEO信息
+                        seo: {
+                            metaTitle: article.title || '',
+                            metaDescription: article.summary || article.content?.substring(0, 160) || '',
+                            keywords: article.tags || [],
+                            slug: generateSlug(article.title || '')
+                        },
+                        
+                        // 统计信息
+                        stats: {
+                            views: 0,
+                            likes: 0,
+                            comments: 0,
+                            shares: 0
+                        }
+                    };
+                });
+
+                showMessage('convertResult', 
+                    `✅ 数据转换成功！<br>
+                    转换了 ${convertedData.length} 篇文章<br>
+                    总图片数: ${images.length}`, 'success');
+                
+                document.getElementById('migrateBtn').disabled = false;
+                log(`数据转换完成 - ${convertedData.length} 篇文章`);
+                
+            } catch (error) {
+                showMessage('convertResult', `❌ 数据转换失败: ${error.message}`, 'error');
+                log(`数据转换失败: ${error.message}`);
+            }
+        }
+
+        // 生成URL友好的slug
+        function generateSlug(title) {
+            return title
+                .toLowerCase()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .trim('-');
+        }
+
+        // 迁移数据
+        async function migrateData() {
+            try {
+                showMessage('migrateResult', '正在迁移数据...', 'info');
+                
+                if (!convertedData) {
+                    throw new Error('请先转换数据');
+                }
+
+                const progressContainer = document.getElementById('migrateProgress');
+                progressContainer.classList.remove('hidden');
+                
+                const config = getApiConfig();
+                const total = convertedData.length;
+                let completed = 0;
+                
+                migrationResults = [];
+
+                // 逐个迁移文章
+                for (const article of convertedData) {
+                    try {
+                        log(`正在迁移文章: ${article.title}`);
+                        
+                        const response = await fetch(`${config.apiUrl}/content`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${authToken}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(article)
+                        });
+
+                        const result = await response.json();
+                        
+                        if (response.ok) {
+                            migrationResults.push({
+                                id: article.id,
+                                title: article.title,
+                                status: 'success',
+                                message: '迁移成功'
+                            });
+                            log(`✅ 文章迁移成功: ${article.title}`);
+                        } else {
+                            migrationResults.push({
+                                id: article.id,
+                                title: article.title,
+                                status: 'error',
+                                message: result.error || '迁移失败'
+                            });
+                            log(`❌ 文章迁移失败: ${article.title} - ${result.error}`);
+                        }
+                        
+                    } catch (error) {
+                        migrationResults.push({
+                            id: article.id,
+                            title: article.title,
+                            status: 'error',
+                            message: error.message
+                        });
+                        log(`❌ 文章迁移异常: ${article.title} - ${error.message}`);
+                    }
+                    
+                    completed++;
+                    updateProgress((completed / total) * 100);
+                    
+                    // 避免请求过快
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+
+                const successCount = migrationResults.filter(r => r.status === 'success').length;
+                const errorCount = migrationResults.filter(r => r.status === 'error').length;
+                
+                showMessage('migrateResult', 
+                    `🎉 迁移完成！<br>
+                    成功: ${successCount} 篇<br>
+                    失败: ${errorCount} 篇<br>
+                    总计: ${total} 篇`, 
+                    errorCount > 0 ? 'warning' : 'success');
+                
+                document.getElementById('verifyBtn').disabled = false;
+                log(`迁移完成 - 成功: ${successCount}, 失败: ${errorCount}`);
+                
+            } catch (error) {
+                showMessage('migrateResult', `❌ 迁移失败: ${error.message}`, 'error');
+                log(`迁移失败: ${error.message}`);
+            }
+        }
+
+        // 验证迁移结果
+        async function verifyMigration() {
+            try {
+                showMessage('verifyResult', '正在验证迁移结果...', 'info');
+                
+                const config = getApiConfig();
+                const response = await fetch(`${config.apiUrl}/content`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('获取迁移后数据失败');
+                }
+
+                const newData = await response.json();
+                const newArticles = newData.articles || [];
+                
+                // 验证数据完整性
+                const originalCount = backupData.articles?.length || 0;
+                const newCount = newArticles.length;
+                const successCount = migrationResults.filter(r => r.status === 'success').length;
+                
+                let verificationMessage = `📊 验证结果：<br>
+                    原始文章数: ${originalCount}<br>
+                    迁移成功数: ${successCount}<br>
+                    当前文章数: ${newCount}<br>`;
+                
+                if (newCount >= successCount) {
+                    verificationMessage += `<br>✅ 数据验证通过！`;
+                    showMessage('verifyResult', verificationMessage, 'success');
+                } else {
+                    verificationMessage += `<br>⚠️ 数据可能不完整，请检查！`;
+                    showMessage('verifyResult', verificationMessage, 'warning');
+                }
+                
+                // 创建验证报告
+                const report = {
+                    timestamp: new Date().toISOString(),
+                    originalCount,
+                    migratedCount: successCount,
+                    currentCount: newCount,
+                    migrationResults,
+                    newData: newArticles
+                };
+                
+                const reportBlob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+                const reportUrl = URL.createObjectURL(reportBlob);
+                
+                const downloadLink = document.createElement('a');
+                downloadLink.href = reportUrl;
+                downloadLink.download = `migration_report_${new Date().toISOString().slice(0, 10)}.json`;
+                downloadLink.click();
+                
+                log('验证完成，报告已下载');
+                
+            } catch (error) {
+                showMessage('verifyResult', `❌ 验证失败: ${error.message}`, 'error');
+                log(`验证失败: ${error.message}`);
+            }
+        }
+
+        // 页面加载时设置默认值
+        window.onload = function() {
+            // 可以设置默认的API地址
+            // document.getElementById('apiUrl').value = 'https://your-worker.your-subdomain.workers.dev';
+        };
     </script>
 </body>
 </html> 

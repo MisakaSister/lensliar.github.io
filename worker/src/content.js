@@ -14,7 +14,7 @@ export async function handleContent(request, env) {
             });
         }
 
-        // 验证权限（除了公开API）
+        // 验证权限
         const authResult = await verifyAuth(request, env);
         if (!authResult.success) {
             return new Response(JSON.stringify({
@@ -31,32 +31,30 @@ export async function handleContent(request, env) {
         const pathParts = url.pathname.split('/').filter(part => part);
         
         if (request.method === 'GET') {
-            // GET /content - 获取所有内容（用于管理后台）
-            return await getAllContent(env);
+            if (pathParts.length === 1) {
+                // GET /content - 获取所有文章列表
+                return await getAllArticles(env);
+            } else if (pathParts.length === 2) {
+                // GET /content/{id} - 获取单篇文章
+                return await getArticle(pathParts[1], env);
+            }
             
         } else if (request.method === 'POST') {
-            // POST /content - 批量保存内容（兼容旧API）
-            const contentData = await request.json();
-            return await saveBatchContent(contentData, env);
+            // POST /content - 创建新文章
+            const articleData = await request.json();
+            return await createArticle(articleData, env);
             
         } else if (request.method === 'PUT') {
-            // PUT /content/articles/{id} - 保存单篇文章
-            // PUT /content/images/{id} - 保存单张图片
-            if (pathParts[1] === 'articles' && pathParts[2]) {
+            // PUT /content/{id} - 更新文章
+            if (pathParts.length === 2) {
                 const articleData = await request.json();
-                return await saveArticle(pathParts[2], articleData, env);
-            } else if (pathParts[1] === 'images' && pathParts[2]) {
-                const imageData = await request.json();
-                return await saveImage(pathParts[2], imageData, env);
+                return await updateArticle(pathParts[1], articleData, env);
             }
             
         } else if (request.method === 'DELETE') {
-            // DELETE /content/articles/{id} - 删除单篇文章
-            // DELETE /content/images/{id} - 删除单张图片
-            if (pathParts[1] === 'articles' && pathParts[2]) {
-                return await deleteArticle(pathParts[2], env);
-            } else if (pathParts[1] === 'images' && pathParts[2]) {
-                return await deleteImage(pathParts[2], env);
+            // DELETE /content/{id} - 删除文章
+            if (pathParts.length === 2) {
+                return await deleteArticle(pathParts[1], env);
             }
         }
 
@@ -82,33 +80,27 @@ export async function handleContent(request, env) {
     }
 }
 
-// 获取所有内容
-async function getAllContent(env) {
+// 获取所有文章列表
+async function getAllArticles(env) {
     try {
         // 获取文章索引
         const articleIndex = await env.CONTENT_KV.get("articles:index", "json") || [];
-        const imageIndex = await env.CONTENT_KV.get("images:index", "json") || [];
 
         // 并行获取所有文章
         const articlePromises = articleIndex.map(id => 
             env.CONTENT_KV.get(`article:${id}`, "json")
         );
-        const imagePromises = imageIndex.map(id => 
-            env.CONTENT_KV.get(`image:${id}`, "json")
-        );
 
-        const [articles, images] = await Promise.all([
-            Promise.all(articlePromises),
-            Promise.all(imagePromises)
-        ]);
+        const articles = await Promise.all(articlePromises);
 
-        // 过滤掉null值（已删除的项目）
-        const validArticles = articles.filter(article => article !== null);
-        const validImages = images.filter(image => image !== null);
+        // 过滤掉null值（已删除的文章）并按日期排序
+        const validArticles = articles
+            .filter(article => article !== null)
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         return new Response(JSON.stringify({
             articles: validArticles,
-            images: validImages
+            total: validArticles.length
         }), {
             status: 200,
             headers: {
@@ -117,52 +109,27 @@ async function getAllContent(env) {
         });
 
     } catch (error) {
-        throw new Error(`Failed to get content: ${error.message}`);
+        throw new Error(`Failed to get articles: ${error.message}`);
     }
 }
 
-// 批量保存内容（兼容旧API）
-async function saveBatchContent(contentData, env) {
+// 获取单篇文章
+async function getArticle(id, env) {
     try {
-        const validationResult = validateAndSanitizeContent(contentData);
-        if (!validationResult.valid) {
+        const article = await env.CONTENT_KV.get(`article:${id}`, "json");
+
+        if (!article) {
             return new Response(JSON.stringify({
-                error: validationResult.error
+                error: "Article not found"
             }), {
-                status: 400,
+                status: 404,
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
         }
 
-        const { articles, images } = validationResult.data;
-
-        // 保存所有文章
-        const articlePromises = articles.map(article => 
-            saveArticleData(article.id, article, env)
-        );
-        
-        // 保存所有图片
-        const imagePromises = images.map(image => 
-            saveImageData(image.id, image, env)
-        );
-
-        await Promise.all([...articlePromises, ...imagePromises]);
-
-        // 更新索引
-        const articleIds = articles.map(a => a.id);
-        const imageIds = images.map(i => i.id);
-        
-        await Promise.all([
-            env.CONTENT_KV.put("articles:index", JSON.stringify(articleIds)),
-            env.CONTENT_KV.put("images:index", JSON.stringify(imageIds))
-        ]);
-
-        return new Response(JSON.stringify({
-            success: true,
-            message: "Content saved successfully"
-        }), {
+        return new Response(JSON.stringify(article), {
             status: 200,
             headers: {
                 'Content-Type': 'application/json'
@@ -170,17 +137,17 @@ async function saveBatchContent(contentData, env) {
         });
 
     } catch (error) {
-        throw new Error(`Failed to save batch content: ${error.message}`);
+        throw new Error(`Failed to get article: ${error.message}`);
     }
 }
 
-// 保存单篇文章
-async function saveArticle(id, articleData, env) {
+// 创建新文章
+async function createArticle(articleData, env) {
     try {
-        // 验证文章数据
+        // 验证必需字段
         if (!articleData.title || !articleData.content) {
             return new Response(JSON.stringify({
-                error: 'Article missing required fields'
+                error: 'Article title and content are required'
             }), {
                 status: 400,
                 headers: {
@@ -189,71 +156,175 @@ async function saveArticle(id, articleData, env) {
             });
         }
 
-        const sanitizedArticle = {
-            id: id,
+        // 生成文章ID
+        const articleId = articleData.id || `article_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        // 构造完整的文章对象
+        const article = {
+            id: articleId,
             title: sanitizeInput(articleData.title),
             content: sanitizeInput(articleData.content),
+            summary: sanitizeInput(articleData.summary || articleData.content.substring(0, 200)),
             category: sanitizeInput(articleData.category || ''),
-            image: sanitizeInput(articleData.image || '', true),
-            date: articleData.date || new Date().toISOString().split('T')[0],
+            tags: Array.isArray(articleData.tags) ? articleData.tags.map(tag => sanitizeInput(tag)) : [],
+            
+            // 封面图片
+            coverImage: articleData.coverImage ? {
+                url: sanitizeInput(articleData.coverImage.url, true),
+                alt: sanitizeInput(articleData.coverImage.alt || ''),
+                caption: sanitizeInput(articleData.coverImage.caption || '')
+            } : null,
+            
+            // 文章中的图片集合
+            images: Array.isArray(articleData.images) ? articleData.images.map(img => ({
+                id: img.id || `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                url: sanitizeInput(img.url, true),
+                alt: sanitizeInput(img.alt || ''),
+                caption: sanitizeInput(img.caption || ''),
+                width: parseInt(img.width) || null,
+                height: parseInt(img.height) || null,
+                size: parseInt(img.size) || null
+            })) : [],
+            
+            // 文章中的附件
+            attachments: Array.isArray(articleData.attachments) ? articleData.attachments.map(att => ({
+                id: att.id || `att_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                name: sanitizeInput(att.name),
+                url: sanitizeInput(att.url, true),
+                type: sanitizeInput(att.type || ''),
+                size: parseInt(att.size) || null
+            })) : [],
+            
+            // 元数据
+            author: sanitizeInput(articleData.author || 'Admin'),
+            status: articleData.status || 'published', // draft, published, archived
+            visibility: articleData.visibility || 'public', // public, private, unlisted
+            
+            // 时间戳
             createdAt: articleData.createdAt || new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
+            publishedAt: articleData.status === 'published' ? (articleData.publishedAt || new Date().toISOString()) : null,
+            
+            // SEO信息
+            seo: {
+                metaTitle: sanitizeInput(articleData.seo?.metaTitle || articleData.title),
+                metaDescription: sanitizeInput(articleData.seo?.metaDescription || articleData.summary || ''),
+                keywords: Array.isArray(articleData.seo?.keywords) ? articleData.seo.keywords.map(k => sanitizeInput(k)) : [],
+                slug: sanitizeInput(articleData.seo?.slug || generateSlug(articleData.title))
+            },
+            
+            // 统计信息
+            stats: {
+                views: 0,
+                likes: 0,
+                comments: 0,
+                shares: 0
+            }
         };
 
-        await saveArticleData(id, sanitizedArticle, env);
+        // 保存文章
+        await env.CONTENT_KV.put(`article:${articleId}`, JSON.stringify(article));
 
         // 更新文章索引
-        await updateArticleIndex(id, env);
+        await updateArticleIndex(articleId, env);
 
         return new Response(JSON.stringify({
             success: true,
-            article: sanitizedArticle
+            article: article
         }), {
-            status: 200,
+            status: 201,
             headers: {
                 'Content-Type': 'application/json'
             }
         });
 
     } catch (error) {
-        throw new Error(`Failed to save article: ${error.message}`);
+        throw new Error(`Failed to create article: ${error.message}`);
     }
 }
 
-// 保存单张图片
-async function saveImage(id, imageData, env) {
+// 更新文章
+async function updateArticle(id, articleData, env) {
     try {
-        // 验证图片数据
-        if (!imageData.title || !imageData.url) {
+        // 获取现有文章
+        const existingArticle = await env.CONTENT_KV.get(`article:${id}`, "json");
+
+        if (!existingArticle) {
             return new Response(JSON.stringify({
-                error: 'Image missing required fields'
+                error: "Article not found"
             }), {
-                status: 400,
+                status: 404,
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
         }
 
-        const sanitizedImage = {
-            id: id,
-            title: sanitizeInput(imageData.title),
-            url: sanitizeInput(imageData.url, true),
-            description: sanitizeInput(imageData.description || ''),
-            category: sanitizeInput(imageData.category || ''),
-            date: imageData.date || new Date().toISOString().split('T')[0],
-            createdAt: imageData.createdAt || new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+        // 更新文章数据（保留原有数据，只更新提供的字段）
+        const updatedArticle = {
+            ...existingArticle,
+            title: articleData.title ? sanitizeInput(articleData.title) : existingArticle.title,
+            content: articleData.content ? sanitizeInput(articleData.content) : existingArticle.content,
+            summary: articleData.summary ? sanitizeInput(articleData.summary) : existingArticle.summary,
+            category: articleData.category !== undefined ? sanitizeInput(articleData.category) : existingArticle.category,
+            tags: Array.isArray(articleData.tags) ? articleData.tags.map(tag => sanitizeInput(tag)) : existingArticle.tags,
+            
+            // 更新封面图片
+            coverImage: articleData.coverImage ? {
+                url: sanitizeInput(articleData.coverImage.url, true),
+                alt: sanitizeInput(articleData.coverImage.alt || ''),
+                caption: sanitizeInput(articleData.coverImage.caption || '')
+            } : existingArticle.coverImage,
+            
+            // 更新图片集合
+            images: Array.isArray(articleData.images) ? articleData.images.map(img => ({
+                id: img.id || `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                url: sanitizeInput(img.url, true),
+                alt: sanitizeInput(img.alt || ''),
+                caption: sanitizeInput(img.caption || ''),
+                width: parseInt(img.width) || null,
+                height: parseInt(img.height) || null,
+                size: parseInt(img.size) || null
+            })) : existingArticle.images,
+            
+            // 更新附件
+            attachments: Array.isArray(articleData.attachments) ? articleData.attachments.map(att => ({
+                id: att.id || `att_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                name: sanitizeInput(att.name),
+                url: sanitizeInput(att.url, true),
+                type: sanitizeInput(att.type || ''),
+                size: parseInt(att.size) || null
+            })) : existingArticle.attachments,
+            
+            // 更新元数据
+            author: articleData.author ? sanitizeInput(articleData.author) : existingArticle.author,
+            status: articleData.status || existingArticle.status,
+            visibility: articleData.visibility || existingArticle.visibility,
+            
+            // 更新时间戳
+            updatedAt: new Date().toISOString(),
+            publishedAt: (articleData.status === 'published' && !existingArticle.publishedAt) ? 
+                new Date().toISOString() : existingArticle.publishedAt,
+            
+            // 更新SEO信息
+            seo: {
+                metaTitle: sanitizeInput(articleData.seo?.metaTitle || articleData.title || existingArticle.seo.metaTitle),
+                metaDescription: sanitizeInput(articleData.seo?.metaDescription || articleData.summary || existingArticle.seo.metaDescription),
+                keywords: Array.isArray(articleData.seo?.keywords) ? 
+                    articleData.seo.keywords.map(k => sanitizeInput(k)) : existingArticle.seo.keywords,
+                slug: sanitizeInput(articleData.seo?.slug || existingArticle.seo.slug)
+            },
+            
+            // 保留统计信息
+            stats: existingArticle.stats
         };
 
-        await saveImageData(id, sanitizedImage, env);
-
-        // 更新图片索引
-        await updateImageIndex(id, env);
+        // 保存更新后的文章
+        await env.CONTENT_KV.put(`article:${id}`, JSON.stringify(updatedArticle));
 
         return new Response(JSON.stringify({
             success: true,
-            image: sanitizedImage
+            article: updatedArticle
         }), {
             status: 200,
             headers: {
@@ -262,13 +333,27 @@ async function saveImage(id, imageData, env) {
         });
 
     } catch (error) {
-        throw new Error(`Failed to save image: ${error.message}`);
+        throw new Error(`Failed to update article: ${error.message}`);
     }
 }
 
-// 删除单篇文章
+// 删除文章
 async function deleteArticle(id, env) {
     try {
+        // 检查文章是否存在
+        const existingArticle = await env.CONTENT_KV.get(`article:${id}`, "json");
+
+        if (!existingArticle) {
+            return new Response(JSON.stringify({
+                error: "Article not found"
+            }), {
+                status: 404,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+
         // 删除文章数据
         await env.CONTENT_KV.delete(`article:${id}`);
 
@@ -292,42 +377,6 @@ async function deleteArticle(id, env) {
     }
 }
 
-// 删除单张图片
-async function deleteImage(id, env) {
-    try {
-        // 删除图片数据
-        await env.CONTENT_KV.delete(`image:${id}`);
-
-        // 从索引中移除
-        const imageIndex = await env.CONTENT_KV.get("images:index", "json") || [];
-        const updatedIndex = imageIndex.filter(imageId => imageId !== id);
-        await env.CONTENT_KV.put("images:index", JSON.stringify(updatedIndex));
-
-        return new Response(JSON.stringify({
-            success: true,
-            message: "Image deleted successfully"
-        }), {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-    } catch (error) {
-        throw new Error(`Failed to delete image: ${error.message}`);
-    }
-}
-
-// 辅助函数：保存文章数据
-async function saveArticleData(id, articleData, env) {
-    await env.CONTENT_KV.put(`article:${id}`, JSON.stringify(articleData));
-}
-
-// 辅助函数：保存图片数据
-async function saveImageData(id, imageData, env) {
-    await env.CONTENT_KV.put(`image:${id}`, JSON.stringify(imageData));
-}
-
 // 辅助函数：更新文章索引
 async function updateArticleIndex(id, env) {
     const articleIndex = await env.CONTENT_KV.get("articles:index", "json") || [];
@@ -337,13 +386,14 @@ async function updateArticleIndex(id, env) {
     }
 }
 
-// 辅助函数：更新图片索引
-async function updateImageIndex(id, env) {
-    const imageIndex = await env.CONTENT_KV.get("images:index", "json") || [];
-    if (!imageIndex.includes(id)) {
-        imageIndex.push(id);
-        await env.CONTENT_KV.put("images:index", JSON.stringify(imageIndex));
-    }
+// 辅助函数：生成URL友好的slug
+function generateSlug(title) {
+    return title
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '') // 移除特殊字符
+        .replace(/\s+/g, '-') // 空格替换为连字符
+        .replace(/-+/g, '-') // 多个连字符合并为一个
+        .trim('-'); // 移除首尾连字符
 }
 
 // 验证认证token
@@ -393,84 +443,38 @@ async function generateSessionFingerprint(request) {
     return Array.from(hashArray, b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// 🔒 验证和清理内容数据
-function validateAndSanitizeContent(data) {
-    if (!data || typeof data !== 'object') {
-        return { valid: false, error: 'Invalid data format' };
-    }
-
-    if (!Array.isArray(data.articles) || !Array.isArray(data.images)) {
-        return { valid: false, error: 'Invalid content structure' };
-    }
-
+// 🔒 验证URL安全性
+function validateUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    
     try {
-        // 验证和清理文章数据
-        const sanitizedArticles = data.articles.map(article => {
-            if (!article.title || !article.content) {
-                throw new Error('Article missing required fields');
-            }
-            
-            // 限制内容长度
-            if (article.title.length > 200) {
-                throw new Error('Article title too long (max 200 characters)');
-            }
-            if (article.content.length > 10000) {
-                throw new Error('Article content too long (max 10000 characters)');
-            }
-
-            return {
-                id: parseInt(article.id) || Date.now(),
-                title: sanitizeInput(article.title),
-                content: sanitizeInput(article.content),
-                category: sanitizeInput(article.category || ''),
-                image: sanitizeInput(article.image || '', true),
-                date: article.date || new Date().toISOString().split('T')[0]
-            };
-        });
-
-        // 验证和清理图片数据
-        const sanitizedImages = data.images.map(image => {
-            if (!image.title || !image.url) {
-                throw new Error('Image missing required fields');
-            }
-
-            // 限制内容长度
-            if (image.title.length > 200) {
-                throw new Error('Image title too long (max 200 characters)');
-            }
-            if (image.description && image.description.length > 1000) {
-                throw new Error('Image description too long (max 1000 characters)');
-            }
-
-            // 🔒 验证图片URL安全性
-            if (!validateUrl(image.url)) {
-                throw new Error('Invalid or unsafe image URL');
-            }
-
-            return {
-                id: parseInt(image.id) || Date.now(),
-                title: sanitizeInput(image.title),
-                url: sanitizeInput(image.url, true),
-                description: sanitizeInput(image.description || ''),
-                category: sanitizeInput(image.category || ''),
-                date: image.date || new Date().toISOString().split('T')[0],
-                uploadTime: image.uploadTime || null,
-                fileName: sanitizeInput(image.fileName || ''),
-                fileSize: parseInt(image.fileSize) || null,
-                source: image.source || 'url'
-            };
-        });
-
-        return {
-            valid: true,
-            data: {
-                articles: sanitizedArticles,
-                images: sanitizedImages
-            }
-        };
-
-    } catch (error) {
-        return { valid: false, error: error.message };
+        const parsedUrl = new URL(url);
+        
+        // 只允许HTTP/HTTPS协议
+        if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+            return false;
+        }
+        
+        // 防止本地网络访问
+        const hostname = parsedUrl.hostname.toLowerCase();
+        const forbiddenHosts = [
+            'localhost', '127.0.0.1', '0.0.0.0',
+            '10.', '172.16.', '172.17.', '172.18.',
+            '172.19.', '172.20.', '172.21.', '172.22.',
+            '172.23.', '172.24.', '172.25.', '172.26.',
+            '172.27.', '172.28.', '172.29.', '172.30.',
+            '172.31.', '192.168.'
+        ];
+        
+        const isDangerous = forbiddenHosts.some(host => 
+            hostname === host || hostname.startsWith(host)
+        );
+        
+        if (isDangerous) return false;
+        
+        return true;
+    } catch {
+        return false;
     }
 }
 
@@ -507,39 +511,4 @@ function sanitizeInput(input, isUrl = false) {
         .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
         .replace(/expression\s*\(/gi, '')
         .trim();
-}
-
-// 🔒 验证URL安全性
-function validateUrl(url) {
-    if (!url || typeof url !== 'string') return false;
-    
-    try {
-        const parsedUrl = new URL(url);
-        
-        // 只允许HTTP/HTTPS协议
-        if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-            return false;
-        }
-        
-        // 防止本地网络访问
-        const hostname = parsedUrl.hostname.toLowerCase();
-        const forbiddenHosts = [
-            'localhost', '127.0.0.1', '0.0.0.0',
-            '10.', '172.16.', '172.17.', '172.18.',
-            '172.19.', '172.20.', '172.21.', '172.22.',
-            '172.23.', '172.24.', '172.25.', '172.26.',
-            '172.27.', '172.28.', '172.29.', '172.30.',
-            '172.31.', '192.168.'
-        ];
-        
-        const isDangerous = forbiddenHosts.some(host => 
-            hostname === host || hostname.startsWith(host)
-        );
-        
-        if (isDangerous) return false;
-        
-        return true;
-    } catch {
-        return false;
-    }
 }
