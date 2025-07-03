@@ -99,7 +99,7 @@ function renderContent(content) {
     content.articles.forEach(article => {
         const articleElement = document.createElement('div');
         articleElement.className = 'card';
-            const imageUrl = article.image ? decodeHtmlEntities(article.image) : 'https://via.placeholder.com/600x400';
+        const imageUrl = article.coverImage?.url ? decodeHtmlEntities(article.coverImage.url) : 'https://via.placeholder.com/600x400';
         articleElement.innerHTML = `
                 <img src="${imageUrl}" alt="${article.title}" class="card-img">
                 <div class="card-body">
