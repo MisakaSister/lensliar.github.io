@@ -9,7 +9,7 @@ const API_BASE = "https://worker.wengguodong.com";
 // 🌟 获取公开内容数据（无需认证）
 async function getContentData() {
     try {
-        const response = await fetch(`${API_BASE}/public/content`, {
+        const response = await fetch(`${API_BASE}/api/content`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'

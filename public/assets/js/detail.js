@@ -56,7 +56,7 @@ async function loadDetailContent() {
 
     try {
         // 🌟 使用公开API，无需认证
-        const response = await fetch(`${API_BASE}/public/content`, {
+        const response = await fetch(`${API_BASE}/api/content`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'

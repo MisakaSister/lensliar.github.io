@@ -1,4 +1,4 @@
-import { handleCors } from './cors.js';
+import { handleCors, addCorsHeaders } from './cors.js';
 import { handleAuth } from './auth.js';
 import { handleContent } from './content.js';
 import { handlePublicAPI } from './public.js';
@@ -8,7 +8,7 @@ export default {
     async fetch(request, env, ctx) {
         // 处理预检请求
         if (request.method === 'OPTIONS') {
-            return handleCors(request);
+            return handleCors(request, env);
         }
 
         try {
@@ -18,47 +18,47 @@ export default {
             // 🔒 管理员认证API
             if (pathname.startsWith('/auth')) {
                 const response = await handleAuth(request, env);
-                return handleCors(request, response);
+                return addCorsHeaders(request, response, env);
             }
 
             // 🔒 内容管理API (需要认证)
             if (pathname.startsWith('/content')) {
                 const response = await handleContent(request, env);
-                return handleCors(request, response);
+                return addCorsHeaders(request, response, env);
             }
 
             // 🔒 文件上传API (需要认证)
             if (pathname.startsWith('/upload')) {
                 const response = await handleUpload(request, env);
-                return handleCors(request, response);
+                return addCorsHeaders(request, response, env);
             }
 
             // 🌟 公开API (无需认证)
             if (pathname.startsWith('/api') || pathname === '/') {
-                const response = await handlePublicAPI(request);
-                return handleCors(request, response);
+                const response = await handlePublicAPI(request, env);
+                return addCorsHeaders(request, response, env);
             }
 
             // 404 处理
-            return handleCors(request, new Response(JSON.stringify({
+            return addCorsHeaders(request, new Response(JSON.stringify({
                 error: 'Not Found'
             }), {
                 status: 404,
                 headers: {
                     'Content-Type': 'application/json'
                 }
-            }));
+            }), env);
 
         } catch (error) {
             console.error('Worker error:', error);
-            return handleCors(request, new Response(JSON.stringify({
+            return addCorsHeaders(request, new Response(JSON.stringify({
                 error: 'Internal Server Error'
             }), {
                 status: 500,
                 headers: {
                     'Content-Type': 'application/json'
                 }
-            }));
+            }), env);
         }
     }
 };

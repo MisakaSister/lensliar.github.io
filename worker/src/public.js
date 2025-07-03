@@ -1,5 +1,5 @@
 // worker/src/public.js - 公开内容API
-export async function handlePublicAPI(request) {
+export async function handlePublicAPI(request, env) {
     try {
         const url = new URL(request.url);
         const pathParts = url.pathname.split('/').filter(part => part);
@@ -25,16 +25,16 @@ export async function handlePublicAPI(request) {
         // 路由处理
         if (pathParts.length === 0 || pathParts[0] === 'content') {
             // GET /api/content 或 GET /api/ - 获取所有内容
-            return await getPublicContent(request);
+            return await getPublicContent(request, env);
         } else if (pathParts[0] === 'article' && pathParts[1]) {
             // GET /api/article/{id} - 获取单篇文章
-            return await getPublicArticle(pathParts[1], request);
+            return await getPublicArticle(pathParts[1], request, env);
         } else if (pathParts[0] === 'search') {
             // GET /api/search?q=keyword - 搜索文章
-            return await searchPublicContent(request);
+            return await searchPublicContent(request, env);
         } else if (pathParts[0] === 'stats') {
             // GET /api/stats - 获取统计信息
-            return await getPublicStats(request);
+            return await getPublicStats(request, env);
         }
 
         return new Response(JSON.stringify({
@@ -60,7 +60,7 @@ export async function handlePublicAPI(request) {
 }
 
 // 获取公开内容
-async function getPublicContent(request) {
+async function getPublicContent(request, env) {
     try {
         const url = new URL(request.url);
         const page = parseInt(url.searchParams.get('page')) || 1;
@@ -71,11 +71,11 @@ async function getPublicContent(request) {
         const visibility = url.searchParams.get('visibility') || 'public';
 
         // 获取文章索引
-        const articleIndex = await request.env.CONTENT_KV.get("articles:index", "json") || [];
+        const articleIndex = await env.CONTENT_KV.get("articles:index", "json") || [];
 
         // 并行获取所有文章
         const articlePromises = articleIndex.map(id => 
-            request.env.CONTENT_KV.get(`article:${id}`, "json")
+            env.CONTENT_KV.get(`article:${id}`, "json")
         );
 
         const articles = await Promise.all(articlePromises);
@@ -154,9 +154,9 @@ async function getPublicContent(request) {
 }
 
 // 获取单篇公开文章
-async function getPublicArticle(id, request) {
+async function getPublicArticle(id, request, env) {
     try {
-        const article = await request.env.CONTENT_KV.get(`article:${id}`, "json");
+        const article = await env.CONTENT_KV.get(`article:${id}`, "json");
 
         if (!article) {
             return new Response(JSON.stringify({
@@ -183,7 +183,7 @@ async function getPublicArticle(id, request) {
 
         // 更新浏览量
         article.stats.views = (article.stats.views || 0) + 1;
-        await request.env.CONTENT_KV.put(`article:${id}`, JSON.stringify(article));
+        await env.CONTENT_KV.put(`article:${id}`, JSON.stringify(article));
 
         // 构造公开的文章数据
         const publicArticle = {
@@ -217,7 +217,7 @@ async function getPublicArticle(id, request) {
 }
 
 // 搜索公开内容
-async function searchPublicContent(request) {
+async function searchPublicContent(request, env) {
     try {
         const url = new URL(request.url);
         const query = url.searchParams.get('q');
@@ -236,11 +236,11 @@ async function searchPublicContent(request) {
         }
 
         // 获取文章索引
-        const articleIndex = await request.env.CONTENT_KV.get("articles:index", "json") || [];
+        const articleIndex = await env.CONTENT_KV.get("articles:index", "json") || [];
 
         // 并行获取所有文章
         const articlePromises = articleIndex.map(id => 
-            request.env.CONTENT_KV.get(`article:${id}`, "json")
+            env.CONTENT_KV.get(`article:${id}`, "json")
         );
 
         const articles = await Promise.all(articlePromises);
@@ -332,14 +332,14 @@ async function searchPublicContent(request) {
 }
 
 // 获取公开统计信息
-async function getPublicStats(request) {
+async function getPublicStats(request, env) {
     try {
         // 获取文章索引
-        const articleIndex = await request.env.CONTENT_KV.get("articles:index", "json") || [];
+        const articleIndex = await env.CONTENT_KV.get("articles:index", "json") || [];
 
         // 并行获取所有文章
         const articlePromises = articleIndex.map(id => 
-            request.env.CONTENT_KV.get(`article:${id}`, "json")
+            env.CONTENT_KV.get(`article:${id}`, "json")
         );
 
         const articles = await Promise.all(articlePromises);
