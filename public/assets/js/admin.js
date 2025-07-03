@@ -40,6 +40,26 @@ function decodeContentImages(content) {
     });
 }
 
+// 智能文本截断函数
+function truncateText(text, maxLength) {
+    if (!text || typeof text !== 'string') return '';
+    
+    // 移除HTML标签
+    const cleanText = text.replace(/<[^>]*>/g, '').trim();
+    
+    if (cleanText.length <= maxLength) return cleanText;
+    
+    // 在单词边界截断
+    let truncated = cleanText.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(' ');
+    
+    if (lastSpace > maxLength * 0.8) {
+        truncated = truncated.substring(0, lastSpace);
+    }
+    
+    return truncated + '...';
+}
+
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
     console.log('管理后台初始化开始...');
@@ -230,7 +250,7 @@ function renderArticles() {
                 <span>${formatDate(article.createdAt)}</span>
             </div>
             ${(article.coverImage?.url || article.imageUrl) ? `<img src="${decodeHtmlEntities(article.coverImage?.url || article.imageUrl)}" alt="${escapeHtml(article.title)}" class="card-image" onerror="this.style.display='none'">` : ''}
-            <div class="card-content">${escapeHtml(article.content || '').substring(0, 150)}${article.content && article.content.length > 150 ? '...' : ''}</div>
+            <div class="card-content">${truncateText(escapeHtml(article.content || ''), 120)}</div>
             <div class="card-actions">
                 <button class="btn-modern btn-primary btn-small" onclick="editArticle('${article.id}')">
                     编辑
@@ -281,7 +301,7 @@ function renderImages() {
                 ${image.category ? `<span>${escapeHtml(image.category)}</span> • ` : ''}
                 <span>${formatDate(image.createdAt)}</span>
             </div>
-            ${image.description ? `<div class="card-content">${escapeHtml(image.description).substring(0, 100)}${image.description.length > 100 ? '...' : ''}</div>` : ''}
+            ${image.description ? `<div class="card-content">${truncateText(escapeHtml(image.description), 80)}</div>` : ''}
             <div class="card-actions">
                 <button class="btn-modern btn-primary btn-small" onclick="viewImage('${decodeHtmlEntities(image.url)}')">
                     查看
