@@ -62,9 +62,6 @@ function renderContent(content) {
     const articlesContainer = document.getElementById('articles-container');
     const imagesContainer = document.getElementById('images-container');
 
-    // 更新统计数据
-    updateStats(content);
-
     // 清空容器
     articlesContainer.innerHTML = '';
     imagesContainer.innerHTML = '';
@@ -119,12 +116,8 @@ function renderContent(content) {
     } else {
         imagesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-images empty-icon"></i><h3>暂无图片</h3><p>还没有上传任何图片</p></div>';
     }
-}
 
-// 更新统计数据
-function updateStats(content) {
-    // Hero区域已删除，此函数保留但不执行任何操作
-    // 可以在控制台显示统计信息用于调试
+    // 在控制台输出统计信息
     const totalArticles = content.articles ? content.articles.length : 0;
     const totalImages = content.images ? content.images.length : 0;
     console.log(`统计信息 - 文章: ${totalArticles}, 图片: ${totalImages}`);
@@ -161,10 +154,12 @@ function logout() {
 // 显示通知
 function showNotification(message, isSuccess = true) {
     const notification = document.getElementById('notification');
-    notification.textContent = message;
-    notification.className = `notification ${isSuccess ? 'success' : 'error'} show`;
+    if (notification) {
+        notification.textContent = message;
+        notification.className = `notification ${isSuccess ? 'success' : 'error'} show`;
 
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 3000);
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
 } 
