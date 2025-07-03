@@ -450,7 +450,7 @@ function generateSlug(title) {
 }
 
 // 验证认证token
-async function verifyAuth(request, env) {
+export async function verifyAuth(request, env) {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return { success: false, error: 'Missing or invalid authorization header' };
