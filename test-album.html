@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>相册功能测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; }
+        button { padding: 10px 20px; margin: 5px; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; white-space: pre-wrap; }
+        input[type="file"] { margin: 10px 0; }
+        .album-item { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>相册功能测试</h1>
+    
+    <div class="section">
+        <h2>1. 测试图片上传</h2>
+        <input type="file" id="testFile" accept="image/*">
+        <button onclick="testUpload()">测试上传</button>
+        <div id="uploadLog" class="log"></div>
+    </div>
+    
+    <div class="section">
+        <h2>2. 测试相册创建</h2>
+        <input type="text" id="albumTitle" placeholder="相册标题" value="测试相册">
+        <input type="text" id="albumDescription" placeholder="相册描述" value="这是一个测试相册">
+        <button onclick="testCreateAlbum()">创建相册</button>
+        <div id="albumLog" class="log"></div>
+    </div>
+    
+    <div class="section">
+        <h2>3. 测试相册读取</h2>
+        <button onclick="testLoadAlbums()">读取相册列表</button>
+        <div id="loadLog" class="log"></div>
+        <div id="albumsList"></div>
+    </div>
+    
+    <div class="section">
+        <h2>4. 测试公开API</h2>
+        <button onclick="testPublicAPI()">测试公开API</button>
+        <div id="publicLog" class="log"></div>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+        let uploadedImages = [];
+        
+        function log(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+        }
+        
+        async function testUpload() {
+            const fileInput = document.getElementById('testFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                log('uploadLog', '请选择文件');
+                return;
+            }
+            
+            log('uploadLog', `开始上传文件: ${file.name}`);
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const response = await fetch(`${API_BASE}/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                log('uploadLog', `上传响应: ${JSON.stringify(result, null, 2)}`);
+                
+                if (result.success) {
+                    uploadedImages.push({
+                        url: result.url,
+                        fileName: result.fileName,
+                        title: file.name.replace(/\.[^/.]+$/, ''),
+                        size: result.size,
+                        type: result.type
+                    });
+                    log('uploadLog', '上传成功！');
+                } else {
+                    log('uploadLog', '上传失败: ' + result.error);
+                }
+            } catch (error) {
+                log('uploadLog', '上传异常: ' + error.message);
+            }
+        }
+        
+        async function testCreateAlbum() {
+            if (uploadedImages.length === 0) {
+                log('albumLog', '请先上传图片');
+                return;
+            }
+            
+            const albumData = {
+                title: document.getElementById('albumTitle').value,
+                description: document.getElementById('albumDescription').value,
+                category: '测试分类',
+                tags: ['测试'],
+                images: uploadedImages
+            };
+            
+            log('albumLog', `创建相册数据: ${JSON.stringify(albumData, null, 2)}`);
+            
+            try {
+                const response = await fetch(`${API_BASE}/images`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    },
+                    body: JSON.stringify(albumData)
+                });
+                
+                const result = await response.json();
+                log('albumLog', `创建相册响应: ${JSON.stringify(result, null, 2)}`);
+                
+                if (result.success) {
+                    log('albumLog', '相册创建成功！');
+                } else {
+                    log('albumLog', '相册创建失败: ' + result.error);
+                }
+            } catch (error) {
+                log('albumLog', '创建相册异常: ' + error.message);
+            }
+        }
+        
+        async function testLoadAlbums() {
+            try {
+                const response = await fetch(`${API_BASE}/images`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                log('loadLog', `读取相册响应: ${JSON.stringify(result, null, 2)}`);
+                
+                const albumsList = document.getElementById('albumsList');
+                albumsList.innerHTML = '';
+                
+                if (result.images && result.images.length > 0) {
+                    result.images.forEach(album => {
+                        const albumDiv = document.createElement('div');
+                        albumDiv.className = 'album-item';
+                        albumDiv.innerHTML = `
+                            <h4>${album.title}</h4>
+                            <p>${album.description}</p>
+                            <p>图片数量: ${album.imageCount}</p>
+                            <p>创建时间: ${album.createdAt}</p>
+                            <p>ID: ${album.id}</p>
+                        `;
+                        albumsList.appendChild(albumDiv);
+                    });
+                } else {
+                    albumsList.innerHTML = '<p>没有找到相册</p>';
+                }
+            } catch (error) {
+                log('loadLog', '读取相册异常: ' + error.message);
+            }
+        }
+        
+        async function testPublicAPI() {
+            try {
+                const response = await fetch(`${API_BASE}/api/content`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                log('publicLog', `公开API响应: ${JSON.stringify(result, null, 2)}`);
+                
+                if (result.images && result.images.length > 0) {
+                    log('publicLog', `找到 ${result.images.length} 个相册`);
+                } else {
+                    log('publicLog', '公开API中没有相册数据');
+                }
+            } catch (error) {
+                log('publicLog', '公开API异常: ' + error.message);
+            }
+        }
+        
+        // 检查登录状态
+        if (!localStorage.getItem('authToken')) {
+            alert('请先登录！');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html> 
