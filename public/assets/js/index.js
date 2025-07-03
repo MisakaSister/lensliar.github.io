@@ -1,5 +1,8 @@
 // index.js - 首页功能
 
+// 全局变量
+let imagesData = [];
+
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
     // 检查是否已登录
@@ -61,6 +64,9 @@ function decodeHtmlEntities(text) {
 function renderContent(content) {
     const articlesContainer = document.getElementById('articles-container');
     const imagesContainer = document.getElementById('images-container');
+
+    // 保存图片数据到全局变量
+    imagesData = content.images || [];
 
     // 清空容器
     articlesContainer.innerHTML = '';
@@ -161,5 +167,92 @@ function showNotification(message, isSuccess = true) {
         setTimeout(() => {
             notification.classList.remove('show');
         }, 3000);
+    }
+}
+
+// 图片查看器功能
+let currentImageIndex = 0;
+let currentImages = [];
+let currentZoom = 1;
+
+function openImageViewer(imageId) {
+    // 查找图片数据
+    const image = imagesData.find(img => img.id === imageId);
+    if (!image) return;
+
+    currentImages = imagesData;
+    currentImageIndex = currentImages.findIndex(img => img.id === imageId);
+    
+    const viewer = document.getElementById('image-viewer');
+    const viewerImage = document.getElementById('viewer-image');
+    const viewerTitle = document.getElementById('viewer-title');
+    const imageCounter = document.getElementById('image-counter');
+    
+    if (viewer && viewerImage && viewerTitle && imageCounter) {
+        viewerImage.src = decodeHtmlEntities(image.url);
+        viewerTitle.textContent = image.title;
+        imageCounter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+        
+        viewer.style.display = 'block';
+        viewer.classList.add('active');
+        resetZoom();
+    }
+}
+
+function closeImageViewer() {
+    const viewer = document.getElementById('image-viewer');
+    if (viewer) {
+        viewer.style.display = 'none';
+        viewer.classList.remove('active');
+    }
+}
+
+function showPrevImage() {
+    if (currentImageIndex > 0) {
+        currentImageIndex--;
+        updateViewerImage();
+    }
+}
+
+function showNextImage() {
+    if (currentImageIndex < currentImages.length - 1) {
+        currentImageIndex++;
+        updateViewerImage();
+    }
+}
+
+function updateViewerImage() {
+    const image = currentImages[currentImageIndex];
+    const viewerImage = document.getElementById('viewer-image');
+    const viewerTitle = document.getElementById('viewer-title');
+    const imageCounter = document.getElementById('image-counter');
+    
+    if (viewerImage && viewerTitle && imageCounter) {
+        viewerImage.src = decodeHtmlEntities(image.url);
+        viewerTitle.textContent = image.title;
+        imageCounter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+        resetZoom();
+    }
+}
+
+function zoomIn() {
+    currentZoom = Math.min(currentZoom * 1.2, 3);
+    applyZoom();
+}
+
+function zoomOut() {
+    currentZoom = Math.max(currentZoom / 1.2, 0.5);
+    applyZoom();
+}
+
+function resetZoom() {
+    currentZoom = 1;
+    applyZoom();
+}
+
+function applyZoom() {
+    const viewerImage = document.getElementById('viewer-image');
+    if (viewerImage) {
+        viewerImage.style.transform = `scale(${currentZoom})`;
     }
 } 

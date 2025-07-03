@@ -1,5 +1,9 @@
 // detail.js - 详情页面功能
 
+// 全局变量
+let allContent = { articles: [], images: [] };
+let currentDetail = null;
+
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
     loadDetailContent();
@@ -33,6 +37,8 @@ async function loadDetailContent() {
 
         if (response.ok) {
             const content = await response.json();
+            allContent = content;
+            currentDetail = { type, id };
 
             if (type === 'article') {
                 const article = content.articles.find(a => a.id === id);
@@ -109,4 +115,169 @@ function showError() {
                 <button class="btn back-btn" onclick="window.location.href='index.html'">返回首页</button>
             </div>
         `;
+}
+
+// 导航功能
+function navigateContent(direction) {
+    if (!currentDetail || !allContent) return;
+
+    const { type, id } = currentDetail;
+    const data = type === 'article' ? allContent.articles : allContent.images;
+    const currentIndex = data.findIndex(item => item.id === id);
+
+    if (currentIndex === -1) return;
+
+    let newIndex;
+    if (direction === 'prev') {
+        newIndex = currentIndex - 1;
+    } else {
+        newIndex = currentIndex + 1;
+    }
+
+    if (newIndex >= 0 && newIndex < data.length) {
+        const newItem = data[newIndex];
+        localStorage.setItem('currentDetail', JSON.stringify({ type, id: newItem.id }));
+        window.location.reload();
+    }
+}
+
+// 图片查看器功能
+let currentImageIndex = 0;
+let currentImages = [];
+let currentZoom = 1;
+
+function openImageViewer(imageUrl) {
+    const viewer = document.getElementById('image-viewer');
+    const viewerImage = document.getElementById('viewer-image');
+    const viewerTitle = document.getElementById('viewer-title');
+    
+    if (viewer && viewerImage && viewerTitle) {
+        viewerImage.src = imageUrl;
+        viewerTitle.textContent = '图片详情';
+        
+        viewer.style.display = 'block';
+        viewer.classList.add('active');
+        resetZoom();
+    }
+}
+
+function closeImageViewer() {
+    const viewer = document.getElementById('image-viewer');
+    if (viewer) {
+        viewer.style.display = 'none';
+        viewer.classList.remove('active');
+    }
+}
+
+function showPrevImage() {
+    // 在详情页中暂不实现多图片切换
+    console.log('上一张图片');
+}
+
+function showNextImage() {
+    // 在详情页中暂不实现多图片切换
+    console.log('下一张图片');
+}
+
+function zoomIn() {
+    currentZoom = Math.min(currentZoom * 1.2, 3);
+    applyZoom();
+}
+
+function zoomOut() {
+    currentZoom = Math.max(currentZoom / 1.2, 0.5);
+    applyZoom();
+}
+
+function resetZoom() {
+    currentZoom = 1;
+    applyZoom();
+}
+
+function applyZoom() {
+    const viewerImage = document.getElementById('viewer-image');
+    if (viewerImage) {
+        viewerImage.style.transform = `scale(${currentZoom})`;
+    }
+}
+
+function toggleFullscreen() {
+    const viewer = document.getElementById('image-viewer');
+    if (viewer) {
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        } else {
+            viewer.requestFullscreen();
+        }
+    }
+}
+
+function downloadImage() {
+    const viewerImage = document.getElementById('viewer-image');
+    if (viewerImage && viewerImage.src) {
+        const link = document.createElement('a');
+        link.href = viewerImage.src;
+        link.download = 'image.jpg';
+        link.click();
+    }
+}
+
+function shareImage() {
+    const shareModal = document.getElementById('share-modal');
+    const shareUrl = document.getElementById('share-url');
+    
+    if (shareModal && shareUrl) {
+        shareUrl.value = window.location.href;
+        shareModal.style.display = 'block';
+    }
+}
+
+function closeShareModal() {
+    const shareModal = document.getElementById('share-modal');
+    if (shareModal) {
+        shareModal.style.display = 'none';
+    }
+}
+
+function shareToWeChat() {
+    showNotification('请复制链接到微信分享', true);
+}
+
+function shareToWeibo() {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent(document.title);
+    window.open(`https://service.weibo.com/share/share.php?url=${url}&title=${title}`);
+}
+
+function shareToQQ() {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent(document.title);
+    window.open(`https://connect.qq.com/widget/shareqq/index.html?url=${url}&title=${title}`);
+}
+
+function copyLink() {
+    copyShareUrl();
+}
+
+function copyShareUrl() {
+    const shareUrl = document.getElementById('share-url');
+    if (shareUrl) {
+        shareUrl.select();
+        document.execCommand('copy');
+        showNotification('链接已复制到剪贴板', true);
+        closeShareModal();
+    }
+}
+
+// 显示通知
+function showNotification(message, isSuccess = true) {
+    const notification = document.getElementById('notification');
+    if (notification) {
+        notification.textContent = message;
+        notification.className = `notification ${isSuccess ? 'success' : 'error'} show`;
+
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
 } 
