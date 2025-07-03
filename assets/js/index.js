@@ -71,6 +71,17 @@ function decodeHtmlEntities(text) {
     return decoded;
 }
 
+// 解码文章内容中的图片URL
+function decodeContentImages(content) {
+    if (!content || typeof content !== 'string') return content;
+    
+    // 匹配所有img标签的src属性
+    return content.replace(/<img([^>]*?)src=["']([^"']*?)["']([^>]*?)>/gi, function(match, beforeSrc, src, afterSrc) {
+        const decodedSrc = decodeHtmlEntities(src);
+        return `<img${beforeSrc}src="${decodedSrc}"${afterSrc}>`;
+    });
+}
+
 // 渲染内容
 function renderContent(content) {
     const articlesContainer = document.getElementById('articles-container');
@@ -93,7 +104,7 @@ function renderContent(content) {
                 <img src="${imageUrl}" alt="${article.title}" class="card-img">
                 <div class="card-body">
                     <h3 class="card-title">${article.title}</h3>
-                    <p class="card-text">${article.content.substring(0, 100)}...</p>
+                    <p class="card-text">${decodeContentImages(article.content).substring(0, 100)}...</p>
                     <div class="card-meta">
                         <span class="card-date">
                             <i class="fas fa-calendar"></i>
