@@ -1,9 +1,5 @@
 // admin.js - 现代化管理后台功能
 
-// API配置
-// const API_BASE = "http://localhost:8787"; // 本地开发时使用
-const API_BASE = "https://worker.wengguodong.com"; // 部署时使用
-
 // 全局变量
 let currentTab = 'articles';
 let articlesData = [];
