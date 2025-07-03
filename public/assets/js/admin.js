@@ -178,6 +178,7 @@ async function loadArticles() {
 // 加载图片数据
 async function loadImages() {
     try {
+        console.log('Loading images from API...');
         const response = await fetch(`${API_BASE}/images`, {
             method: 'GET',
             headers: {
@@ -186,11 +187,14 @@ async function loadImages() {
             }
         });
 
+        console.log('Images API response status:', response.status);
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const result = await response.json();
+        console.log('Images loaded from API:', result);
         return result.images || [];
     } catch (error) {
         console.error('加载图片失败:', error);
@@ -710,19 +714,19 @@ async function saveArticle() {
         let imageUrl = '';
         
         // 如果有选择封面图片，先上传
+        let uploadResult = null;
         if (imageFile) {
             showNotification('正在上传封面图片...', true);
-            imageUrl = await uploadImageToCloudflare(imageFile);
+            uploadResult = await uploadImageToCloudflare(imageFile);
         }
         
         // 如果是编辑模式且没有上传新图片，保留原有封面图片
         let coverImage = null;
-        if (imageUrl) {
+        if (uploadResult) {
             // 有新上传的图片 - 包含完整的图片元数据
-            const fileName = `images/${Date.now()}_${imageFile.name}`;
             coverImage = {
-                url: imageUrl,
-                fileName: fileName,
+                url: uploadResult.url,
+                fileName: uploadResult.fileName,
                 title: imageFile.name.replace(/\.[^/.]+$/, ''),
                 alt: title,
                 caption: '',
@@ -868,13 +872,12 @@ async function saveImages() {
                 document.getElementById(`progress-${i}`).style.width = '50%';
                 
                 // 上传图片
-                const imageUrl = await uploadImageToCloudflare(file);
+                const uploadResult = await uploadImageToCloudflare(file);
                 
                 // 添加到上传成功列表
-                const fileName = `images/${Date.now()}_${file.name}`;
                 uploadedImages.push({
-                    url: imageUrl,
-                    fileName: fileName,
+                    url: uploadResult.url,
+                    fileName: uploadResult.fileName,
                     title: file.name.replace(/\.[^/.]+$/, ''),
                     size: file.size,
                     type: file.type
@@ -906,6 +909,8 @@ async function saveImages() {
                     images: uploadedImages
                 };
                 
+                console.log('Creating album with data:', albumData);
+                
                 const response = await fetch(`${API_BASE}/images`, {
                     method: 'POST',
                     headers: {
@@ -915,12 +920,16 @@ async function saveImages() {
                     body: JSON.stringify(albumData)
                 });
                 
+                console.log('Album creation response status:', response.status);
+                
                 if (!response.ok) {
                     const error = await response.text();
+                    console.error('Album creation failed:', error);
                     throw new Error(`创建相册失败: ${error}`);
                 }
                 
                 const result = await response.json();
+                console.log('Album created successfully:', result);
                 
                 // 添加到本地数据
                 imagesData.unshift(result.album);
@@ -986,7 +995,10 @@ async function uploadImageToCloudflare(file) {
     
     const result = await response.json();
     console.log('上传成功，返回结果:', result);
-    return result.url;
+    return {
+        url: result.url,
+        fileName: result.fileName
+    };
 }
 
 // 保存单篇文章数据

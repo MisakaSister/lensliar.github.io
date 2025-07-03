@@ -79,6 +79,8 @@ async function getImages(request, env) {
             prefix: 'album_'
         });
 
+        console.log('Found album keys:', listResult.keys.map(k => k.name));
+
         const images = [];
         
         // 批量获取图片数据
@@ -87,6 +89,9 @@ async function getImages(request, env) {
                 const imageData = await env.IMAGES_KV.get(key.name, 'json');
                 if (imageData) {
                     images.push(imageData);
+                    console.log(`Loaded album ${key.name}:`, imageData.title);
+                } else {
+                    console.log(`No data found for key ${key.name}`);
                 }
             } catch (error) {
                 console.error(`Failed to get image ${key.name}:`, error);
@@ -198,7 +203,16 @@ async function saveImageAlbum(request, env) {
         };
 
         // 保存到IMAGES_KV
+        console.log('Saving album to IMAGES_KV:', {
+            key: `album_${albumId}`,
+            album: album
+        });
+        
         await env.IMAGES_KV.put(`album_${albumId}`, JSON.stringify(album));
+        
+        // 验证保存是否成功
+        const savedAlbum = await env.IMAGES_KV.get(`album_${albumId}`, 'json');
+        console.log('Album saved successfully:', savedAlbum ? 'YES' : 'NO');
 
         return new Response(JSON.stringify({
             success: true,
