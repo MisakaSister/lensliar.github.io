@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KV调试工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .log-area {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .album-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        .album-item h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .album-item p {
+            margin: 5px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>KV调试工具</h1>
+    
+    <div class="container">
+        <h2>1. 登录状态检查</h2>
+        <button class="btn" onclick="checkAuth()">检查登录状态</button>
+        <div id="authStatus" class="log-area"></div>
+    </div>
+
+    <div class="container">
+        <h2>2. 创建测试相册</h2>
+        <div class="form-group">
+            <label for="testTitle">相册标题:</label>
+            <input type="text" id="testTitle" value="测试相册" placeholder="输入相册标题">
+        </div>
+        <div class="form-group">
+            <label for="testDesc">相册描述:</label>
+            <textarea id="testDesc" placeholder="输入相册描述">这是一个测试相册</textarea>
+        </div>
+        <button class="btn" onclick="createTestAlbum()">创建测试相册</button>
+        <div id="createLog" class="log-area"></div>
+    </div>
+
+    <div class="container">
+        <h2>3. 读取相册数据</h2>
+        <button class="btn" onclick="loadAlbums()">读取相册列表</button>
+        <button class="btn" onclick="loadAlbumsFromKV()">直接从KV读取</button>
+        <div id="loadLog" class="log-area"></div>
+    </div>
+
+    <div class="container">
+        <h2>4. 相册列表</h2>
+        <div id="albumsList"></div>
+    </div>
+
+    <div class="container">
+        <h2>5. 清理测试数据</h2>
+        <button class="btn btn-danger" onclick="clearTestData()">清理所有测试相册</button>
+        <div id="clearLog" class="log-area"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://api.wengguodong.com';
+        
+        function log(elementId, message) {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            element.textContent += `[${timestamp}] ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        function clearLog(elementId) {
+            document.getElementById(elementId).textContent = '';
+        }
+
+        async function checkAuth() {
+            clearLog('authStatus');
+            const token = localStorage.getItem('authToken');
+            
+            if (!token) {
+                log('authStatus', '❌ 未找到登录令牌');
+                return false;
+            }
+            
+            log('authStatus', '✅ 找到登录令牌: ' + token.substring(0, 20) + '...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/content`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    log('authStatus', '✅ 令牌有效，API认证成功');
+                    return true;
+                } else {
+                    log('authStatus', '❌ 令牌无效，API认证失败: ' + response.status);
+                    return false;
+                }
+            } catch (error) {
+                log('authStatus', '❌ 认证检查异常: ' + error.message);
+                return false;
+            }
+        }
+
+        async function createTestAlbum() {
+            clearLog('createLog');
+            
+            const title = document.getElementById('testTitle').value;
+            const description = document.getElementById('testDesc').value;
+            
+            if (!title) {
+                log('createLog', '❌ 请输入相册标题');
+                return;
+            }
+            
+            // 创建测试图片数据
+            const testImages = [
+                {
+                    url: 'https://images.wengguodong.com/test1.jpg',
+                    fileName: 'test1.jpg',
+                    title: '测试图片1',
+                    alt: '测试图片1',
+                    caption: '',
+                    size: 1024,
+                    type: 'image/jpeg'
+                },
+                {
+                    url: 'https://images.wengguodong.com/test2.jpg',
+                    fileName: 'test2.jpg',
+                    title: '测试图片2',
+                    alt: '测试图片2',
+                    caption: '',
+                    size: 2048,
+                    type: 'image/jpeg'
+                }
+            ];
+            
+            const albumData = {
+                title: title,
+                description: description,
+                category: '测试分类',
+                tags: ['测试', '调试'],
+                images: testImages
+            };
+            
+            log('createLog', '📤 发送创建相册请求...');
+            log('createLog', 'URL: ' + `${API_BASE}/images`);
+            log('createLog', '数据: ' + JSON.stringify(albumData, null, 2));
+            
+            try {
+                const response = await fetch(`${API_BASE}/images`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    },
+                    body: JSON.stringify(albumData)
+                });
+                
+                log('createLog', '📥 响应状态: ' + response.status);
+                
+                if (!response.ok) {
+                    const error = await response.text();
+                    log('createLog', '❌ 创建失败: ' + error);
+                    return;
+                }
+                
+                const result = await response.json();
+                log('createLog', '✅ 创建成功!');
+                log('createLog', '响应数据: ' + JSON.stringify(result, null, 2));
+                
+                // 自动刷新列表
+                setTimeout(() => {
+                    loadAlbums();
+                }, 1000);
+                
+            } catch (error) {
+                log('createLog', '❌ 创建异常: ' + error.message);
+            }
+        }
+
+        async function loadAlbums() {
+            clearLog('loadLog');
+            
+            log('loadLog', '📤 从API读取相册列表...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/images`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                log('loadLog', '📥 响应状态: ' + response.status);
+                
+                if (!response.ok) {
+                    const error = await response.text();
+                    log('loadLog', '❌ 读取失败: ' + error);
+                    return;
+                }
+                
+                const result = await response.json();
+                log('loadLog', '✅ 读取成功!');
+                log('loadLog', '响应数据: ' + JSON.stringify(result, null, 2));
+                
+                // 显示相册列表
+                displayAlbums(result.images || []);
+                
+            } catch (error) {
+                log('loadLog', '❌ 读取异常: ' + error.message);
+            }
+        }
+
+        async function loadAlbumsFromKV() {
+            clearLog('loadLog');
+            
+            log('loadLog', '📤 测试KV存储直接访问...');
+            log('loadLog', '注意: 这个功能需要在Worker中添加调试接口');
+            
+            // 这里我们通过公开API来检查
+            try {
+                const response = await fetch(`${API_BASE}/api/content`);
+                const result = await response.json();
+                
+                log('loadLog', '📥 公开API响应:');
+                log('loadLog', JSON.stringify(result, null, 2));
+                
+                if (result.images && result.images.length > 0) {
+                    log('loadLog', '✅ 在公开API中找到相册数据');
+                } else {
+                    log('loadLog', '❌ 公开API中没有相册数据');
+                }
+                
+            } catch (error) {
+                log('loadLog', '❌ 公开API检查异常: ' + error.message);
+            }
+        }
+
+        function displayAlbums(albums) {
+            const container = document.getElementById('albumsList');
+            container.innerHTML = '';
+            
+            if (!albums || albums.length === 0) {
+                container.innerHTML = '<p>没有找到相册数据</p>';
+                return;
+            }
+            
+            albums.forEach(album => {
+                const albumDiv = document.createElement('div');
+                albumDiv.className = 'album-item';
+                albumDiv.innerHTML = `
+                    <h4>${album.title}</h4>
+                    <p><strong>ID:</strong> ${album.id}</p>
+                    <p><strong>描述:</strong> ${album.description || '无'}</p>
+                    <p><strong>分类:</strong> ${album.category}</p>
+                    <p><strong>图片数量:</strong> ${album.imageCount || 0}</p>
+                    <p><strong>创建时间:</strong> ${album.createdAt}</p>
+                    <p><strong>封面图片:</strong> ${album.coverImage?.url || '无'}</p>
+                    <button class="btn btn-danger" onclick="deleteAlbum('${album.id}')">删除</button>
+                `;
+                container.appendChild(albumDiv);
+            });
+        }
+
+        async function deleteAlbum(albumId) {
+            if (!confirm('确定要删除这个相册吗？')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/images/${albumId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    alert('删除成功');
+                    loadAlbums();
+                } else {
+                    const error = await response.text();
+                    alert('删除失败: ' + error);
+                }
+            } catch (error) {
+                alert('删除异常: ' + error.message);
+            }
+        }
+
+        async function clearTestData() {
+            clearLog('clearLog');
+            
+            if (!confirm('确定要清理所有测试相册吗？此操作不可恢复！')) {
+                return;
+            }
+            
+            log('clearLog', '📤 获取相册列表...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/images`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    log('clearLog', '❌ 获取列表失败');
+                    return;
+                }
+                
+                const result = await response.json();
+                const albums = result.images || [];
+                
+                log('clearLog', `📋 找到 ${albums.length} 个相册`);
+                
+                // 删除所有包含"测试"的相册
+                let deletedCount = 0;
+                for (const album of albums) {
+                    if (album.title.includes('测试') || album.category.includes('测试')) {
+                        try {
+                            const deleteResponse = await fetch(`${API_BASE}/images/${album.id}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                                }
+                            });
+                            
+                            if (deleteResponse.ok) {
+                                log('clearLog', `✅ 删除相册: ${album.title}`);
+                                deletedCount++;
+                            } else {
+                                log('clearLog', `❌ 删除失败: ${album.title}`);
+                            }
+                        } catch (error) {
+                            log('clearLog', `❌ 删除异常: ${album.title} - ${error.message}`);
+                        }
+                    }
+                }
+                
+                log('clearLog', `🎉 清理完成，共删除 ${deletedCount} 个测试相册`);
+                
+                // 刷新列表
+                setTimeout(() => {
+                    loadAlbums();
+                }, 1000);
+                
+            } catch (error) {
+                log('clearLog', '❌ 清理异常: ' + error.message);
+            }
+        }
+
+        // 页面加载时检查登录状态
+        window.onload = function() {
+            checkAuth();
+        };
+    </script>
+</body>
+</html> 
