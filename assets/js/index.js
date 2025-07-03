@@ -123,13 +123,11 @@ function renderContent(content) {
 
 // 更新统计数据
 function updateStats(content) {
+    // Hero区域已删除，此函数保留但不执行任何操作
+    // 可以在控制台显示统计信息用于调试
     const totalArticles = content.articles ? content.articles.length : 0;
     const totalImages = content.images ? content.images.length : 0;
-    const totalViews = Math.floor(Math.random() * 1000) + 500; // 模拟浏览量
-
-    document.getElementById('total-articles').textContent = totalArticles;
-    document.getElementById('total-images').textContent = totalImages;
-    document.getElementById('total-views').textContent = totalViews;
+    console.log(`统计信息 - 文章: ${totalArticles}, 图片: ${totalImages}`);
 }
 
 // 格式化日期

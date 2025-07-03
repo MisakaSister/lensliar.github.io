@@ -10,7 +10,7 @@
 </head>
 <body class="login-body">
 <div class="login-background">
-    <div class="login-container">
+    <div class="login-container" style="grid-template-columns: 1fr; justify-items: center;">
         <div class="login-card">
             <div class="login-header">
                 <div class="login-logo">
@@ -57,15 +57,6 @@
             </form>
             
             <div class="login-footer">
-                <div class="login-help">
-                    <h4>登录帮助</h4>
-                    <ul>
-                        <li><i class="fas fa-info-circle"></i> 使用您在GitHub Secrets中设置的管理员凭证</li>
-                        <li><i class="fas fa-key"></i> 确保用户名和密码正确匹配</li>
-                        <li><i class="fas fa-shield-alt"></i> 登录信息将被安全加密传输</li>
-                    </ul>
-                </div>
-                
                 <div class="login-links">
                     <a href="index.html" class="back-link">
                         <i class="fas fa-arrow-left"></i>
@@ -75,63 +66,11 @@
             </div>
         </div>
         
-        <div class="login-features">
-            <h3>系统特性</h3>
-            <div class="feature-list">
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-cloud"></i>
-                    </div>
-                    <div class="feature-text">
-                        <h4>云端存储</h4>
-                        <p>基于Cloudflare Workers的高性能存储</p>
-                    </div>
-                </div>
-                
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-mobile-alt"></i>
-                    </div>
-                    <div class="feature-text">
-                        <h4>响应式设计</h4>
-                        <p>完美适配桌面和移动设备</p>
-                    </div>
-                </div>
-                
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-rocket"></i>
-                    </div>
-                    <div class="feature-text">
-                        <h4>快速部署</h4>
-                        <p>基于GitHub Pages的静态网站</p>
-                    </div>
-                </div>
-                
-                <div class="feature-item">
-                    <div class="feature-icon">
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    <div class="feature-text">
-                        <h4>安全可靠</h4>
-                        <p>多层安全验证和数据加密</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+
     </div>
 </div>
 
-<footer class="login-footer-bottom">
-    <div class="footer-content">
-        <p>&copy; 2023 静态内容管理系统 | 安全登录</p>
-        <div class="footer-links">
-            <a href="#" onclick="showPrivacyPolicy()">隐私政策</a>
-            <a href="#" onclick="showTerms()">服务条款</a>
-            <a href="#" onclick="showHelp()">帮助中心</a>
-        </div>
-    </div>
-</footer>
+
 
 <!-- 加载动画 -->
 <div id="login-loading" class="login-loading" style="display: none;">
