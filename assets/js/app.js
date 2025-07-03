@@ -81,35 +81,6 @@ async function getAdminContentData() {
     }
 }
 
-// 保存内容数据 - 关键修改：添加 credentials: 'include'
-async function saveContentData(content) {
-    const token = localStorage.getItem('authToken');
-
-    try {
-        const response = await fetch(`${API_BASE}/content`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                ...(token && { Authorization: `Bearer ${token}` })
-            },
-            body: JSON.stringify(content),
-            credentials: 'include' // 必须添加
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            return true;
-        } else {
-            console.error('保存失败:', data.error);
-            return false;
-        }
-    } catch (error) {
-        console.error('网络错误:', error);
-        return false;
-    }
-}
-
 // 通用函数
 function showNotification(message, isSuccess = true) {
     const notification = document.getElementById('notification');

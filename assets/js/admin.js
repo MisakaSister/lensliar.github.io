@@ -829,9 +829,16 @@ async function saveImages() {
 
 // 上传图片到Cloudflare
 async function uploadImageToCloudflare(file) {
-        const formData = new FormData();
-        formData.append('file', file);
-        
+    console.log('开始上传图片到Cloudflare:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        apiUrl: `${API_BASE}/upload`
+    });
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
     const response = await fetch(`${API_BASE}/upload`, {
         method: 'POST',
         headers: {
@@ -840,12 +847,16 @@ async function uploadImageToCloudflare(file) {
         body: formData
     });
     
+    console.log('上传响应状态:', response.status, response.statusText);
+    
     if (!response.ok) {
         const error = await response.text();
+        console.error('上传失败，响应内容:', error);
         throw new Error(`上传失败: ${error}`);
-                }
+    }
     
     const result = await response.json();
+    console.log('上传成功，返回结果:', result);
     return result.url;
 }
 
