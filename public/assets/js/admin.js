@@ -218,7 +218,7 @@ function updateStats() {
         const filteredImages = getFilteredData('images');
         
         articlesStats.textContent = `共 ${articlesData.length} 篇文章${filteredArticles.length !== articlesData.length ? ` (筛选后 ${filteredArticles.length} 篇)` : ''}`;
-        imagesStats.textContent = `共 ${imagesData.length} 张图片${filteredImages.length !== imagesData.length ? ` (筛选后 ${filteredImages.length} 张)` : ''}`;
+        imagesStats.textContent = `共 ${imagesData.length} 个相册${filteredImages.length !== imagesData.length ? ` (筛选后 ${filteredImages.length} 个)` : ''}`;
     }
 }
 
@@ -345,8 +345,8 @@ function renderImages() {
         container.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">🖼️</div>
-                <h3>暂无图片</h3>
-                <p>点击"上传图片"按钮上传您的第一张图片</p>
+                <h3>暂无相册</h3>
+                <p>点击"创建相册"按钮创建您的第一个相册</p>
             </div>
         `;
         if (paginationContainer) paginationContainer.innerHTML = '';
@@ -354,31 +354,37 @@ function renderImages() {
     }
     
     // 渲染相册卡片
-    container.innerHTML = paginatedData.data.map(album => `
-        <div class="content-card">
-            <img src="${decodeHtmlEntities(album.coverImage.url)}" alt="${escapeHtml(album.title)}" class="card-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik04NyA2NUw5MyA3MUwxMDcgNTdMMTIzIDczTDEzNyA1OUwxNTMgNzVMMTY3IDYxTDE4MyA3N0wxOTcgNjNWMTM3SDE3VjEzN0g5N1YxMzdIMTdWNjNMMzMgNzdMNDcgNjNMNjMgNzlMNzcgNjVMODcgNjVaIiBmaWxsPSIjREREREREIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjQwIiByPSIxNSIgZmlsbD0iI0RERERERCIvPgo8L3N2Zz4K'">
-            <div class="card-header">
-                <h4 class="card-title">${escapeHtml(album.title)}</h4>
-                ${album.imageCount > 1 ? `<span class="image-count">${album.imageCount} 张图片</span>` : ''}
+    container.innerHTML = paginatedData.data.map(album => {
+        const coverImageUrl = album.coverImage && album.coverImage.url ? 
+            decodeHtmlEntities(album.coverImage.url) : 
+            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik04NyA2NUw5MyA3MUwxMDcgNTdMMTIzIDczTDEzNyA1OUwxNTMgNzVMMTY3IDYxTDE4MyA3N0wxOTcgNjNWMTM3SDE3VjEzN0g5N1YxMzdIMTdWNjNMMzMgNzdMNDcgNjNMNjMgNzlMNzcgNjVMODcgNjVaIiBmaWxsPSIjREREREREIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjQwIiByPSIxNSIgZmlsbD0iI0RERERERCIvPgo8L3N2Zz4K';
+        
+        return `
+            <div class="content-card">
+                <img src="${coverImageUrl}" alt="${escapeHtml(album.title || '未命名相册')}" class="card-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik04NyA2NUw5MyA3MUwxMDcgNTdMMTIzIDczTDEzNyA1OUwxNTMgNzVMMTY3IDYxTDE4MyA3N0wxOTcgNjNWMTM3SDE3VjEzN0g5N1YxMzdIMTdWNjNMMzMgNzdMNDcgNjNMNjMgNzlMNzcgNjVMODcgNjVaIiBmaWxsPSIjREREREREIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjQwIiByPSIxNSIgZmlsbD0iI0RERERERCIvPgo8L3N2Zz4K'">
+                <div class="card-header">
+                    <h4 class="card-title">${escapeHtml(album.title || '未命名相册')}</h4>
+                    ${(album.imageCount || 0) > 1 ? `<span class="image-count">${album.imageCount || 0} 张图片</span>` : ''}
+                </div>
+                <div class="card-meta">
+                    ${album.category ? `<span>${escapeHtml(album.category)}</span> • ` : ''}
+                    <span>${formatDate(album.createdAt)}</span>
+                </div>
+                ${album.description ? `<div class="card-content">${truncateText(escapeHtml(album.description), 80)}</div>` : ''}
+                <div class="card-actions">
+                    <button class="btn-modern btn-primary btn-small" onclick="viewAlbum('${album.id}')">
+                        ${(album.imageCount || 0) > 1 ? '查看相册' : '查看图片'}
+                    </button>
+                    <button class="btn-modern btn-secondary btn-small" onclick="editAlbum('${album.id}')">
+                        编辑
+                    </button>
+                    <button class="btn-modern btn-danger btn-small" onclick="deleteAlbum('${album.id}')">
+                        删除
+                    </button>
+                </div>
             </div>
-            <div class="card-meta">
-                ${album.category ? `<span>${escapeHtml(album.category)}</span> • ` : ''}
-                <span>${formatDate(album.createdAt)}</span>
-            </div>
-            ${album.description ? `<div class="card-content">${truncateText(escapeHtml(album.description), 80)}</div>` : ''}
-            <div class="card-actions">
-                <button class="btn-modern btn-primary btn-small" onclick="viewAlbum('${album.id}')">
-                    ${album.imageCount > 1 ? '查看相册' : '查看图片'}
-                </button>
-                <button class="btn-modern btn-secondary btn-small" onclick="editAlbum('${album.id}')">
-                    编辑
-                </button>
-                <button class="btn-modern btn-danger btn-small" onclick="deleteAlbum('${album.id}')">
-                    删除
-                </button>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
     
     // 渲染分页
     renderPagination('images', paginatedData);
@@ -473,8 +479,8 @@ function showEmptyState() {
     document.getElementById('images-container').innerHTML = `
         <div class="empty-state">
             <div class="empty-icon">🖼️</div>
-            <h3>暂无图片</h3>
-            <p>点击上传按钮添加图片</p>
+            <h3>暂无相册</h3>
+            <p>点击创建按钮添加相册</p>
                 </div>
             `;
 }
