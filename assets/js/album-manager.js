@@ -18,6 +18,7 @@ class AlbumManager {
     async loadAlbums() {
         try {
             console.log('🔄 开始加载相册数据...');
+            console.log('📡 请求URL:', `${this.apiBase}/images`);
             
             const response = await fetch(`${this.apiBase}/images`, {
                 method: 'GET',
@@ -33,10 +34,26 @@ class AlbumManager {
             }
 
             const result = await response.json();
-            console.log('✅ 相册数据加载成功:', result);
+            console.log('✅ 相册API响应数据:', {
+                success: result.success,
+                totalImages: result.totalImages,
+                imagesCount: result.images ? result.images.length : 0,
+                categories: result.categories
+            });
             
-            this.albums = result.images || [];
+            // 确保result.images是数组
+            this.albums = Array.isArray(result.images) ? result.images : [];
             console.log(`📊 共加载 ${this.albums.length} 个相册`);
+            
+            // 输出每个相册的基本信息
+            this.albums.forEach((album, index) => {
+                console.log(`📷 相册 ${index + 1}:`, {
+                    id: album.id,
+                    title: album.title,
+                    imageCount: album.imageCount,
+                    createdAt: album.createdAt
+                });
+            });
             
             return this.albums;
         } catch (error) {

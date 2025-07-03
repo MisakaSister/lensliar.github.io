@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>相册功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>相册功能测试</h1>
+    
+    <div class="section">
+        <h2>1. 登录测试</h2>
+        <button onclick="testLogin()">测试登录</button>
+        <div id="loginLog" class="log"></div>
+    </div>
+    
+    <div class="section">
+        <h2>2. 创建相册测试</h2>
+        <input type="text" id="albumTitle" placeholder="相册标题" value="测试相册">
+        <textarea id="albumDesc" placeholder="相册描述">这是一个测试相册</textarea>
+        <button onclick="testCreateAlbum()">创建相册</button>
+        <div id="createLog" class="log"></div>
+    </div>
+    
+    <div class="section">
+        <h2>3. 读取相册测试</h2>
+        <button onclick="testLoadAlbums()">读取相册</button>
+        <div id="loadLog" class="log"></div>
+    </div>
+    
+    <div class="section">
+        <h2>4. 公开API测试</h2>
+        <button onclick="testPublicAPI()">测试公开API</button>
+        <div id="publicLog" class="log"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://api.wengguodong.com';
+        
+        function log(elementId, message) {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            element.textContent += `[${timestamp}] ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        async function testLogin() {
+            const logEl = document.getElementById('loginLog');
+            logEl.textContent = '';
+            
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                log('loginLog', '❌ 没有找到登录令牌');
+                log('loginLog', '请先在admin.html页面登录');
+                return;
+            }
+            
+            log('loginLog', '✅ 找到令牌: ' + token.substring(0, 20) + '...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/content`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                log('loginLog', '响应状态: ' + response.status);
+                
+                if (response.ok) {
+                    log('loginLog', '✅ 认证成功');
+                } else {
+                    log('loginLog', '❌ 认证失败: ' + await response.text());
+                }
+            } catch (error) {
+                log('loginLog', '❌ 请求异常: ' + error.message);
+            }
+        }
+
+        async function testCreateAlbum() {
+            const logEl = document.getElementById('createLog');
+            logEl.textContent = '';
+            
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                log('createLog', '❌ 请先登录');
+                return;
+            }
+            
+            const title = document.getElementById('albumTitle').value;
+            const description = document.getElementById('albumDesc').value;
+            
+            const albumData = {
+                title: title,
+                description: description,
+                category: '测试分类',
+                tags: ['测试'],
+                images: [
+                    {
+                        url: 'https://picsum.photos/800/600?random=1',
+                        fileName: 'test1.jpg',
+                        title: '测试图片1',
+                        alt: '测试图片1',
+                        caption: '',
+                        size: 1024,
+                        type: 'image/jpeg'
+                    },
+                    {
+                        url: 'https://picsum.photos/800/600?random=2',
+                        fileName: 'test2.jpg',
+                        title: '测试图片2',
+                        alt: '测试图片2',
+                        caption: '',
+                        size: 2048,
+                        type: 'image/jpeg'
+                    }
+                ]
+            };
+            
+            log('createLog', '发送请求到: ' + `${API_BASE}/images`);
+            log('createLog', '数据: ' + JSON.stringify(albumData, null, 2));
+            
+            try {
+                const response = await fetch(`${API_BASE}/images`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(albumData)
+                });
+                
+                log('createLog', '响应状态: ' + response.status);
+                
+                const result = await response.json();
+                log('createLog', '响应数据: ' + JSON.stringify(result, null, 2));
+                
+                if (response.ok) {
+                    log('createLog', '✅ 相册创建成功');
+                } else {
+                    log('createLog', '❌ 创建失败: ' + (result.error || '未知错误'));
+                }
+            } catch (error) {
+                log('createLog', '❌ 请求异常: ' + error.message);
+            }
+        }
+
+        async function testLoadAlbums() {
+            const logEl = document.getElementById('loadLog');
+            logEl.textContent = '';
+            
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                log('loadLog', '❌ 请先登录');
+                return;
+            }
+            
+            log('loadLog', '发送请求到: ' + `${API_BASE}/images`);
+            
+            try {
+                const response = await fetch(`${API_BASE}/images`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                log('loadLog', '响应状态: ' + response.status);
+                
+                const result = await response.json();
+                log('loadLog', '响应数据: ' + JSON.stringify(result, null, 2));
+                
+                if (response.ok) {
+                    log('loadLog', '✅ 相册读取成功');
+                    if (result.images && result.images.length > 0) {
+                        log('loadLog', `找到 ${result.images.length} 个相册`);
+                    } else {
+                        log('loadLog', '没有找到相册数据');
+                    }
+                } else {
+                    log('loadLog', '❌ 读取失败: ' + (result.error || '未知错误'));
+                }
+            } catch (error) {
+                log('loadLog', '❌ 请求异常: ' + error.message);
+            }
+        }
+
+        async function testPublicAPI() {
+            const logEl = document.getElementById('publicLog');
+            logEl.textContent = '';
+            
+            log('publicLog', '发送请求到: ' + `${API_BASE}/api/content`);
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/content`);
+                
+                log('publicLog', '响应状态: ' + response.status);
+                
+                const result = await response.json();
+                log('publicLog', '响应数据: ' + JSON.stringify(result, null, 2));
+                
+                if (response.ok) {
+                    log('publicLog', '✅ 公开API调用成功');
+                    if (result.images && result.images.length > 0) {
+                        log('publicLog', `公开API中找到 ${result.images.length} 个相册`);
+                    } else {
+                        log('publicLog', '公开API中没有相册数据');
+                    }
+                } else {
+                    log('publicLog', '❌ 公开API调用失败');
+                }
+            } catch (error) {
+                log('publicLog', '❌ 请求异常: ' + error.message);
+            }
+        }
+
+        // 页面加载时自动测试登录
+        window.onload = function() {
+            testLogin();
+        };
+    </script>
+</body>
+</html> 

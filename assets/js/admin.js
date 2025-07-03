@@ -585,11 +585,15 @@ async function saveImages() {
         
         showNotification(`成功创建相册，包含 ${selectedFiles.length} 张图片！`, true);
         
+        // 立即重新加载数据并刷新界面
+        console.log('🔄 重新加载相册数据...');
+        await albumManager.loadAlbums();
+        
         setTimeout(() => {
             closeModal('image');
             updateStats();
             renderCurrentTab();
-        }, 2000);
+        }, 1000);
         
     } catch (error) {
         console.error('创建相册失败:', error);
@@ -799,6 +803,11 @@ function showEditAlbumModal(album) {
         try {
             await albumManager.updateAlbum(album.id, updateData);
             showNotification('相册更新成功', true);
+            
+            // 立即重新加载数据并刷新界面
+            console.log('🔄 重新加载相册数据...');
+            await albumManager.loadAlbums();
+            
             updateStats();
             renderCurrentTab();
             modal.remove();
@@ -827,6 +836,11 @@ async function deleteAlbum(id) {
     try {
         await albumManager.deleteAlbum(id);
         showNotification(`${itemName}删除成功`, true);
+        
+        // 立即重新加载数据并刷新界面
+        console.log('🔄 重新加载相册数据...');
+        await albumManager.loadAlbums();
+        
         updateStats();
         renderCurrentTab();
     } catch (error) {
