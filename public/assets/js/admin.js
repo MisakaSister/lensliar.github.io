@@ -28,6 +28,17 @@ function decodeHtmlEntities(text) {
     return decoded;
 }
 
+// 解码文章内容中的图片URL
+function decodeContentImages(content) {
+    if (!content || typeof content !== 'string') return content;
+    
+    // 匹配所有img标签的src属性
+    return content.replace(/<img([^>]*?)src=["']([^"']*?)["']([^>]*?)>/gi, function(match, beforeSrc, src, afterSrc) {
+        const decodedSrc = decodeHtmlEntities(src);
+        return `<img${beforeSrc}src="${decodedSrc}"${afterSrc}>`;
+    });
+}
+
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
     console.log('管理后台初始化开始...');
@@ -811,7 +822,7 @@ async function editArticle(id) {
     // 填充表单
     document.getElementById('article-title').value = article.title || '';
     document.getElementById('article-category').value = article.category || '';
-    document.getElementById('article-content').value = article.content || '';
+    document.getElementById('article-content').value = decodeContentImages(article.content || '');
     
     // 如果有封面图片，显示预览
     if (article.imageUrl) {

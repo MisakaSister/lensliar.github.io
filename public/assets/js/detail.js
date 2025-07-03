@@ -22,6 +22,17 @@ function decodeHtmlEntities(text) {
     return decoded;
 }
 
+// 解码文章内容中的图片URL
+function decodeContentImages(content) {
+    if (!content || typeof content !== 'string') return content;
+    
+    // 匹配所有img标签的src属性
+    return content.replace(/<img([^>]*?)src=["']([^"']*?)["']([^>]*?)>/gi, function(match, beforeSrc, src, afterSrc) {
+        const decodedSrc = decodeHtmlEntities(src);
+        return `<img${beforeSrc}src="${decodedSrc}"${afterSrc}>`;
+    });
+}
+
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
     loadDetailContent();
@@ -100,7 +111,7 @@ function renderArticleDetail(article) {
                 </div>
             </div>
             ${article.image ? `<img src="${decodeHtmlEntities(article.image)}" alt="${article.title}" class="detail-image">` : ''}
-            <div class="detail-content">${article.content}</div>
+            <div class="detail-content">${decodeContentImages(article.content)}</div>
             <button class="btn back-btn" onclick="window.history.back()">返回</button>
         `;
 }
