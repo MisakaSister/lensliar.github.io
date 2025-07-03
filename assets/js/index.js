@@ -1,5 +1,8 @@
 // index.js - 首页功能
 
+// 全局变量
+let imagesData = [];
+
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
     // 检查是否已登录
@@ -62,8 +65,8 @@ function renderContent(content) {
     const articlesContainer = document.getElementById('articles-container');
     const imagesContainer = document.getElementById('images-container');
 
-    // 更新统计数据
-    updateStats(content);
+    // 保存图片数据到全局变量
+    imagesData = content.images || [];
 
     // 清空容器
     articlesContainer.innerHTML = '';
@@ -119,12 +122,8 @@ function renderContent(content) {
     } else {
         imagesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-images empty-icon"></i><h3>暂无图片</h3><p>还没有上传任何图片</p></div>';
     }
-}
 
-// 更新统计数据
-function updateStats(content) {
-    // Hero区域已删除，此函数保留但不执行任何操作
-    // 可以在控制台显示统计信息用于调试
+    // 在控制台输出统计信息
     const totalArticles = content.articles ? content.articles.length : 0;
     const totalImages = content.images ? content.images.length : 0;
     console.log(`统计信息 - 文章: ${totalArticles}, 图片: ${totalImages}`);
@@ -161,10 +160,99 @@ function logout() {
 // 显示通知
 function showNotification(message, isSuccess = true) {
     const notification = document.getElementById('notification');
-    notification.textContent = message;
-    notification.className = `notification ${isSuccess ? 'success' : 'error'} show`;
+    if (notification) {
+        notification.textContent = message;
+        notification.className = `notification ${isSuccess ? 'success' : 'error'} show`;
 
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 3000);
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+}
+
+// 图片查看器功能
+let currentImageIndex = 0;
+let currentImages = [];
+let currentZoom = 1;
+
+function openImageViewer(imageId) {
+    // 查找图片数据
+    const image = imagesData.find(img => img.id === imageId);
+    if (!image) return;
+
+    currentImages = imagesData;
+    currentImageIndex = currentImages.findIndex(img => img.id === imageId);
+    
+    const viewer = document.getElementById('image-viewer');
+    const viewerImage = document.getElementById('viewer-image');
+    const viewerTitle = document.getElementById('viewer-title');
+    const imageCounter = document.getElementById('image-counter');
+    
+    if (viewer && viewerImage && viewerTitle && imageCounter) {
+        viewerImage.src = decodeHtmlEntities(image.url);
+        viewerTitle.textContent = image.title;
+        imageCounter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+        
+        viewer.style.display = 'block';
+        viewer.classList.add('active');
+        resetZoom();
+    }
+}
+
+function closeImageViewer() {
+    const viewer = document.getElementById('image-viewer');
+    if (viewer) {
+        viewer.style.display = 'none';
+        viewer.classList.remove('active');
+    }
+}
+
+function showPrevImage() {
+    if (currentImageIndex > 0) {
+        currentImageIndex--;
+        updateViewerImage();
+    }
+}
+
+function showNextImage() {
+    if (currentImageIndex < currentImages.length - 1) {
+        currentImageIndex++;
+        updateViewerImage();
+    }
+}
+
+function updateViewerImage() {
+    const image = currentImages[currentImageIndex];
+    const viewerImage = document.getElementById('viewer-image');
+    const viewerTitle = document.getElementById('viewer-title');
+    const imageCounter = document.getElementById('image-counter');
+    
+    if (viewerImage && viewerTitle && imageCounter) {
+        viewerImage.src = decodeHtmlEntities(image.url);
+        viewerTitle.textContent = image.title;
+        imageCounter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+        resetZoom();
+    }
+}
+
+function zoomIn() {
+    currentZoom = Math.min(currentZoom * 1.2, 3);
+    applyZoom();
+}
+
+function zoomOut() {
+    currentZoom = Math.max(currentZoom / 1.2, 0.5);
+    applyZoom();
+}
+
+function resetZoom() {
+    currentZoom = 1;
+    applyZoom();
+}
+
+function applyZoom() {
+    const viewerImage = document.getElementById('viewer-image');
+    if (viewerImage) {
+        viewerImage.style.transform = `scale(${currentZoom})`;
+    }
 } 
