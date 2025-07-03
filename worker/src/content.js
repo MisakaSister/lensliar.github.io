@@ -183,7 +183,7 @@ function validateAndSanitizeContent(data) {
                 title: sanitizeInput(article.title),
                 content: sanitizeInput(article.content),
                 category: sanitizeInput(article.category || ''),
-                image: sanitizeInput(article.image || ''),
+                image: sanitizeInput(article.image || '', true),
                 date: article.date || new Date().toISOString().split('T')[0]
             };
         });
@@ -210,7 +210,7 @@ function validateAndSanitizeContent(data) {
             return {
                 id: parseInt(image.id) || Date.now(),
                 title: sanitizeInput(image.title),
-                url: sanitizeInput(image.url),
+                url: sanitizeInput(image.url, true),
                 description: sanitizeInput(image.description || ''),
                 category: sanitizeInput(image.category || ''),
                 date: image.date || new Date().toISOString().split('T')[0],
@@ -235,8 +235,21 @@ function validateAndSanitizeContent(data) {
 }
 
 // 🔒 增强XSS防护 - 清理用户输入
-function sanitizeInput(input) {
+function sanitizeInput(input, isUrl = false) {
     if (typeof input !== 'string') return input;
+    
+    // 如果是URL，只做基本的脚本清理，不做HTML实体编码
+    if (isUrl) {
+        return input
+            // 移除危险脚本模式
+            .replace(/javascript:/gi, '')
+            .replace(/vbscript:/gi, '')
+            .replace(/on\w+\s*=/gi, '')
+            .replace(/<script[^>]*>.*?<\/script>/gi, '')
+            .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
+            .replace(/expression\s*\(/gi, '')
+            .trim();
+    }
     
     return input
         // HTML实体编码

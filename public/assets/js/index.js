@@ -53,11 +53,22 @@ async function loadContent() {
     }
 }
 
-// 解码HTML实体
+// 解码HTML实体 - 增强版，处理多重编码
 function decodeHtmlEntities(text) {
-    const textarea = document.createElement('textarea');
-    textarea.innerHTML = text;
-    return textarea.value;
+    if (!text || typeof text !== 'string') return text;
+    
+    let decoded = text;
+    let previousDecoded = '';
+    
+    // 循环解码直到没有更多实体可解码
+    while (decoded !== previousDecoded) {
+        previousDecoded = decoded;
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = decoded;
+        decoded = textarea.value;
+    }
+    
+    return decoded;
 }
 
 // 渲染内容

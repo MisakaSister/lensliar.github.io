@@ -59,7 +59,7 @@ jobs:
           wrangler secret put SECRET_ADMIN_USERNAME  <<< "$ADMIN_USERNAME"
           wrangler secret put SECRET_ADMIN_PASSWORD_HASH <<< "$ADMIN_PASSWORD_HASH"
           wrangler secret put SECRET_PEPPER  <<< "$PEPPER"
-          wrangler deploy --minify --legacy-env false
+          wrangler deploy --minify --legacy-env false --compatibility-date=2024-01-01
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
