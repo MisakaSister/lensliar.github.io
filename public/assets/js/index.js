@@ -111,7 +111,7 @@ function renderContent(content) {
                             ${formatDate(article.date || article.createdAt)}
                         </span>
                     </div>
-                    <button class="btn" onclick="viewDetail('article', ${article.id})">查看详情</button>
+                    <button class="btn" onclick="viewDetail('article', '${article.id}')">查看详情</button>
                 </div>
             `;
         articlesContainer.appendChild(articleElement);
@@ -120,29 +120,34 @@ function renderContent(content) {
         articlesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-newspaper empty-icon"></i><h3>暂无文章</h3><p>还没有发布任何文章</p></div>';
     }
 
-    // 渲染图片
+    // 渲染相册
     if (content.images && content.images.length > 0) {
-    content.images.forEach(image => {
-        const imageElement = document.createElement('div');
-        imageElement.className = 'card';
-            const imageUrl = image.url ? decodeHtmlEntities(image.url) : 'https://via.placeholder.com/600x400';
-        imageElement.innerHTML = `
-                <img src="${imageUrl}" alt="${image.title}" class="card-img" onclick="openImageViewer(${image.id})">
+    content.images.forEach(album => {
+        const albumElement = document.createElement('div');
+        albumElement.className = 'card';
+        const imageUrl = album.coverImage?.url || album.url || 'https://via.placeholder.com/600x400';
+        albumElement.innerHTML = `
+                <img src="${decodeHtmlEntities(imageUrl)}" alt="${album.title}" class="card-img" onclick="viewDetail('album', '${album.id}')">
                 <div class="card-body">
-                    <h3 class="card-title">${image.title}</h3>
+                    <h3 class="card-title">${album.title}</h3>
+                    <p class="card-text">${album.description ? album.description.substring(0, 100) + '...' : ''}</p>
                     <div class="card-meta">
                         <span class="card-date">
                             <i class="fas fa-calendar"></i>
-                            ${formatDate(image.date || image.createdAt)}
+                            ${formatDate(album.createdAt)}
+                        </span>
+                        <span class="card-count">
+                            <i class="fas fa-images"></i>
+                            ${album.imageCount || album.images?.length || 0} 张图片
                         </span>
                     </div>
-                    <button class="btn" onclick="openImageViewer(${image.id})">查看大图</button>
+                    <button class="btn" onclick="viewDetail('album', '${album.id}')">查看相册</button>
                 </div>
             `;
-            imagesContainer.appendChild(imageElement);
+            imagesContainer.appendChild(albumElement);
     });
     } else {
-        imagesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-images empty-icon"></i><h3>暂无图片</h3><p>还没有上传任何图片</p></div>';
+        imagesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-images empty-icon"></i><h3>暂无相册</h3><p>还没有创建任何相册</p></div>';
     }
 
     // 在控制台输出统计信息

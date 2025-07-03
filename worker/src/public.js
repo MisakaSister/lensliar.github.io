@@ -124,9 +124,40 @@ async function getPublicContent(request, env) {
             stats: article.stats
         }));
 
+        // 获取相册数据
+        const albumKeys = await env.IMAGES_KV.list({
+            prefix: 'album_'
+        });
+
+        const albumPromises = albumKeys.keys.map(key => 
+            env.IMAGES_KV.get(key.name, 'json')
+        );
+
+        const albums = await Promise.all(albumPromises);
+
+        // 过滤和排序相册
+        const filteredAlbums = albums
+            .filter(album => album && album.images && album.images.length > 0)
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .slice(0, 20); // 最多返回20个相册
+
+        // 构造公开的相册数据
+        const publicAlbums = filteredAlbums.map(album => ({
+            id: album.id,
+            title: album.title,
+            description: album.description,
+            category: album.category,
+            tags: album.tags,
+            imageCount: album.imageCount,
+            coverImage: album.coverImage,
+            images: album.images,
+            createdAt: album.createdAt,
+            url: album.coverImage?.url // 为了兼容旧的image结构
+        }));
+
         return new Response(JSON.stringify({
             articles: publicArticles,
-            images: [], // 新架构下图片不在KV中存储，返回空数组
+            images: publicAlbums, // 返回相册数据作为images
             pagination: {
                 page,
                 limit,

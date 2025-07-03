@@ -33,6 +33,17 @@ function decodeContentImages(content) {
     });
 }
 
+// 格式化日期
+function formatDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
     loadDetailContent();
@@ -81,6 +92,12 @@ async function loadDetailContent() {
                     renderImageDetail(image);
                     return;
                 }
+            } else if (type === 'album') {
+                const album = content.images.find(i => i.id === id);
+                if (album) {
+                    renderAlbumDetail(album);
+                    return;
+                }
             }
 
             document.getElementById('detail-container').innerHTML = `
@@ -107,10 +124,10 @@ function renderArticleDetail(article) {
                 <h1 class="detail-title">${article.title}</h1>
                 <div class="detail-meta">
                     <span>分类: ${article.category || '未分类'}</span>
-                    <span>发布日期: ${article.date || '未知日期'}</span>
+                    <span>发布日期: ${formatDate(article.createdAt || article.date) || '未知日期'}</span>
                 </div>
             </div>
-            ${article.image ? `<img src="${decodeHtmlEntities(article.image)}" alt="${article.title}" class="detail-image">` : ''}
+            ${article.coverImage?.url ? `<img src="${decodeHtmlEntities(article.coverImage.url)}" alt="${article.title}" class="detail-image">` : ''}
             <div class="detail-content">${decodeContentImages(article.content)}</div>
             <button class="btn back-btn" onclick="window.history.back()">返回</button>
         `;
@@ -124,7 +141,7 @@ function renderImageDetail(image) {
                 <h1 class="detail-title">${image.title}</h1>
                 <div class="detail-meta">
                     <span>分类: ${image.category || '未分类'}</span>
-                    <span>发布日期: ${image.date || '未知日期'}</span>
+                    <span>发布日期: ${formatDate(image.createdAt || image.date) || '未知日期'}</span>
                 </div>
             </div>
             <img src="${decodeHtmlEntities(image.url)}" alt="${image.title}" class="detail-image">
@@ -133,6 +150,40 @@ function renderImageDetail(image) {
             </div>
             <button class="btn back-btn" onclick="window.history.back()">返回</button>
         `;
+}
+
+// 渲染相册详情
+function renderAlbumDetail(album) {
+    const container = document.getElementById('detail-container');
+    
+    let imagesHtml = '';
+    if (album.images && album.images.length > 0) {
+        imagesHtml = album.images.map((image, index) => `
+            <div class="album-image-item">
+                <img src="${decodeHtmlEntities(image.url)}" 
+                     alt="${image.title || album.title}" 
+                     class="album-image" 
+                     onclick="openImageViewer('${image.url}', ${index})">
+                ${image.title ? `<div class="image-title">${image.title}</div>` : ''}
+            </div>
+        `).join('');
+    }
+    
+    container.innerHTML = `
+        <div class="detail-header">
+            <h1 class="detail-title">${album.title}</h1>
+            <div class="detail-meta">
+                <span>分类: ${album.category || '未分类'}</span>
+                <span>发布日期: ${formatDate(album.createdAt) || '未知日期'}</span>
+                <span>图片数量: ${album.imageCount || album.images?.length || 0} 张</span>
+            </div>
+        </div>
+        ${album.description ? `<div class="detail-description"><p>${album.description}</p></div>` : ''}
+        <div class="album-images-grid">
+            ${imagesHtml}
+        </div>
+        <button class="btn back-btn" onclick="window.history.back()">返回</button>
+    `;
 }
 
 // 显示错误
@@ -175,14 +226,27 @@ let currentImageIndex = 0;
 let currentImages = [];
 let currentZoom = 1;
 
-function openImageViewer(imageUrl) {
+function openImageViewer(imageUrl, imageIndex = 0) {
     const viewer = document.getElementById('image-viewer');
     const viewerImage = document.getElementById('viewer-image');
     const viewerTitle = document.getElementById('viewer-title');
     
     if (viewer && viewerImage && viewerTitle) {
-        viewerImage.src = imageUrl;
-        viewerTitle.textContent = '图片详情';
+        // 如果是相册详情页，设置当前图片列表
+        if (currentDetail && currentDetail.type === 'album') {
+            const album = allContent.images.find(i => i.id === currentDetail.id);
+            if (album && album.images) {
+                currentImages = album.images;
+                currentImageIndex = imageIndex;
+                updateViewerImage();
+            }
+        } else {
+            // 单图查看
+            viewerImage.src = imageUrl;
+            viewerTitle.textContent = '图片详情';
+            currentImages = [{ url: imageUrl }];
+            currentImageIndex = 0;
+        }
         
         viewer.style.display = 'block';
         viewer.classList.add('active');
@@ -198,14 +262,42 @@ function closeImageViewer() {
     }
 }
 
+function updateViewerImage() {
+    const viewerImage = document.getElementById('viewer-image');
+    const viewerTitle = document.getElementById('viewer-title');
+    const imageCounter = document.getElementById('image-counter');
+    
+    if (currentImages.length > 0 && currentImageIndex >= 0 && currentImageIndex < currentImages.length) {
+        const currentImage = currentImages[currentImageIndex];
+        
+        if (viewerImage) {
+            viewerImage.src = currentImage.url;
+        }
+        
+        if (viewerTitle) {
+            viewerTitle.textContent = currentImage.title || '图片详情';
+        }
+        
+        if (imageCounter) {
+            imageCounter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+        }
+    }
+}
+
 function showPrevImage() {
-    // 在详情页中暂不实现多图片切换
-    console.log('上一张图片');
+    if (currentImages.length > 1) {
+        currentImageIndex = (currentImageIndex - 1 + currentImages.length) % currentImages.length;
+        updateViewerImage();
+        resetZoom();
+    }
 }
 
 function showNextImage() {
-    // 在详情页中暂不实现多图片切换
-    console.log('下一张图片');
+    if (currentImages.length > 1) {
+        currentImageIndex = (currentImageIndex + 1) % currentImages.length;
+        updateViewerImage();
+        resetZoom();
+    }
 }
 
 function zoomIn() {
