@@ -2,99 +2,75 @@
 export async function handleContent(request, env) {
     try {
         // 🔒 严格的HTTP方法验证
-        if (!['GET', 'POST'].includes(request.method)) {
+        if (!['GET', 'POST', 'PUT', 'DELETE'].includes(request.method)) {
             return new Response(JSON.stringify({
                 error: "Method not allowed"
             }), {
                 status: 405,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Allow': 'GET, POST' // 明确指示允许的方法
+                    'Allow': 'GET, POST, PUT, DELETE'
                 }
             });
         }
 
-        if (request.method === 'GET') {
-            // 🔒 添加认证检查 - 管理员专用API
-            const authResult = await verifyAuth(request, env);
-            if (!authResult.success) {
-                return new Response(JSON.stringify({
-                    error: authResult.error
-                }), {
-                    status: 401,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-            }
-
-            // 从 KV 获取内容
-            const content = await env.CONTENT_KV.get("homepage", "json");
-
-            if (!content) {
-                // 如果没有内容，返回默认结构
-                return {
-                    articles: [],
-                    images: []
-                };
-            }
-
-            return content;
-
-        } else if (request.method === 'POST') {
-            // 验证权限
-            const authResult = await verifyAuth(request, env);
-            if (!authResult.success) {
-                return new Response(JSON.stringify({
-                    error: authResult.error
-                }), {
-                    status: 401,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-            }
-
-            // 获取要保存的内容
-            const contentData = await request.json();
-            
-            // 🔒 验证和清理输入数据
-            const validationResult = validateAndSanitizeContent(contentData);
-            if (!validationResult.valid) {
-                return new Response(JSON.stringify({
-                    error: validationResult.error
-                }), {
-                    status: 400,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-            }
-
-            // 保存到 KV
-            await env.CONTENT_KV.put("homepage", JSON.stringify(validationResult.data));
-
+        // 验证权限（除了公开API）
+        const authResult = await verifyAuth(request, env);
+        if (!authResult.success) {
             return new Response(JSON.stringify({
-                success: true,
-                message: "Content saved successfully"
+                error: authResult.error
             }), {
-                status: 200,
+                status: 401,
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
         }
 
+        const url = new URL(request.url);
+        const pathParts = url.pathname.split('/').filter(part => part);
+        
+        if (request.method === 'GET') {
+            // GET /content - 获取所有内容（用于管理后台）
+            return await getAllContent(env);
+            
+        } else if (request.method === 'POST') {
+            // POST /content - 批量保存内容（兼容旧API）
+            const contentData = await request.json();
+            return await saveBatchContent(contentData, env);
+            
+        } else if (request.method === 'PUT') {
+            // PUT /content/articles/{id} - 保存单篇文章
+            // PUT /content/images/{id} - 保存单张图片
+            if (pathParts[1] === 'articles' && pathParts[2]) {
+                const articleData = await request.json();
+                return await saveArticle(pathParts[2], articleData, env);
+            } else if (pathParts[1] === 'images' && pathParts[2]) {
+                const imageData = await request.json();
+                return await saveImage(pathParts[2], imageData, env);
+            }
+            
+        } else if (request.method === 'DELETE') {
+            // DELETE /content/articles/{id} - 删除单篇文章
+            // DELETE /content/images/{id} - 删除单张图片
+            if (pathParts[1] === 'articles' && pathParts[2]) {
+                return await deleteArticle(pathParts[2], env);
+            } else if (pathParts[1] === 'images' && pathParts[2]) {
+                return await deleteImage(pathParts[2], env);
+            }
+        }
+
         return new Response(JSON.stringify({
-            error: "Method not allowed"
+            error: "Invalid endpoint"
         }), {
-            status: 405,
+            status: 404,
             headers: {
                 'Content-Type': 'application/json'
             }
         });
 
     } catch (error) {
+        console.error('Content API error:', error);
         return new Response(JSON.stringify({
             error: error.message
         }), {
@@ -103,6 +79,270 @@ export async function handleContent(request, env) {
                 'Content-Type': 'application/json'
             }
         });
+    }
+}
+
+// 获取所有内容
+async function getAllContent(env) {
+    try {
+        // 获取文章索引
+        const articleIndex = await env.CONTENT_KV.get("articles:index", "json") || [];
+        const imageIndex = await env.CONTENT_KV.get("images:index", "json") || [];
+
+        // 并行获取所有文章
+        const articlePromises = articleIndex.map(id => 
+            env.CONTENT_KV.get(`article:${id}`, "json")
+        );
+        const imagePromises = imageIndex.map(id => 
+            env.CONTENT_KV.get(`image:${id}`, "json")
+        );
+
+        const [articles, images] = await Promise.all([
+            Promise.all(articlePromises),
+            Promise.all(imagePromises)
+        ]);
+
+        // 过滤掉null值（已删除的项目）
+        const validArticles = articles.filter(article => article !== null);
+        const validImages = images.filter(image => image !== null);
+
+        return new Response(JSON.stringify({
+            articles: validArticles,
+            images: validImages
+        }), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+    } catch (error) {
+        throw new Error(`Failed to get content: ${error.message}`);
+    }
+}
+
+// 批量保存内容（兼容旧API）
+async function saveBatchContent(contentData, env) {
+    try {
+        const validationResult = validateAndSanitizeContent(contentData);
+        if (!validationResult.valid) {
+            return new Response(JSON.stringify({
+                error: validationResult.error
+            }), {
+                status: 400,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+
+        const { articles, images } = validationResult.data;
+
+        // 保存所有文章
+        const articlePromises = articles.map(article => 
+            saveArticleData(article.id, article, env)
+        );
+        
+        // 保存所有图片
+        const imagePromises = images.map(image => 
+            saveImageData(image.id, image, env)
+        );
+
+        await Promise.all([...articlePromises, ...imagePromises]);
+
+        // 更新索引
+        const articleIds = articles.map(a => a.id);
+        const imageIds = images.map(i => i.id);
+        
+        await Promise.all([
+            env.CONTENT_KV.put("articles:index", JSON.stringify(articleIds)),
+            env.CONTENT_KV.put("images:index", JSON.stringify(imageIds))
+        ]);
+
+        return new Response(JSON.stringify({
+            success: true,
+            message: "Content saved successfully"
+        }), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+    } catch (error) {
+        throw new Error(`Failed to save batch content: ${error.message}`);
+    }
+}
+
+// 保存单篇文章
+async function saveArticle(id, articleData, env) {
+    try {
+        // 验证文章数据
+        if (!articleData.title || !articleData.content) {
+            return new Response(JSON.stringify({
+                error: 'Article missing required fields'
+            }), {
+                status: 400,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+
+        const sanitizedArticle = {
+            id: id,
+            title: sanitizeInput(articleData.title),
+            content: sanitizeInput(articleData.content),
+            category: sanitizeInput(articleData.category || ''),
+            image: sanitizeInput(articleData.image || '', true),
+            date: articleData.date || new Date().toISOString().split('T')[0],
+            createdAt: articleData.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        await saveArticleData(id, sanitizedArticle, env);
+
+        // 更新文章索引
+        await updateArticleIndex(id, env);
+
+        return new Response(JSON.stringify({
+            success: true,
+            article: sanitizedArticle
+        }), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+    } catch (error) {
+        throw new Error(`Failed to save article: ${error.message}`);
+    }
+}
+
+// 保存单张图片
+async function saveImage(id, imageData, env) {
+    try {
+        // 验证图片数据
+        if (!imageData.title || !imageData.url) {
+            return new Response(JSON.stringify({
+                error: 'Image missing required fields'
+            }), {
+                status: 400,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+
+        const sanitizedImage = {
+            id: id,
+            title: sanitizeInput(imageData.title),
+            url: sanitizeInput(imageData.url, true),
+            description: sanitizeInput(imageData.description || ''),
+            category: sanitizeInput(imageData.category || ''),
+            date: imageData.date || new Date().toISOString().split('T')[0],
+            createdAt: imageData.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        await saveImageData(id, sanitizedImage, env);
+
+        // 更新图片索引
+        await updateImageIndex(id, env);
+
+        return new Response(JSON.stringify({
+            success: true,
+            image: sanitizedImage
+        }), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+    } catch (error) {
+        throw new Error(`Failed to save image: ${error.message}`);
+    }
+}
+
+// 删除单篇文章
+async function deleteArticle(id, env) {
+    try {
+        // 删除文章数据
+        await env.CONTENT_KV.delete(`article:${id}`);
+
+        // 从索引中移除
+        const articleIndex = await env.CONTENT_KV.get("articles:index", "json") || [];
+        const updatedIndex = articleIndex.filter(articleId => articleId !== id);
+        await env.CONTENT_KV.put("articles:index", JSON.stringify(updatedIndex));
+
+        return new Response(JSON.stringify({
+            success: true,
+            message: "Article deleted successfully"
+        }), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+    } catch (error) {
+        throw new Error(`Failed to delete article: ${error.message}`);
+    }
+}
+
+// 删除单张图片
+async function deleteImage(id, env) {
+    try {
+        // 删除图片数据
+        await env.CONTENT_KV.delete(`image:${id}`);
+
+        // 从索引中移除
+        const imageIndex = await env.CONTENT_KV.get("images:index", "json") || [];
+        const updatedIndex = imageIndex.filter(imageId => imageId !== id);
+        await env.CONTENT_KV.put("images:index", JSON.stringify(updatedIndex));
+
+        return new Response(JSON.stringify({
+            success: true,
+            message: "Image deleted successfully"
+        }), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+    } catch (error) {
+        throw new Error(`Failed to delete image: ${error.message}`);
+    }
+}
+
+// 辅助函数：保存文章数据
+async function saveArticleData(id, articleData, env) {
+    await env.CONTENT_KV.put(`article:${id}`, JSON.stringify(articleData));
+}
+
+// 辅助函数：保存图片数据
+async function saveImageData(id, imageData, env) {
+    await env.CONTENT_KV.put(`image:${id}`, JSON.stringify(imageData));
+}
+
+// 辅助函数：更新文章索引
+async function updateArticleIndex(id, env) {
+    const articleIndex = await env.CONTENT_KV.get("articles:index", "json") || [];
+    if (!articleIndex.includes(id)) {
+        articleIndex.push(id);
+        await env.CONTENT_KV.put("articles:index", JSON.stringify(articleIndex));
+    }
+}
+
+// 辅助函数：更新图片索引
+async function updateImageIndex(id, env) {
+    const imageIndex = await env.CONTENT_KV.get("images:index", "json") || [];
+    if (!imageIndex.includes(id)) {
+        imageIndex.push(id);
+        await env.CONTENT_KV.put("images:index", JSON.stringify(imageIndex));
     }
 }
 

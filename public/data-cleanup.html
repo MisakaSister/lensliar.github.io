@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据清理工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .result {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button.danger {
+            background: #dc3545;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>数据清理工具</h1>
+    <div class="warning">
+        <strong>警告：</strong>此工具将修改服务器上的数据。请确保您有管理员权限，并在操作前备份数据。
+    </div>
+
+    <div class="section">
+        <h3>1. 登录验证</h3>
+        <div>
+            <input type="text" id="username" placeholder="用户名" value="admin">
+            <input type="password" id="password" placeholder="密码">
+            <button onclick="login()">登录</button>
+        </div>
+        <div id="login-status" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h3>2. 检查当前数据</h3>
+        <button onclick="checkCurrentData()" id="check-btn" disabled>检查数据编码状态</button>
+        <div id="check-result" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h3>3. 清理编码数据</h3>
+        <div class="warning">
+            <strong>注意：</strong>此操作将解码所有图片URL和文章封面URL。操作不可逆！
+        </div>
+        <button onclick="cleanupData()" id="cleanup-btn" class="danger" disabled>清理编码数据</button>
+        <div id="cleanup-result" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = "https://worker.wengguodong.com";
+        let authToken = null;
+
+        // 解码HTML实体 - 增强版，处理多重编码
+        function decodeHtmlEntities(text) {
+            if (!text || typeof text !== 'string') return text;
+            
+            let decoded = text;
+            let previousDecoded = '';
+            
+            // 循环解码直到没有更多实体可解码
+            while (decoded !== previousDecoded) {
+                previousDecoded = decoded;
+                const textarea = document.createElement('textarea');
+                textarea.innerHTML = decoded;
+                decoded = textarea.value;
+            }
+            
+            return decoded;
+        }
+
+        // 解码文章内容中的图片URL
+        function decodeContentImages(content) {
+            if (!content || typeof content !== 'string') return content;
+            
+            // 匹配所有img标签的src属性
+            return content.replace(/<img([^>]*?)src=["']([^"']*?)["']([^>]*?)>/gi, function(match, beforeSrc, src, afterSrc) {
+                const decodedSrc = decodeHtmlEntities(src);
+                return `<img${beforeSrc}src="${decodedSrc}"${afterSrc}>`;
+            });
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const statusDiv = document.getElementById('login-status');
+            
+            if (!username || !password) {
+                statusDiv.textContent = '请输入用户名和密码';
+                return;
+            }
+
+            statusDiv.textContent = '登录中...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    statusDiv.textContent = '登录成功！';
+                    statusDiv.className = 'result success';
+                    
+                    // 启用其他按钮
+                    document.getElementById('check-btn').disabled = false;
+                    document.getElementById('cleanup-btn').disabled = false;
+                } else {
+                    statusDiv.textContent = `登录失败: ${data.error}`;
+                    statusDiv.className = 'result';
+                }
+            } catch (error) {
+                statusDiv.textContent = `登录错误: ${error.message}`;
+                statusDiv.className = 'result';
+            }
+        }
+
+        async function checkCurrentData() {
+            const resultDiv = document.getElementById('check-result');
+            
+            if (!authToken) {
+                resultDiv.textContent = '请先登录';
+                return;
+            }
+
+            resultDiv.textContent = '检查数据中...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/content`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                
+                let result = `数据检查结果:\n\n`;
+                let needsCleanup = false;
+                
+                // 检查图片数据
+                if (data.images && data.images.length > 0) {
+                    result += `图片数据 (${data.images.length} 张):\n`;
+                    
+                    data.images.forEach((image, index) => {
+                        const decodedUrl = decodeHtmlEntities(image.url);
+                        const isEncoded = image.url !== decodedUrl;
+                        
+                        if (isEncoded) {
+                            needsCleanup = true;
+                            result += `  图片 ${index + 1}: ${image.title} - 需要清理 ❌\n`;
+                            result += `    原始: ${image.url.substring(0, 50)}...\n`;
+                            result += `    解码: ${decodedUrl.substring(0, 50)}...\n`;
+                        } else {
+                            result += `  图片 ${index + 1}: ${image.title} - 正常 ✅\n`;
+                        }
+                    });
+                } else {
+                    result += '没有图片数据\n';
+                }
+                
+                result += '\n';
+                
+                // 检查文章数据
+                if (data.articles && data.articles.length > 0) {
+                    result += `文章数据 (${data.articles.length} 篇):\n`;
+                    
+                    data.articles.forEach((article, index) => {
+                        if (article.image) {
+                            const decodedUrl = decodeHtmlEntities(article.image);
+                            const isEncoded = article.image !== decodedUrl;
+                            
+                            if (isEncoded) {
+                                needsCleanup = true;
+                                result += `  文章 ${index + 1}: ${article.title} - 封面需要清理 ❌\n`;
+                            } else {
+                                result += `  文章 ${index + 1}: ${article.title} - 封面正常 ✅\n`;
+                            }
+                        }
+                        
+                        // 检查文章内容中的图片
+                        const decodedContent = decodeContentImages(article.content);
+                        const contentNeedsCleanup = article.content !== decodedContent;
+                        
+                        if (contentNeedsCleanup) {
+                            needsCleanup = true;
+                            result += `  文章 ${index + 1}: ${article.title} - 内容图片需要清理 ❌\n`;
+                        }
+                    });
+                } else {
+                    result += '没有文章数据\n';
+                }
+                
+                result += `\n总结: ${needsCleanup ? '发现编码问题，建议清理数据' : '数据正常，无需清理'}`;
+                
+                resultDiv.textContent = result;
+                
+            } catch (error) {
+                resultDiv.textContent = `检查数据错误: ${error.message}`;
+            }
+        }
+
+        async function cleanupData() {
+            const resultDiv = document.getElementById('cleanup-result');
+            
+            if (!authToken) {
+                resultDiv.textContent = '请先登录';
+                return;
+            }
+
+            if (!confirm('确定要清理编码数据吗？此操作不可逆！')) {
+                return;
+            }
+
+            resultDiv.textContent = '清理数据中...';
+            
+            try {
+                // 获取当前数据
+                const response = await fetch(`${API_BASE}/content`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                
+                let result = '数据清理过程:\n\n';
+                let cleanedCount = 0;
+                
+                // 清理图片数据
+                if (data.images && data.images.length > 0) {
+                    data.images.forEach((image, index) => {
+                        const originalUrl = image.url;
+                        const decodedUrl = decodeHtmlEntities(image.url);
+                        
+                        if (originalUrl !== decodedUrl) {
+                            image.url = decodedUrl;
+                            cleanedCount++;
+                            result += `清理图片 ${index + 1}: ${image.title}\n`;
+                        }
+                    });
+                }
+                
+                // 清理文章数据
+                if (data.articles && data.articles.length > 0) {
+                    data.articles.forEach((article, index) => {
+                        // 清理封面图片
+                        if (article.image) {
+                            const originalUrl = article.image;
+                            const decodedUrl = decodeHtmlEntities(article.image);
+                            
+                            if (originalUrl !== decodedUrl) {
+                                article.image = decodedUrl;
+                                cleanedCount++;
+                                result += `清理文章 ${index + 1} 封面: ${article.title}\n`;
+                            }
+                        }
+                        
+                        // 清理文章内容中的图片
+                        const originalContent = article.content;
+                        const decodedContent = decodeContentImages(article.content);
+                        
+                        if (originalContent !== decodedContent) {
+                            article.content = decodedContent;
+                            cleanedCount++;
+                            result += `清理文章 ${index + 1} 内容图片: ${article.title}\n`;
+                        }
+                    });
+                }
+                
+                if (cleanedCount > 0) {
+                    // 保存清理后的数据
+                    const saveResponse = await fetch(`${API_BASE}/content`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify(data),
+                        credentials: 'include'
+                    });
+
+                    if (saveResponse.ok) {
+                        result += `\n✅ 清理完成！共清理了 ${cleanedCount} 个编码问题`;
+                        resultDiv.className = 'result success';
+                    } else {
+                        result += '\n❌ 保存清理后的数据失败';
+                        resultDiv.className = 'result';
+                    }
+                } else {
+                    result += '\n✅ 没有发现需要清理的编码问题';
+                    resultDiv.className = 'result success';
+                }
+                
+                resultDiv.textContent = result;
+                
+            } catch (error) {
+                resultDiv.textContent = `清理数据错误: ${error.message}`;
+                resultDiv.className = 'result';
+            }
+        }
+    </script>
+</body>
+</html> 
