@@ -744,7 +744,7 @@ async function uploadImageToCloudflare(file) {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await fetch(`${API_BASE_URL}/upload`, {
+    const response = await fetch(`${API_BASE}/upload`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`
@@ -763,7 +763,7 @@ async function uploadImageToCloudflare(file) {
 
 // 保存内容数据
 async function saveContentData(contentData) {
-    const response = await fetch(`${API_BASE_URL}/content`, {
+    const response = await fetch(`${API_BASE}/content`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
