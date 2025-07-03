@@ -1,71 +1,26 @@
 /* index.css - 首页特定样式 */
 
-/* Hero区域 */
-.hero-section {
+/* 页面标题 */
+.page-header {
     text-align: center;
-    padding: 60px 0;
-    margin-bottom: 50px;
-}
-
-.hero-title {
-    font-size: 3rem;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 20px;
-    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    animation: fadeInUp 0.8s ease;
-}
-
-.hero-subtitle {
-    font-size: 1.2rem;
-    color: rgba(255, 255, 255, 0.9);
+    padding: 40px 0;
     margin-bottom: 40px;
-    animation: fadeInUp 0.8s ease 0.2s both;
 }
 
-.hero-stats {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    animation: fadeInUp 0.8s ease 0.4s both;
-}
-
-.stat-item {
-    text-align: center;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    min-width: 120px;
-    transition: all 0.3s ease;
-}
-
-.stat-item:hover {
-    transform: translateY(-5px);
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.stat-number {
+.page-main-title {
     font-size: 2.5rem;
     font-weight: 700;
     color: white;
-    margin-bottom: 8px;
-    counter-reset: number;
-    animation: countUp 2s ease;
-}
-
-.stat-label {
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.8);
-    font-weight: 500;
+    margin-bottom: 15px;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* 内容区域 */
 .content-sections {
     display: flex;
     flex-direction: column;
-    gap: 50px;
+    gap: 40px;
+    padding-top: 20px;
 }
 
 .content-section {

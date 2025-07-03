@@ -34,12 +34,11 @@ body {
 }
 
 .login-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 60px;
-    max-width: 1200px;
-    width: 100%;
+    display: flex;
+    justify-content: center;
     align-items: center;
+    max-width: 500px;
+    width: 100%;
 }
 
 .login-card {
@@ -49,7 +48,8 @@ body {
     padding: 50px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    animation: slideInLeft 0.8s ease;
+    animation: slideInUp 0.8s ease;
+    width: 100%;
 }
 
 .login-header {
@@ -401,30 +401,17 @@ body {
 /* 响应式设计 */
 @media (max-width: 1024px) {
     .login-container {
-        grid-template-columns: 1fr;
-        gap: 40px;
-        max-width: 600px;
-    }
-    
-    .login-features {
-        order: -1;
-    }
-    
-    .feature-list {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 20px;
-    }
-    
-    .feature-item {
-        flex: 1;
-        min-width: 250px;
+        max-width: 450px;
     }
 }
 
 @media (max-width: 768px) {
     .login-background {
         padding: 15px;
+    }
+    
+    .login-container {
+        max-width: 400px;
     }
     
     .login-card {
@@ -434,23 +421,13 @@ body {
     .login-title {
         font-size: 1.6rem;
     }
-    
-    .login-features h3 {
-        font-size: 1.5rem;
-    }
-    
-    .feature-list {
-        flex-direction: column;
-    }
-    
-    .login-footer-bottom .footer-content {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
-    }
 }
 
 @media (max-width: 480px) {
+    .login-container {
+        max-width: 350px;
+    }
+    
     .login-card {
         padding: 25px;
     }
@@ -467,32 +444,17 @@ body {
     .login-title {
         font-size: 1.4rem;
     }
-    
-    .feature-item {
-        padding: 20px;
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .feature-icon {
-        margin: 0 auto;
-    }
-    
-    .footer-links {
-        flex-direction: column;
-        gap: 10px;
-    }
 }
 
 /* 动画 */
-@keyframes slideInLeft {
+@keyframes slideInUp {
     from {
         opacity: 0;
-        transform: translateX(-50px);
+        transform: translateY(30px);
     }
     to {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateY(0);
     }
 }
 
