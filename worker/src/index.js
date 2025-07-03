@@ -14,7 +14,7 @@ export default {
         try {
             const url = new URL(request.url);
             const pathname = url.pathname;
-
+            
             // 🔒 管理员认证API
             if (pathname.startsWith('/auth')) {
                 const response = await handleAuth(request, env);
@@ -42,11 +42,11 @@ export default {
             // 404 处理
             return addCorsHeaders(request, new Response(JSON.stringify({
                 error: 'Not Found'
-            }), {
+                    }), {
                 status: 404,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
             }), env);
 
         } catch (error) {

@@ -15,21 +15,21 @@ export async function handleContent(request, env) {
         }
 
         // 验证权限
-        const authResult = await verifyAuth(request, env);
-        if (!authResult.success) {
-            return new Response(JSON.stringify({
-                error: authResult.error
-            }), {
-                status: 401,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
+            const authResult = await verifyAuth(request, env);
+            if (!authResult.success) {
+                return new Response(JSON.stringify({
+                    error: authResult.error
+                }), {
+                    status: 401,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }
 
         const url = new URL(request.url);
         const pathParts = url.pathname.split('/').filter(part => part);
-        
+
         if (request.method === 'GET') {
             if (pathParts.length === 1) {
                 // GET /content - 获取所有文章列表
@@ -38,7 +38,7 @@ export async function handleContent(request, env) {
                 // GET /content/{id} - 获取单篇文章
                 return await getArticle(pathParts[1], env);
             }
-            
+
         } else if (request.method === 'POST') {
             // POST /content - 创建新文章
             const articleData = await request.json();
@@ -119,15 +119,15 @@ async function getArticle(id, env) {
         const article = await env.CONTENT_KV.get(`article:${id}`, "json");
 
         if (!article) {
-            return new Response(JSON.stringify({
+                return new Response(JSON.stringify({
                 error: "Article not found"
-            }), {
+                }), {
                 status: 404,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }
 
         return new Response(JSON.stringify(article), {
             status: 200,
@@ -156,14 +156,30 @@ async function createArticle(articleData, env) {
             });
         }
 
+        // 清理输入数据
+        const cleanTitle = sanitizeInput(articleData.title);
+        const cleanContent = sanitizeInput(articleData.content);
+        
+        // 再次验证清理后的数据
+        if (!cleanTitle.trim() || !cleanContent.trim()) {
+            return new Response(JSON.stringify({
+                error: 'Article title and content cannot be empty'
+            }), {
+                status: 400,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+
         // 生成文章ID
         const articleId = articleData.id || `article_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
         // 构造完整的文章对象
         const article = {
             id: articleId,
-            title: sanitizeInput(articleData.title),
-            content: sanitizeInput(articleData.content),
+            title: cleanTitle,
+            content: cleanContent,
             summary: sanitizeInput(articleData.summary || articleData.content.substring(0, 200)),
             category: sanitizeInput(articleData.category || ''),
             tags: Array.isArray(articleData.tags) ? articleData.tags.map(tag => sanitizeInput(tag)) : [],
@@ -260,21 +276,52 @@ async function updateArticle(id, articleData, env) {
             });
         }
 
+        // 验证必需字段 - 确保更新后的文章仍然有title和content
+        const finalTitle = articleData.title || existingArticle.title;
+        const finalContent = articleData.content || existingArticle.content;
+        
+        if (!finalTitle || !finalContent) {
+            return new Response(JSON.stringify({
+                error: 'Article title and content are required'
+            }), {
+                status: 400,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+
+        // 清理输入数据
+        const cleanTitle = sanitizeInput(finalTitle);
+        const cleanContent = sanitizeInput(finalContent);
+        
+        // 再次验证清理后的数据
+        if (!cleanTitle.trim() || !cleanContent.trim()) {
+            return new Response(JSON.stringify({
+                error: 'Article title and content cannot be empty'
+            }), {
+                status: 400,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+
         // 更新文章数据（保留原有数据，只更新提供的字段）
         const updatedArticle = {
             ...existingArticle,
-            title: articleData.title ? sanitizeInput(articleData.title) : existingArticle.title,
-            content: articleData.content ? sanitizeInput(articleData.content) : existingArticle.content,
+            title: cleanTitle,
+            content: cleanContent,
             summary: articleData.summary ? sanitizeInput(articleData.summary) : existingArticle.summary,
             category: articleData.category !== undefined ? sanitizeInput(articleData.category) : existingArticle.category,
             tags: Array.isArray(articleData.tags) ? articleData.tags.map(tag => sanitizeInput(tag)) : existingArticle.tags,
             
             // 更新封面图片
-            coverImage: articleData.coverImage ? {
+            coverImage: articleData.coverImage !== undefined ? (articleData.coverImage ? {
                 url: sanitizeInput(articleData.coverImage.url, true),
                 alt: sanitizeInput(articleData.coverImage.alt || ''),
                 caption: sanitizeInput(articleData.coverImage.caption || '')
-            } : existingArticle.coverImage,
+            } : null) : existingArticle.coverImage,
             
             // 更新图片集合
             images: Array.isArray(articleData.images) ? articleData.images.map(img => ({

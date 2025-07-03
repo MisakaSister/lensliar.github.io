@@ -346,9 +346,9 @@
     }
     
     .content-section {
-        padding: 20px;
-    }
-    
+    padding: 20px;
+}
+
     .image-info {
         flex-direction: column;
         gap: 10px;
@@ -371,11 +371,11 @@
     from {
         opacity: 0;
         transform: scale(0.5);
-    }
+}
     to {
         opacity: 1;
         transform: scale(1);
-    }
+}
 }
 
 /* 无障碍支持 */
@@ -385,8 +385,8 @@
     .hero-stats,
     .stat-number {
         animation: none;
-    }
-    
+}
+
     .card {
         animation: none;
     }

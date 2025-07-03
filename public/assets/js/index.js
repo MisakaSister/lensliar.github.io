@@ -96,11 +96,11 @@ function renderContent(content) {
 
     // 渲染文章
     if (content.articles && content.articles.length > 0) {
-        content.articles.forEach(article => {
-            const articleElement = document.createElement('div');
-            articleElement.className = 'card';
+    content.articles.forEach(article => {
+        const articleElement = document.createElement('div');
+        articleElement.className = 'card';
             const imageUrl = article.image ? decodeHtmlEntities(article.image) : 'https://via.placeholder.com/600x400';
-            articleElement.innerHTML = `
+        articleElement.innerHTML = `
                 <img src="${imageUrl}" alt="${article.title}" class="card-img">
                 <div class="card-body">
                     <h3 class="card-title">${article.title}</h3>
@@ -114,19 +114,19 @@ function renderContent(content) {
                     <button class="btn" onclick="viewDetail('article', ${article.id})">查看详情</button>
                 </div>
             `;
-            articlesContainer.appendChild(articleElement);
-        });
+        articlesContainer.appendChild(articleElement);
+    });
     } else {
         articlesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-newspaper empty-icon"></i><h3>暂无文章</h3><p>还没有发布任何文章</p></div>';
     }
 
     // 渲染图片
     if (content.images && content.images.length > 0) {
-        content.images.forEach(image => {
-            const imageElement = document.createElement('div');
-            imageElement.className = 'card';
+    content.images.forEach(image => {
+        const imageElement = document.createElement('div');
+        imageElement.className = 'card';
             const imageUrl = image.url ? decodeHtmlEntities(image.url) : 'https://via.placeholder.com/600x400';
-            imageElement.innerHTML = `
+        imageElement.innerHTML = `
                 <img src="${imageUrl}" alt="${image.title}" class="card-img" onclick="openImageViewer(${image.id})">
                 <div class="card-body">
                     <h3 class="card-title">${image.title}</h3>
@@ -140,7 +140,7 @@ function renderContent(content) {
                 </div>
             `;
             imagesContainer.appendChild(imageElement);
-        });
+    });
     } else {
         imagesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-images empty-icon"></i><h3>暂无图片</h3><p>还没有上传任何图片</p></div>';
     }
@@ -183,12 +183,12 @@ function logout() {
 function showNotification(message, isSuccess = true) {
     const notification = document.getElementById('notification');
     if (notification) {
-        notification.textContent = message;
-        notification.className = `notification ${isSuccess ? 'success' : 'error'} show`;
+    notification.textContent = message;
+    notification.className = `notification ${isSuccess ? 'success' : 'error'} show`;
 
-        setTimeout(() => {
-            notification.classList.remove('show');
-        }, 3000);
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
     }
 }
 
