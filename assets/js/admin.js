@@ -9,6 +9,7 @@ let pageSize = 9;
 let searchQuery = { articles: '', images: '' };
 let selectedFiles = [];
 let editingItem = null;
+let removedCoverImage = false; // 标记是否删除了封面图片
 
 // 解码HTML实体 - 增强版，处理多重编码
 function decodeHtmlEntities(text) {
@@ -228,7 +229,7 @@ function renderArticles() {
                 ${article.category ? `<span>${escapeHtml(article.category)}</span> • ` : ''}
                 <span>${formatDate(article.createdAt)}</span>
             </div>
-            ${article.imageUrl ? `<img src="${decodeHtmlEntities(article.imageUrl)}" alt="${escapeHtml(article.title)}" class="card-image" onerror="this.style.display='none'">` : ''}
+            ${(article.coverImage?.url || article.imageUrl) ? `<img src="${decodeHtmlEntities(article.coverImage?.url || article.imageUrl)}" alt="${escapeHtml(article.title)}" class="card-image" onerror="this.style.display='none'">` : ''}
             <div class="card-content">${escapeHtml(article.content || '').substring(0, 150)}${article.content && article.content.length > 150 ? '...' : ''}</div>
             <div class="card-actions">
                 <button class="btn-modern btn-primary btn-small" onclick="editArticle('${article.id}')">
@@ -413,6 +414,7 @@ function closeModal(type) {
     
     // 清理编辑状态
     editingItem = null;
+    removedCoverImage = false; // 重置封面图片删除标记
     
     // 重置表单
     if (type === 'article') {
@@ -429,6 +431,7 @@ function resetArticleForm() {
     document.getElementById('save-article-btn').textContent = editingItem ? '保存修改' : '保存文章';
     document.getElementById('article-image-preview').style.display = 'none';
     document.getElementById('article-image-preview').innerHTML = '';
+    removedCoverImage = false; // 重置封面图片删除标记
 }
 
 // 重置图片表单
@@ -487,6 +490,9 @@ function removeArticleImage() {
     document.getElementById('article-image-file').value = '';
     document.getElementById('article-image-preview').style.display = 'none';
     document.getElementById('article-image-preview').innerHTML = '';
+    
+    // 标记删除了封面图片
+    removedCoverImage = true;
 }
 
 // 处理多文件选择
@@ -623,28 +629,83 @@ async function saveArticle() {
             imageUrl = await uploadImageToCloudflare(imageFile);
         }
         
+        // 如果是编辑模式且没有上传新图片，保留原有封面图片
+        let coverImage = null;
+        if (imageUrl) {
+            // 有新上传的图片
+            coverImage = {
+                url: imageUrl,
+                alt: title,
+                caption: ''
+            };
+        } else if (editingItem && !removedCoverImage) {
+            // 编辑模式，且没有删除封面图片，保留原有封面图片
+            coverImage = editingItem.coverImage || (editingItem.imageUrl ? {
+                url: editingItem.imageUrl,
+                alt: title,
+                caption: ''
+            } : null);
+        }
+        
         const articleData = {
-            id: editingItem ? editingItem.id : Date.now().toString(),
+            id: editingItem ? editingItem.id : `article_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             title,
-            category,
             content,
-            imageUrl,
+            summary: content.substring(0, 200), // 自动生成摘要
+            category: category || '',
+            tags: [], // 暂时为空，可以后续添加标签功能
+            
+            // 封面图片
+            coverImage: coverImage,
+            
+            // 文章中的图片集合（暂时为空）
+            images: [],
+            
+            // 附件（暂时为空）
+            attachments: [],
+            
+            // 元数据
+            author: 'Admin',
+            status: 'published',
+            visibility: 'public',
+            
+            // 时间戳
             createdAt: editingItem ? editingItem.createdAt : new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
+            publishedAt: new Date().toISOString(),
+            
+            // SEO信息
+            seo: {
+                metaTitle: title,
+                metaDescription: content.substring(0, 160),
+                keywords: [],
+                slug: title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim('-')
+            },
+            
+            // 统计信息
+            stats: {
+                views: editingItem ? (editingItem.stats?.views || 0) : 0,
+                likes: editingItem ? (editingItem.stats?.likes || 0) : 0,
+                comments: 0,
+                shares: 0
+            }
         };
         
-        // 保存文章数据
+        // 保存到服务器 - 使用新的单篇文章API
         if (editingItem) {
+            // 更新现有文章
+            await saveArticleData(articleData.id, articleData);
+            // 更新本地数据
             const index = articlesData.findIndex(item => item.id === editingItem.id);
             if (index !== -1) {
                 articlesData[index] = articleData;
             }
         } else {
+            // 创建新文章
+            await saveArticleData(null, articleData);
+            // 添加到本地数据
             articlesData.unshift(articleData);
         }
-        
-        // 保存到服务器
-        await saveContentData({ articles: articlesData, images: imagesData });
         
         showNotification(`文章${editingItem ? '更新' : '创建'}成功！`, true);
         closeModal('article');
@@ -790,7 +851,46 @@ async function uploadImageToCloudflare(file) {
     return result.url;
 }
 
-// 保存内容数据
+// 保存单篇文章数据
+async function saveArticleData(articleId, articleData) {
+    const url = articleId ? `${API_BASE}/content/${articleId}` : `${API_BASE}/content`;
+    const method = articleId ? 'PUT' : 'POST';
+    
+    const response = await fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify(articleData)
+    });
+    
+    if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`保存失败: ${error}`);
+    }
+    
+    return await response.json();
+}
+
+// 删除单篇文章数据
+async function deleteArticleData(articleId) {
+    const response = await fetch(`${API_BASE}/content/${articleId}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
+    });
+    
+    if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`删除失败: ${error}`);
+    }
+    
+    return await response.json();
+}
+
+// 保存内容数据（保留用于图片批量保存）
 async function saveContentData(contentData) {
     const response = await fetch(`${API_BASE}/content`, {
         method: 'POST',
@@ -824,12 +924,13 @@ async function editArticle(id) {
     document.getElementById('article-category').value = article.category || '';
     document.getElementById('article-content').value = decodeContentImages(article.content || '');
     
-    // 如果有封面图片，显示预览
-    if (article.imageUrl) {
+    // 如果有封面图片，显示预览（支持新旧格式）
+    const coverImageUrl = article.coverImage ? article.coverImage.url : article.imageUrl;
+    if (coverImageUrl) {
         const previewContainer = document.getElementById('article-image-preview');
         previewContainer.innerHTML = `
             <div class="preview-item">
-                <img src="${decodeHtmlEntities(article.imageUrl)}" alt="当前封面" class="preview-image">
+                <img src="${decodeHtmlEntities(coverImageUrl)}" alt="当前封面" class="preview-image">
                 <button type="button" class="preview-remove" onclick="removeArticleImage()">×</button>
             </div>
         `;
@@ -852,8 +953,11 @@ async function deleteArticle(id) {
             return;
         }
         
+        // 调用删除API
+        await deleteArticleData(id);
+        
+        // 从本地数据中移除
         articlesData.splice(index, 1);
-        await saveContentData({ articles: articlesData, images: imagesData });
         
         showNotification('文章删除成功', true);
         updateStats();
