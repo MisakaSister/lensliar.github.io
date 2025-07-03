@@ -10,6 +10,24 @@ let searchQuery = { articles: '', images: '' };
 let selectedFiles = [];
 let editingItem = null;
 
+// 解码HTML实体 - 增强版，处理多重编码
+function decodeHtmlEntities(text) {
+    if (!text || typeof text !== 'string') return text;
+    
+    let decoded = text;
+    let previousDecoded = '';
+    
+    // 循环解码直到没有更多实体可解码
+    while (decoded !== previousDecoded) {
+        previousDecoded = decoded;
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = decoded;
+        decoded = textarea.value;
+    }
+    
+    return decoded;
+}
+
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
     console.log('管理后台初始化开始...');
@@ -243,7 +261,7 @@ function renderImages() {
     // 渲染图片卡片
     container.innerHTML = paginatedData.data.map(image => `
         <div class="content-card">
-            <img src="${image.url}" alt="${escapeHtml(image.title)}" class="card-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik04NyA2NUw5MyA3MUwxMDcgNTdMMTIzIDczTDEzNyA1OUwxNTMgNzVMMTY3IDYxTDE4MyA3N0wxOTcgNjNWMTM3SDE3VjEzN0g5N1YxMzdIMTdWNjNMMzMgNzdMNDcgNjNMNjMgNzlMNzcgNjVMODcgNjVaIiBmaWxsPSIjREREREREIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjQwIiByPSIxNSIgZmlsbD0iI0RERERERCIvPgo8L3N2Zz4K'">
+            <img src="${decodeHtmlEntities(image.url)}" alt="${escapeHtml(image.title)}" class="card-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik04NyA2NUw5MyA3MUwxMDcgNTdMMTIzIDczTDEzNyA1OUwxNTMgNzVMMTY3IDYxTDE4MyA3N0wxOTcgNjNWMTM3SDE3VjEzN0g5N1YxMzdIMTdWNjNMMzMgNzdMNDcgNjNMNjMgNzlMNzcgNjVMODcgNjVaIiBmaWxsPSIjREREREREIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjQwIiByPSIxNSIgZmlsbD0iI0RERERERCIvPgo8L3N2Zz4K'">
             <div class="card-header">
                 <h4 class="card-title">${escapeHtml(image.title)}</h4>
             </div>
@@ -253,7 +271,7 @@ function renderImages() {
             </div>
             ${image.description ? `<div class="card-content">${escapeHtml(image.description).substring(0, 100)}${image.description.length > 100 ? '...' : ''}</div>` : ''}
             <div class="card-actions">
-                <button class="btn-modern btn-primary btn-small" onclick="viewImage('${image.url}')">
+                <button class="btn-modern btn-primary btn-small" onclick="viewImage('${decodeHtmlEntities(image.url)}')">
                     查看
                 </button>
                 <button class="btn-modern btn-danger btn-small" onclick="deleteImage('${image.id}')">

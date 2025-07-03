@@ -4,6 +4,24 @@
 let allContent = { articles: [], images: [] };
 let currentDetail = null;
 
+// 解码HTML实体 - 增强版，处理多重编码
+function decodeHtmlEntities(text) {
+    if (!text || typeof text !== 'string') return text;
+    
+    let decoded = text;
+    let previousDecoded = '';
+    
+    // 循环解码直到没有更多实体可解码
+    while (decoded !== previousDecoded) {
+        previousDecoded = decoded;
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = decoded;
+        decoded = textarea.value;
+    }
+    
+    return decoded;
+}
+
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
     loadDetailContent();
@@ -81,7 +99,7 @@ function renderArticleDetail(article) {
                     <span>发布日期: ${article.date || '未知日期'}</span>
                 </div>
             </div>
-            ${article.image ? `<img src="${article.image}" alt="${article.title}" class="detail-image">` : ''}
+            ${article.image ? `<img src="${decodeHtmlEntities(article.image)}" alt="${article.title}" class="detail-image">` : ''}
             <div class="detail-content">${article.content}</div>
             <button class="btn back-btn" onclick="window.history.back()">返回</button>
         `;
@@ -98,7 +116,7 @@ function renderImageDetail(image) {
                     <span>发布日期: ${image.date || '未知日期'}</span>
                 </div>
             </div>
-            <img src="${image.url}" alt="${image.title}" class="detail-image">
+            <img src="${decodeHtmlEntities(image.url)}" alt="${image.title}" class="detail-image">
             <div class="detail-content">
                 <p>${image.description || ''}</p>
             </div>
