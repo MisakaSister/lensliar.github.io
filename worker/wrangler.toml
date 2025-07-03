@@ -4,7 +4,8 @@ compatibility_date = "2025-07-01"
 
 kv_namespaces = [
     { binding = "CONTENT_KV", id = "3f1b7152df4a403e8c7d2ebbf86df1ea" },
-    { binding = "AUTH_KV", id = "7b3ece78720c41c1b084de9e45eddc7a" }
+    { binding = "AUTH_KV", id = "7b3ece78720c41c1b084de9e45eddc7a" },
+    { binding = "IMAGES_KV", id = "06d5b81527944a08ab8f7459bdf17c90" }
 ]
 
 # R2存储桶配置（用于存储图片）

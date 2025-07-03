@@ -88,8 +88,8 @@ export async function handleUpload(request, env) {
         // 构造公开访问URL
         const imageUrl = `https://images.wengguodong.com/${fileName}`;
 
-        // 自动保存图片元数据到索引
-        await saveImageToIndex(env, {
+        // 自动创建相册
+        await createImageAlbum(env, {
             url: imageUrl,
             fileName: fileName,
             title: sanitizeFileName(file.name || 'unknown'),
@@ -264,49 +264,45 @@ async function generateSessionFingerprint(request) {
     return Array.from(hashArray, b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// 保存图片到索引
-async function saveImageToIndex(env, imageData) {
+// 创建单图相册
+async function createImageAlbum(env, imageData) {
     try {
-        // 生成图片ID
-        const imageId = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        // 生成相册ID
+        const albumId = 'album_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const currentTime = new Date().toISOString();
         
-        // 构造图片对象
-        const image = {
-            id: imageId,
-            url: imageData.url,
-            fileName: imageData.fileName,
-            title: imageData.title || imageData.fileName,
-            description: '',
-            category: '',
+        // 构造相册对象
+        const album = {
+            id: albumId,
+            title: imageData.title || '未命名图片',
+            description: '单图上传',
+            category: '默认分类',
             tags: [],
-            size: imageData.size || 0,
-            type: imageData.type || 'image/jpeg',
+            images: [{
+                url: imageData.url,
+                fileName: imageData.fileName,
+                title: imageData.title || imageData.fileName,
+                size: imageData.size || 0,
+                type: imageData.type || 'image/jpeg'
+            }],
+            imageCount: 1,
+            coverImage: {
+                url: imageData.url,
+                fileName: imageData.fileName,
+                title: imageData.title || imageData.fileName,
+                size: imageData.size || 0,
+                type: imageData.type || 'image/jpeg'
+            },
             uploadedBy: imageData.uploadedBy || 'unknown',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            createdAt: currentTime,
+            updatedAt: currentTime
         };
 
-        // 获取现有图片索引
-        const imagesIndex = await env.CONTENT_KV.get('images_index', 'json') || {
-            images: [],
-            total: 0,
-            lastSync: null
-        };
-
-        // 检查是否已存在相同URL的图片
-        const existingIndex = imagesIndex.images.findIndex(img => img.url === image.url);
-        if (existingIndex === -1) {
-            // 添加新图片到开头
-            imagesIndex.images.unshift(image);
-            imagesIndex.total = imagesIndex.images.length;
-            imagesIndex.lastSync = new Date().toISOString();
-
-            // 保存更新后的索引
-            await env.CONTENT_KV.put('images_index', JSON.stringify(imagesIndex));
-        }
+        // 保存到IMAGES_KV
+        await env.IMAGES_KV.put(`album_${albumId}`, JSON.stringify(album));
 
     } catch (error) {
-        console.error('Failed to save image to index:', error);
+        console.error('Failed to create image album:', error);
         // 不抛出错误，避免影响上传流程
     }
 }

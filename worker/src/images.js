@@ -1,4 +1,4 @@
-// worker/src/images.js - 图片管理模块
+// worker/src/images.js - 相册管理模块
 import { verifyAuth } from './content.js';
 
 export async function handleImages(request, env) {
@@ -26,12 +26,17 @@ export async function handleImages(request, env) {
         }
         
         if (pathname === '/images' && method === 'POST') {
-            return await saveImageMetadata(request, env);
+            return await saveImageAlbum(request, env);
         }
 
         if (pathname.startsWith('/images/') && method === 'DELETE') {
             const imageId = pathname.split('/')[2];
-            return await deleteImage(imageId, env);
+            return await deleteImageAlbum(imageId, env);
+        }
+
+        if (pathname.startsWith('/images/') && method === 'PUT') {
+            const imageId = pathname.split('/')[2];
+            return await updateImageAlbum(imageId, request, env);
         }
 
         if (pathname === '/images/sync' && method === 'POST') {
@@ -60,22 +65,45 @@ export async function handleImages(request, env) {
     }
 }
 
-// 获取图片列表
+// 获取相册图片列表
 async function getImages(request, env) {
     try {
         const url = new URL(request.url);
         const page = parseInt(url.searchParams.get('page') || '1');
         const limit = parseInt(url.searchParams.get('limit') || '20');
         const search = url.searchParams.get('search') || '';
+        const category = url.searchParams.get('category') || '';
 
-        // 从KV存储获取图片索引
-        const imagesIndex = await env.CONTENT_KV.get('images_index', 'json') || {
-            images: [],
-            total: 0,
-            lastSync: null
-        };
+        // 获取所有图片KV键
+        const listResult = await env.IMAGES_KV.list({
+            prefix: 'album_'
+        });
 
-        let filteredImages = imagesIndex.images;
+        const images = [];
+        
+        // 批量获取图片数据
+        for (const key of listResult.keys) {
+            try {
+                const imageData = await env.IMAGES_KV.get(key.name, 'json');
+                if (imageData) {
+                    images.push(imageData);
+                }
+            } catch (error) {
+                console.error(`Failed to get image ${key.name}:`, error);
+            }
+        }
+
+        // 按创建时间排序（最新的在前）
+        images.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        let filteredImages = images;
+
+        // 分类过滤
+        if (category) {
+            filteredImages = filteredImages.filter(image => 
+                image.category === category
+            );
+        }
 
         // 搜索过滤
         if (search) {
@@ -93,6 +121,9 @@ async function getImages(request, env) {
         const offset = (page - 1) * limit;
         const paginatedImages = filteredImages.slice(offset, offset + limit);
 
+        // 获取所有分类
+        const categories = [...new Set(images.map(img => img.category).filter(Boolean))];
+
         return new Response(JSON.stringify({
             success: true,
             images: paginatedImages,
@@ -102,7 +133,8 @@ async function getImages(request, env) {
                 total,
                 totalPages: Math.ceil(total / limit)
             },
-            lastSync: imagesIndex.lastSync
+            categories: categories,
+            totalImages: images.length
         }), {
             status: 200,
             headers: {
@@ -123,15 +155,15 @@ async function getImages(request, env) {
     }
 }
 
-// 保存图片元数据
-async function saveImageMetadata(request, env) {
+// 保存相册图片（支持单图和多图）
+async function saveImageAlbum(request, env) {
     try {
-        const imageData = await request.json();
+        const albumData = await request.json();
         
         // 验证必需字段
-        if (!imageData.url || !imageData.fileName) {
+        if (!albumData.images || !Array.isArray(albumData.images) || albumData.images.length === 0) {
             return new Response(JSON.stringify({
-                error: 'Missing required fields: url, fileName'
+                error: 'Missing required field: images array'
             }), {
                 status: 400,
                 headers: {
@@ -140,50 +172,37 @@ async function saveImageMetadata(request, env) {
             });
         }
 
-        // 生成图片ID
-        const imageId = generateImageId();
+        // 生成相册ID
+        const albumId = generateAlbumId();
+        const currentTime = new Date().toISOString();
         
-        // 构造图片对象
-        const image = {
-            id: imageId,
-            url: imageData.url,
-            fileName: imageData.fileName,
-            title: imageData.title || imageData.fileName,
-            description: imageData.description || '',
-            category: imageData.category || '',
-            tags: imageData.tags || [],
-            size: imageData.size || 0,
-            type: imageData.type || 'image/jpeg',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+        // 构造相册对象
+        const album = {
+            id: albumId,
+            title: albumData.title || '未命名相册',
+            description: albumData.description || '',
+            category: albumData.category || '默认分类',
+            tags: albumData.tags || [],
+            images: albumData.images.map(img => ({
+                url: img.url,
+                fileName: img.fileName,
+                title: img.title || img.fileName,
+                size: img.size || 0,
+                type: img.type || 'image/jpeg'
+            })),
+            imageCount: albumData.images.length,
+            coverImage: albumData.images[0], // 第一张图片作为封面
+            uploadedBy: albumData.uploadedBy || 'unknown',
+            createdAt: currentTime,
+            updatedAt: currentTime
         };
 
-        // 获取现有图片索引
-        const imagesIndex = await env.CONTENT_KV.get('images_index', 'json') || {
-            images: [],
-            total: 0,
-            lastSync: null
-        };
-
-        // 检查是否已存在相同URL的图片
-        const existingIndex = imagesIndex.images.findIndex(img => img.url === image.url);
-        if (existingIndex !== -1) {
-            // 更新现有图片
-            imagesIndex.images[existingIndex] = { ...imagesIndex.images[existingIndex], ...image };
-        } else {
-            // 添加新图片
-            imagesIndex.images.unshift(image);
-        }
-
-        imagesIndex.total = imagesIndex.images.length;
-        imagesIndex.lastSync = new Date().toISOString();
-
-        // 保存更新后的索引
-        await env.CONTENT_KV.put('images_index', JSON.stringify(imagesIndex));
+        // 保存到IMAGES_KV
+        await env.IMAGES_KV.put(`album_${albumId}`, JSON.stringify(album));
 
         return new Response(JSON.stringify({
             success: true,
-            image: image
+            album: album
         }), {
             status: 200,
             headers: {
@@ -192,9 +211,9 @@ async function saveImageMetadata(request, env) {
         });
 
     } catch (error) {
-        console.error('Save image metadata error:', error);
+        console.error('Save image album error:', error);
         return new Response(JSON.stringify({
-            error: 'Failed to save image metadata'
+            error: 'Failed to save image album'
         }), {
             status: 500,
             headers: {
@@ -204,21 +223,14 @@ async function saveImageMetadata(request, env) {
     }
 }
 
-// 删除图片
-async function deleteImage(imageId, env) {
+// 删除相册
+async function deleteImageAlbum(albumId, env) {
     try {
-        // 获取图片索引
-        const imagesIndex = await env.CONTENT_KV.get('images_index', 'json') || {
-            images: [],
-            total: 0,
-            lastSync: null
-        };
-
-        // 找到要删除的图片
-        const imageIndex = imagesIndex.images.findIndex(img => img.id === imageId);
-        if (imageIndex === -1) {
+        // 获取相册数据
+        const album = await env.IMAGES_KV.get(`album_${albumId}`, 'json');
+        if (!album) {
             return new Response(JSON.stringify({
-                error: 'Image not found'
+                error: 'Album not found'
             }), {
                 status: 404,
                 headers: {
@@ -227,27 +239,23 @@ async function deleteImage(imageId, env) {
             });
         }
 
-        const image = imagesIndex.images[imageIndex];
+        // 从R2删除所有图片文件
+        const deletePromises = album.images.map(async (image) => {
+            try {
+                await env.IMAGES_BUCKET.delete(image.fileName);
+            } catch (r2Error) {
+                console.error(`Failed to delete ${image.fileName} from R2:`, r2Error);
+            }
+        });
 
-        // 从R2删除图片文件
-        try {
-            await env.IMAGES_BUCKET.delete(image.fileName);
-        } catch (r2Error) {
-            console.error('Failed to delete from R2:', r2Error);
-            // 继续删除元数据，即使R2删除失败
-        }
+        await Promise.allSettled(deletePromises);
 
-        // 从索引中删除
-        imagesIndex.images.splice(imageIndex, 1);
-        imagesIndex.total = imagesIndex.images.length;
-        imagesIndex.lastSync = new Date().toISOString();
-
-        // 保存更新后的索引
-        await env.CONTENT_KV.put('images_index', JSON.stringify(imagesIndex));
+        // 从IMAGES_KV删除相册记录
+        await env.IMAGES_KV.delete(`album_${albumId}`);
 
         return new Response(JSON.stringify({
             success: true,
-            message: 'Image deleted successfully'
+            message: `Album deleted successfully (${album.imageCount} images)`
         }), {
             status: 200,
             headers: {
@@ -256,9 +264,9 @@ async function deleteImage(imageId, env) {
         });
 
     } catch (error) {
-        console.error('Delete image error:', error);
+        console.error('Delete album error:', error);
         return new Response(JSON.stringify({
-            error: 'Failed to delete image'
+            error: 'Failed to delete album'
         }), {
             status: 500,
             headers: {
@@ -268,7 +276,61 @@ async function deleteImage(imageId, env) {
     }
 }
 
-// 从R2同步图片列表
+// 更新相册
+async function updateImageAlbum(albumId, request, env) {
+    try {
+        const updateData = await request.json();
+        
+        // 获取现有相册数据
+        const existingAlbum = await env.IMAGES_KV.get(`album_${albumId}`, 'json');
+        if (!existingAlbum) {
+            return new Response(JSON.stringify({
+                error: 'Album not found'
+            }), {
+                status: 404,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+
+        // 更新相册数据
+        const updatedAlbum = {
+            ...existingAlbum,
+            title: updateData.title || existingAlbum.title,
+            description: updateData.description || existingAlbum.description,
+            category: updateData.category || existingAlbum.category,
+            tags: updateData.tags || existingAlbum.tags,
+            updatedAt: new Date().toISOString()
+        };
+
+        // 保存更新后的相册
+        await env.IMAGES_KV.put(`album_${albumId}`, JSON.stringify(updatedAlbum));
+
+        return new Response(JSON.stringify({
+            success: true,
+            album: updatedAlbum
+        }), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+    } catch (error) {
+        console.error('Update album error:', error);
+        return new Response(JSON.stringify({
+            error: 'Failed to update album'
+        }), {
+            status: 500,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+}
+
+// 从R2同步图片到相册
 async function syncImagesFromR2(request, env) {
     try {
         // 列出R2中的所有图片
@@ -277,40 +339,87 @@ async function syncImagesFromR2(request, env) {
             include: ['customMetadata', 'httpMetadata']
         });
 
-        const images = [];
-        for (const obj of r2Objects.objects) {
-            const image = {
-                id: generateImageId(),
-                url: `https://images.wengguodong.com/${obj.key}`,
-                fileName: obj.key,
-                title: obj.customMetadata?.originalName || obj.key.split('/').pop(),
-                description: '',
-                category: '',
-                tags: [],
-                size: obj.size,
-                type: obj.httpMetadata?.contentType || 'image/jpeg',
-                createdAt: obj.customMetadata?.uploadedAt || obj.uploaded.toISOString(),
-                updatedAt: obj.uploaded.toISOString()
-            };
-            images.push(image);
+        if (r2Objects.objects.length === 0) {
+            return new Response(JSON.stringify({
+                success: true,
+                message: 'No images found in R2',
+                total: 0
+            }), {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
         }
 
-        // 按创建时间排序（最新的在前）
-        images.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        // 获取现有相册列表，避免重复同步
+        const existingAlbums = await env.IMAGES_KV.list({
+            prefix: 'album_'
+        });
+        
+        const existingImageUrls = new Set();
+        for (const key of existingAlbums.keys) {
+            try {
+                const album = await env.IMAGES_KV.get(key.name, 'json');
+                if (album && album.images) {
+                    album.images.forEach(img => {
+                        existingImageUrls.add(img.url);
+                    });
+                }
+            } catch (error) {
+                console.error(`Failed to check existing album ${key.name}:`, error);
+            }
+        }
 
-        // 保存图片索引
-        const imagesIndex = {
-            images: images,
-            total: images.length,
-            lastSync: new Date().toISOString()
-        };
+        // 为每个R2图片创建单独的相册
+        let syncedCount = 0;
+        for (const obj of r2Objects.objects) {
+            const imageUrl = `https://images.wengguodong.com/${obj.key}`;
+            
+            // 跳过已存在的图片
+            if (existingImageUrls.has(imageUrl)) {
+                continue;
+            }
 
-        await env.CONTENT_KV.put('images_index', JSON.stringify(imagesIndex));
+            const albumId = generateAlbumId();
+            const imageName = obj.customMetadata?.originalName || obj.key.split('/').pop();
+            
+            const album = {
+                id: albumId,
+                title: imageName,
+                description: '从R2同步的图片',
+                category: '同步相册',
+                tags: ['R2同步'],
+                images: [{
+                    url: imageUrl,
+                    fileName: obj.key,
+                    title: imageName,
+                    size: obj.size,
+                    type: obj.httpMetadata?.contentType || 'image/jpeg'
+                }],
+                imageCount: 1,
+                coverImage: {
+                    url: imageUrl,
+                    fileName: obj.key,
+                    title: imageName,
+                    size: obj.size,
+                    type: obj.httpMetadata?.contentType || 'image/jpeg'
+                },
+                uploadedBy: 'R2同步',
+                createdAt: obj.customMetadata?.uploadedAt || obj.uploaded.toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
+            // 保存相册
+            await env.IMAGES_KV.put(`album_${albumId}`, JSON.stringify(album));
+            syncedCount++;
+        }
 
         return new Response(JSON.stringify({
             success: true,
-            message: `Synced ${images.length} images from R2`,
-            total: images.length
+            message: `Synced ${syncedCount} new images from R2 (${r2Objects.objects.length} total found)`,
+            synced: syncedCount,
+            total: r2Objects.objects.length
         }), {
             status: 200,
             headers: {
@@ -331,7 +440,7 @@ async function syncImagesFromR2(request, env) {
     }
 }
 
-// 生成图片ID
-function generateImageId() {
-    return 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+// 生成相册ID
+function generateAlbumId() {
+    return 'album_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 } 
