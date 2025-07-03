@@ -439,8 +439,8 @@ body {
     
     .login-logo i {
         font-size: 1.5rem;
-    }
-    
+}
+
     .login-title {
         font-size: 1.4rem;
     }
@@ -465,8 +465,8 @@ body {
     }
     to {
         opacity: 1;
-        transform: translateX(0);
-    }
+    transform: translateX(0);
+}
 }
 
 /* 无障碍支持 */
@@ -475,8 +475,8 @@ body {
     .login-features,
     .feature-item {
         animation: none;
-    }
-    
+}
+
     .loading-spinner {
         animation: none;
     }

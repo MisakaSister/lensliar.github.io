@@ -57,14 +57,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const logoutLink = document.getElementById('logout-link');
     if (logoutLink) {
         logoutLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            logout();
-        });
+        e.preventDefault();
+        logout();
+    });
     }
 
     // 初始化模态框关闭事件
     setupModalEvents();
-    
+
     // 加载内容
     console.log('开始加载内容...');
     loadAllContent();
@@ -152,8 +152,8 @@ function switchTab(tab) {
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
     const tabContent = document.getElementById(`${tab}-tab`);
     if (tabContent) tabContent.classList.add('active');
-    
-    // 渲染内容
+
+// 渲染内容
     renderCurrentTab();
 }
 
@@ -213,8 +213,8 @@ function renderArticles() {
                 <div class="empty-icon">📝</div>
                 <h3>暂无文章</h3>
                 <p>点击"新建文章"按钮创建您的第一篇文章</p>
-            </div>
-        `;
+                </div>
+            `;
         if (paginationContainer) paginationContainer.innerHTML = '';
         return;
     }
@@ -305,7 +305,7 @@ function renderPagination(type, paginatedData) {
     const { totalPages, currentPage: page, total } = paginatedData;
     
     if (totalPages <= 1) {
-        container.innerHTML = '';
+    container.innerHTML = '';
         return;
     }
     
@@ -388,8 +388,8 @@ function showEmptyState() {
             <div class="empty-icon">🖼️</div>
             <h3>暂无图片</h3>
             <p>点击上传按钮添加图片</p>
-        </div>
-    `;
+                </div>
+            `;
 }
 
 // 打开模态框
@@ -449,7 +449,7 @@ function resetImageForm() {
 function handleArticleImageSelect(event) {
     const file = event.target.files[0];
     const previewContainer = document.getElementById('article-image-preview');
-    
+
     if (!file) {
         previewContainer.style.display = 'none';
         return;
@@ -604,7 +604,7 @@ async function saveArticle() {
     const category = document.getElementById('article-category').value.trim();
     const content = document.getElementById('article-content').value.trim();
     const imageFile = document.getElementById('article-image-file').files[0];
-    
+
     if (!title) {
         showNotification('请输入文章标题', false);
         return;
@@ -645,6 +645,9 @@ async function saveArticle() {
                 alt: title,
                 caption: ''
             } : null);
+        } else if (editingItem && removedCoverImage) {
+            // 编辑模式，且删除了封面图片，明确设置为null
+            coverImage = null;
         }
         
         const articleData = {
@@ -655,7 +658,7 @@ async function saveArticle() {
             category: category || '',
             tags: [], // 暂时为空，可以后续添加标签功能
             
-            // 封面图片
+            // 封面图片 - 明确传递coverImage，即使是null
             coverImage: coverImage,
             
             // 文章中的图片集合（暂时为空）
@@ -730,7 +733,7 @@ async function saveImages() {
         showNotification('请选择要上传的图片文件', false);
         return;
     }
-    
+
     const saveBtn = document.getElementById('save-images-btn');
     const progressContainer = document.getElementById('upload-progress');
     const progressList = document.getElementById('upload-progress-list');
@@ -798,11 +801,6 @@ async function saveImages() {
             }
         }
         
-        // 保存到服务器
-        if (successCount > 0) {
-            await saveContentData({ articles: articlesData, images: imagesData });
-        }
-        
         // 更新摘要
         progressSummary.innerHTML = `
             <div style="font-weight: 600; margin-bottom: 10px;">上传完成</div>
@@ -831,9 +829,9 @@ async function saveImages() {
 
 // 上传图片到Cloudflare
 async function uploadImageToCloudflare(file) {
-    const formData = new FormData();
-    formData.append('file', file);
-    
+        const formData = new FormData();
+        formData.append('file', file);
+        
     const response = await fetch(`${API_BASE}/upload`, {
         method: 'POST',
         headers: {
@@ -845,7 +843,7 @@ async function uploadImageToCloudflare(file) {
     if (!response.ok) {
         const error = await response.text();
         throw new Error(`上传失败: ${error}`);
-    }
+                }
     
     const result = await response.json();
     return result.url;
@@ -855,6 +853,13 @@ async function uploadImageToCloudflare(file) {
 async function saveArticleData(articleId, articleData) {
     const url = articleId ? `${API_BASE}/content/${articleId}` : `${API_BASE}/content`;
     const method = articleId ? 'PUT' : 'POST';
+    
+    // 添加调试信息
+    console.log('发送数据到API:', {
+        url,
+        method,
+        articleData: JSON.stringify(articleData, null, 2)
+    });
     
     const response = await fetch(url, {
         method: method,
@@ -867,6 +872,7 @@ async function saveArticleData(articleId, articleData) {
     
     if (!response.ok) {
         const error = await response.text();
+        console.error('API响应错误:', error);
         throw new Error(`保存失败: ${error}`);
     }
     
@@ -885,25 +891,6 @@ async function deleteArticleData(articleId) {
     if (!response.ok) {
         const error = await response.text();
         throw new Error(`删除失败: ${error}`);
-    }
-    
-    return await response.json();
-}
-
-// 保存内容数据（保留用于图片批量保存）
-async function saveContentData(contentData) {
-    const response = await fetch(`${API_BASE}/content`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        },
-        body: JSON.stringify(contentData)
-    });
-    
-    if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`保存失败: ${error}`);
     }
     
     return await response.json();
@@ -983,7 +970,6 @@ async function deleteImage(id) {
         }
         
         imagesData.splice(index, 1);
-        await saveContentData({ articles: articlesData, images: imagesData });
         
         showNotification('图片删除成功', true);
         updateStats();
@@ -1062,12 +1048,12 @@ function formatDate(dateString) {
 function showNotification(message, isSuccess = true) {
     const notification = document.getElementById('notification');
     if (notification) {
-        notification.textContent = message;
+    notification.textContent = message;
         notification.className = `notification ${isSuccess ? 'success' : 'error'}`;
         notification.style.display = 'block';
-        
-        setTimeout(() => {
+
+    setTimeout(() => {
             notification.style.display = 'none';
-        }, 3000);
-    }
+    }, 3000);
+}
 }

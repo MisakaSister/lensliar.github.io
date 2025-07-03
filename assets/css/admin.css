@@ -492,16 +492,16 @@ nav {
     .admin-actions {
         flex-direction: column;
         width: 100%;
-    }
+}
 
     .tab-buttons {
         flex-direction: column;
         gap: 10px;
-    }
+}
 
     .admin-container .content-grid {
         grid-template-columns: 1fr;
-    }
+}
 
     .modal-content {
         width: 95%;
@@ -546,8 +546,8 @@ nav {
     .pagination-btn {
         padding: 8px 12px;
         font-size: 0.8rem;
-    }
-    
+}
+
     .pagination-info {
         width: 100%;
         text-align: center;
