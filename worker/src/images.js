@@ -192,12 +192,24 @@ async function saveImageAlbum(request, env) {
                 url: img.url,
                 fileName: img.fileName,
                 title: img.title || img.fileName,
+                alt: img.alt || img.title || img.fileName,
+                caption: img.caption || '',
+                width: img.width || null,
+                height: img.height || null,
                 size: img.size || 0,
                 type: img.type || 'image/jpeg'
             })),
             imageCount: albumData.images.length,
-            coverImage: albumData.images[0], // 第一张图片作为封面
-            uploadedBy: albumData.uploadedBy || 'unknown',
+            coverImage: {
+                url: albumData.images[0].url,
+                fileName: albumData.images[0].fileName,
+                title: albumData.images[0].title || albumData.images[0].fileName,
+                alt: albumData.images[0].alt || albumData.images[0].title || albumData.images[0].fileName,
+                caption: albumData.images[0].caption || '',
+                size: albumData.images[0].size || 0,
+                type: albumData.images[0].type || 'image/jpeg'
+            },
+            uploadedBy: albumData.uploadedBy || 'admin',
             createdAt: currentTime,
             updatedAt: currentTime
         };
@@ -537,5 +549,5 @@ async function syncImagesFromR2(request, env) {
 
 // 生成相册ID
 function generateAlbumId() {
-    return 'album_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 } 
