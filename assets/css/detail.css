@@ -818,5 +818,87 @@ footer {
     .share-btn:hover {
         transform: none;
     }
+}
+
+/* 相册详情页样式 */
+.detail-description {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(248, 249, 250, 0.8);
+    border-radius: 12px;
+    border-left: 4px solid var(--primary);
+}
+
+.detail-description p {
+    margin: 0;
+    color: #555;
+    line-height: 1.6;
+}
+
+.album-images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.album-image-item {
+    position: relative;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.album-image-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.album-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.album-image:hover {
+    transform: scale(1.05);
+}
+
+.image-title {
+    padding: 15px;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.95);
+}
+
+@media (max-width: 768px) {
+    .album-images-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    
+    .album-image {
+        height: 150px;
+    }
+    
+    .image-title {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .album-images-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .album-image {
+        height: 200px;
     }
 } 

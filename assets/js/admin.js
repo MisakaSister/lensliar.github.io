@@ -113,29 +113,92 @@ function setupModalEvents() {
 // 加载所有内容
 async function loadAllContent() {
     try {
-        console.log('调用getAdminContentData...');
-        const content = await getAdminContentData();
-        console.log('获取到的内容:', content);
+        console.log('开始加载内容...');
         
-        if (content) {
-            articlesData = content.articles || [];
-            imagesData = content.images || [];
-            
-            // 更新统计信息
-            updateStats();
-            
-            // 渲染当前标签页内容
-            renderCurrentTab();
-            
-            console.log(`内容加载完成: ${articlesData.length} 篇文章, ${imagesData.length} 张图片`);
+        // 并行加载文章和图片数据
+        const [articlesResult, imagesResult] = await Promise.allSettled([
+            loadArticles(),
+            loadImages()
+        ]);
+        
+        // 处理文章数据
+        if (articlesResult.status === 'fulfilled') {
+            articlesData = articlesResult.value || [];
         } else {
-            console.log('内容为空');
-            showEmptyState();
+            console.error('加载文章失败:', articlesResult.reason);
+            articlesData = [];
         }
+        
+        // 处理图片数据
+        if (imagesResult.status === 'fulfilled') {
+            imagesData = imagesResult.value || [];
+        } else {
+            console.error('加载图片失败:', imagesResult.reason);
+            imagesData = [];
+        }
+        
+        // 更新统计信息
+        updateStats();
+        
+        // 渲染当前标签页内容
+        renderCurrentTab();
+        
+        console.log(`内容加载完成: ${articlesData.length} 篇文章, ${imagesData.length} 张图片`);
+        
     } catch (error) {
         console.error('加载内容失败:', error);
         showNotification('加载内容失败: ' + error.message, false);
         showEmptyState();
+    }
+}
+
+// 加载文章数据
+async function loadArticles() {
+    try {
+        const response = await fetch(`${API_BASE}/content`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result.articles || [];
+    } catch (error) {
+        console.error('加载文章失败:', error);
+        throw error;
+    }
+}
+
+// 加载图片数据
+async function loadImages() {
+    try {
+        console.log('Loading images from API...');
+        const response = await fetch(`${API_BASE}/images`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('Images API response status:', response.status);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('Images loaded from API:', result);
+        return result.images || [];
+    } catch (error) {
+        console.error('加载图片失败:', error);
+        throw error;
     }
 }
 
@@ -155,7 +218,7 @@ function updateStats() {
         const filteredImages = getFilteredData('images');
         
         articlesStats.textContent = `共 ${articlesData.length} 篇文章${filteredArticles.length !== articlesData.length ? ` (筛选后 ${filteredArticles.length} 篇)` : ''}`;
-        imagesStats.textContent = `共 ${imagesData.length} 张图片${filteredImages.length !== imagesData.length ? ` (筛选后 ${filteredImages.length} 张)` : ''}`;
+        imagesStats.textContent = `共 ${imagesData.length} 个相册${filteredImages.length !== imagesData.length ? ` (筛选后 ${filteredImages.length} 个)` : ''}`;
     }
 }
 
@@ -282,36 +345,46 @@ function renderImages() {
         container.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">🖼️</div>
-                <h3>暂无图片</h3>
-                <p>点击"上传图片"按钮上传您的第一张图片</p>
+                <h3>暂无相册</h3>
+                <p>点击"创建相册"按钮创建您的第一个相册</p>
             </div>
         `;
         if (paginationContainer) paginationContainer.innerHTML = '';
         return;
     }
     
-    // 渲染图片卡片
-    container.innerHTML = paginatedData.data.map(image => `
-        <div class="content-card">
-            <img src="${decodeHtmlEntities(image.url)}" alt="${escapeHtml(image.title)}" class="card-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik04NyA2NUw5MyA3MUwxMDcgNTdMMTIzIDczTDEzNyA1OUwxNTMgNzVMMTY3IDYxTDE4MyA3N0wxOTcgNjNWMTM3SDE3VjEzN0g5N1YxMzdIMTdWNjNMMzMgNzdMNDcgNjNMNjMgNzlMNzcgNjVMODcgNjVaIiBmaWxsPSIjREREREREIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjQwIiByPSIxNSIgZmlsbD0iI0RERERERCIvPgo8L3N2Zz4K'">
-            <div class="card-header">
-                <h4 class="card-title">${escapeHtml(image.title)}</h4>
+    // 渲染相册卡片
+    container.innerHTML = paginatedData.data.map(album => {
+        const coverImageUrl = album.coverImage && album.coverImage.url ? 
+            decodeHtmlEntities(album.coverImage.url) : 
+            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik04NyA2NUw5MyA3MUwxMDcgNTdMMTIzIDczTDEzNyA1OUwxNTMgNzVMMTY3IDYxTDE4MyA3N0wxOTcgNjNWMTM3SDE3VjEzN0g5N1YxMzdIMTdWNjNMMzMgNzdMNDcgNjNMNjMgNzlMNzcgNjVMODcgNjVaIiBmaWxsPSIjREREREREIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjQwIiByPSIxNSIgZmlsbD0iI0RERERERCIvPgo8L3N2Zz4K';
+        
+        return `
+            <div class="content-card">
+                <img src="${coverImageUrl}" alt="${escapeHtml(album.title || '未命名相册')}" class="card-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik04NyA2NUw5MyA3MUwxMDcgNTdMMTIzIDczTDEzNyA1OUwxNTMgNzVMMTY3IDYxTDE4MyA3N0wxOTcgNjNWMTM3SDE3VjEzN0g5N1YxMzdIMTdWNjNMMzMgNzdMNDcgNjNMNjMgNzlMNzcgNjVMODcgNjVaIiBmaWxsPSIjREREREREIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjQwIiByPSIxNSIgZmlsbD0iI0RERERERCIvPgo8L3N2Zz4K'">
+                <div class="card-header">
+                    <h4 class="card-title">${escapeHtml(album.title || '未命名相册')}</h4>
+                    ${(album.imageCount || 0) > 1 ? `<span class="image-count">${album.imageCount || 0} 张图片</span>` : ''}
+                </div>
+                <div class="card-meta">
+                    ${album.category ? `<span>${escapeHtml(album.category)}</span> • ` : ''}
+                    <span>${formatDate(album.createdAt)}</span>
+                </div>
+                ${album.description ? `<div class="card-content">${truncateText(escapeHtml(album.description), 80)}</div>` : ''}
+                <div class="card-actions">
+                    <button class="btn-modern btn-primary btn-small" onclick="viewAlbum('${album.id}')">
+                        ${(album.imageCount || 0) > 1 ? '查看相册' : '查看图片'}
+                    </button>
+                    <button class="btn-modern btn-secondary btn-small" onclick="editAlbum('${album.id}')">
+                        编辑
+                    </button>
+                    <button class="btn-modern btn-danger btn-small" onclick="deleteAlbum('${album.id}')">
+                        删除
+                    </button>
+                </div>
             </div>
-            <div class="card-meta">
-                ${image.category ? `<span>${escapeHtml(image.category)}</span> • ` : ''}
-                <span>${formatDate(image.createdAt)}</span>
-            </div>
-            ${image.description ? `<div class="card-content">${truncateText(escapeHtml(image.description), 80)}</div>` : ''}
-            <div class="card-actions">
-                <button class="btn-modern btn-primary btn-small" onclick="viewImage('${decodeHtmlEntities(image.url)}')">
-                    查看
-                </button>
-                <button class="btn-modern btn-danger btn-small" onclick="deleteImage('${image.id}')">
-                    删除
-                </button>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
     
     // 渲染分页
     renderPagination('images', paginatedData);
@@ -406,8 +479,8 @@ function showEmptyState() {
     document.getElementById('images-container').innerHTML = `
         <div class="empty-state">
             <div class="empty-icon">🖼️</div>
-            <h3>暂无图片</h3>
-            <p>点击上传按钮添加图片</p>
+            <h3>暂无相册</h3>
+            <p>点击创建按钮添加相册</p>
                 </div>
             `;
 }
@@ -457,6 +530,9 @@ function resetArticleForm() {
 // 重置图片表单
 function resetImageForm() {
     document.getElementById('image-form').reset();
+    document.getElementById('image-title').value = '';
+    document.getElementById('image-category').value = '';
+    document.getElementById('image-description').value = '';
     document.getElementById('images-preview-container').style.display = 'none';
     document.getElementById('images-preview-container').innerHTML = '';
     document.getElementById('save-images-btn').disabled = true;
@@ -644,26 +720,35 @@ async function saveArticle() {
         let imageUrl = '';
         
         // 如果有选择封面图片，先上传
+        let uploadResult = null;
         if (imageFile) {
             showNotification('正在上传封面图片...', true);
-            imageUrl = await uploadImageToCloudflare(imageFile);
+            uploadResult = await uploadImageToCloudflare(imageFile);
         }
         
         // 如果是编辑模式且没有上传新图片，保留原有封面图片
         let coverImage = null;
-        if (imageUrl) {
-            // 有新上传的图片
+        if (uploadResult) {
+            // 有新上传的图片 - 包含完整的图片元数据
             coverImage = {
-                url: imageUrl,
+                url: uploadResult.url,
+                fileName: uploadResult.fileName,
+                title: imageFile.name.replace(/\.[^/.]+$/, ''),
                 alt: title,
-                caption: ''
+                caption: '',
+                size: imageFile.size,
+                type: imageFile.type
             };
         } else if (editingItem && !removedCoverImage) {
             // 编辑模式，且没有删除封面图片，保留原有封面图片
             coverImage = editingItem.coverImage || (editingItem.imageUrl ? {
                 url: editingItem.imageUrl,
+                fileName: '',
+                title: title,
                 alt: title,
-                caption: ''
+                caption: '',
+                size: 0,
+                type: 'image/jpeg'
             } : null);
         } else if (editingItem && removedCoverImage) {
             // 编辑模式，且删除了封面图片，明确设置为null
@@ -744,8 +829,9 @@ async function saveArticle() {
     }
 }
 
-// 保存图片
+// 保存图片（创建相册）
 async function saveImages() {
+    const title = document.getElementById('image-title').value.trim();
     const category = document.getElementById('image-category').value.trim();
     const description = document.getElementById('image-description').value.trim();
     
@@ -766,8 +852,10 @@ async function saveImages() {
     
     let successCount = 0;
     let errorCount = 0;
+    const uploadedImages = [];
     
     try {
+        // 先上传所有图片
         for (let i = 0; i < selectedFiles.length; i++) {
             const file = selectedFiles[i];
             const progressItem = document.createElement('div');
@@ -790,21 +878,16 @@ async function saveImages() {
                 document.getElementById(`progress-${i}`).style.width = '50%';
                 
                 // 上传图片
-                const imageUrl = await uploadImageToCloudflare(file);
+                const uploadResult = await uploadImageToCloudflare(file);
                 
-                // 创建图片数据
-                const imageData = {
-                    id: Date.now().toString() + '_' + i,
+                // 添加到上传成功列表
+                uploadedImages.push({
+                    url: uploadResult.url,
+                    fileName: uploadResult.fileName,
                     title: file.name.replace(/\.[^/.]+$/, ''),
-                    category,
-                    description,
-                    url: imageUrl,
-                    filename: file.name,
                     size: file.size,
-                    createdAt: new Date().toISOString()
-                };
-                
-                imagesData.unshift(imageData);
+                    type: file.type
+                });
                 
                 // 更新进度
                 document.getElementById(`progress-${i}`).style.width = '100%';
@@ -821,20 +904,61 @@ async function saveImages() {
             }
         }
         
-        // 更新摘要
-        progressSummary.innerHTML = `
-            <div style="font-weight: 600; margin-bottom: 10px;">上传完成</div>
-            <div style="color: #28a745;">成功: ${successCount} 个文件</div>
-            ${errorCount > 0 ? `<div style="color: #dc3545;">失败: ${errorCount} 个文件</div>` : ''}
-        `;
-        
-        if (successCount > 0) {
-            showNotification(`成功上传 ${successCount} 张图片！`, true);
-            setTimeout(() => {
-                closeModal('image');
-                updateStats();
-                renderCurrentTab();
-            }, 2000);
+        // 如果有成功上传的图片，创建相册
+        if (uploadedImages.length > 0) {
+            try {
+                const albumData = {
+                    title: title || '未命名相册',
+                    description: description,
+                    category: category || '默认分类',
+                    tags: [],
+                    images: uploadedImages
+                };
+                
+                console.log('Creating album with data:', albumData);
+                
+                const response = await fetch(`${API_BASE}/images`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    },
+                    body: JSON.stringify(albumData)
+                });
+                
+                console.log('Album creation response status:', response.status);
+                
+                if (!response.ok) {
+                    const error = await response.text();
+                    console.error('Album creation failed:', error);
+                    throw new Error(`创建相册失败: ${error}`);
+                }
+                
+                const result = await response.json();
+                console.log('Album created successfully:', result);
+                
+                // 添加到本地数据
+                imagesData.unshift(result.album);
+                
+                // 更新摘要
+                progressSummary.innerHTML = `
+                    <div style="font-weight: 600; margin-bottom: 10px;">相册创建完成</div>
+                    <div style="color: #28a745;">成功: ${successCount} 个文件</div>
+                    ${errorCount > 0 ? `<div style="color: #dc3545;">失败: ${errorCount} 个文件</div>` : ''}
+                    <div style="color: #667eea; margin-top: 10px;">相册名称: ${result.album.title}</div>
+                `;
+                
+                showNotification(`成功创建相册，包含 ${successCount} 张图片！`, true);
+                setTimeout(() => {
+                    closeModal('image');
+                    updateStats();
+                    renderCurrentTab();
+                }, 2000);
+                
+            } catch (error) {
+                console.error('创建相册失败:', error);
+                showNotification('图片上传成功，但创建相册失败: ' + error.message, false);
+            }
         } else {
             showNotification('所有文件上传失败', false);
         }
@@ -877,7 +1001,10 @@ async function uploadImageToCloudflare(file) {
     
     const result = await response.json();
     console.log('上传成功，返回结果:', result);
-    return result.url;
+    return {
+        url: result.url,
+        fileName: result.fileName
+    };
 }
 
 // 保存单篇文章数据
@@ -987,28 +1114,103 @@ async function deleteArticle(id) {
     }
 }
 
-// 删除图片
-async function deleteImage(id) {
-    if (!confirm('确定要删除这张图片吗？此操作不可恢复。')) {
+// 删除相册
+async function deleteAlbum(id) {
+    const album = imagesData.find(item => item.id === id);
+    const itemName = album ? (album.imageCount > 1 ? '相册' : '图片') : '项目';
+    
+    if (!confirm(`确定要删除这个${itemName}吗？此操作不可恢复。`)) {
         return;
     }
     
     try {
         const index = imagesData.findIndex(item => item.id === id);
         if (index === -1) {
-            showNotification('图片不存在', false);
+            showNotification(`${itemName}不存在`, false);
             return;
         }
         
+        // 调用删除API
+        const response = await fetch(`${API_BASE}/images/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            }
+        });
+        
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`删除失败: ${error}`);
+        }
+        
+        // 从本地数据中移除
         imagesData.splice(index, 1);
         
-        showNotification('图片删除成功', true);
+        showNotification(`${itemName}删除成功`, true);
         updateStats();
         renderCurrentTab();
         
     } catch (error) {
-        console.error('删除图片失败:', error);
+        console.error(`删除${itemName}失败:`, error);
         showNotification('删除失败: ' + error.message, false);
+    }
+}
+
+// 同步R2图片
+async function syncImagesFromR2() {
+    const syncBtn = document.getElementById('sync-images-btn');
+    if (!syncBtn) return;
+    
+    try {
+        syncBtn.disabled = true;
+        syncBtn.textContent = '同步中...';
+        
+        const response = await fetch(`${API_BASE}/images/sync`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`同步失败: ${error}`);
+        }
+        
+        const result = await response.json();
+        showNotification(`同步成功，共同步了 ${result.total} 张图片`, true);
+        
+        // 重新加载图片数据
+        await loadImages().then(images => {
+            imagesData = images;
+            updateStats();
+            renderCurrentTab();
+        });
+        
+    } catch (error) {
+        console.error('同步R2图片失败:', error);
+        showNotification('同步失败: ' + error.message, false);
+    } finally {
+        syncBtn.disabled = false;
+        syncBtn.textContent = '同步R2图片';
+    }
+}
+
+// 查看相册
+function viewAlbum(id) {
+    const album = imagesData.find(item => item.id === id);
+    if (!album) {
+        showNotification('相册不存在', false);
+        return;
+    }
+    
+    if (album.imageCount === 1) {
+        // 单图直接打开
+        viewImage(album.coverImage.url);
+    } else {
+        // 多图显示相册弹窗
+        showAlbumModal(album);
     }
 }
 
@@ -1044,6 +1246,149 @@ function viewImage(imageUrl) {
     
     modal.addEventListener('click', () => {
         document.body.removeChild(modal);
+    });
+}
+
+// 编辑相册
+function editAlbum(id) {
+    const album = imagesData.find(item => item.id === id);
+    if (!album) {
+        showNotification('相册不存在', false);
+        return;
+    }
+    
+    showEditAlbumModal(album);
+}
+
+// 显示相册弹窗
+function showAlbumModal(album) {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-content album-modal">
+            <div class="modal-header">
+                <h3>${escapeHtml(album.title)}</h3>
+                <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="album-info">
+                    <p><strong>分类:</strong> ${escapeHtml(album.category)}</p>
+                    <p><strong>描述:</strong> ${escapeHtml(album.description || '无描述')}</p>
+                    <p><strong>创建时间:</strong> ${formatDate(album.createdAt)}</p>
+                    <p><strong>图片数量:</strong> ${album.imageCount} 张</p>
+                </div>
+                <div class="album-images">
+                    ${album.images.map(img => `
+                        <div class="album-image-item">
+                            <img src="${decodeHtmlEntities(img.url)}" alt="${escapeHtml(img.title)}" onclick="viewImage('${decodeHtmlEntities(img.url)}')">
+                            <p>${escapeHtml(img.title)}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // 点击背景关闭
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+// 显示编辑相册弹窗
+function showEditAlbumModal(album) {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-content edit-album-modal">
+            <div class="modal-header">
+                <h3>编辑相册</h3>
+                <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editAlbumForm">
+                    <div class="form-group">
+                        <label for="albumTitle">标题</label>
+                        <input type="text" id="albumTitle" name="title" value="${escapeHtml(album.title)}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="albumDescription">描述</label>
+                        <textarea id="albumDescription" name="description" rows="3">${escapeHtml(album.description || '')}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="albumCategory">分类</label>
+                        <input type="text" id="albumCategory" name="category" value="${escapeHtml(album.category)}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="albumTags">标签 (用逗号分隔)</label>
+                        <input type="text" id="albumTags" name="tags" value="${album.tags.join(', ')}" placeholder="风景, 旅行, 自然">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-modern btn-secondary" onclick="this.closest('.modal-overlay').remove()">取消</button>
+                        <button type="submit" class="btn-modern btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // 处理表单提交
+    const form = modal.querySelector('#editAlbumForm');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const updateData = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            category: formData.get('category'),
+            tags: formData.get('tags').split(',').map(tag => tag.trim()).filter(tag => tag)
+        };
+        
+        try {
+            const response = await fetch(`${API_BASE}/images/${album.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                },
+                body: JSON.stringify(updateData)
+            });
+            
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(`更新失败: ${error}`);
+            }
+            
+            const result = await response.json();
+            
+            // 更新本地数据
+            const index = imagesData.findIndex(item => item.id === album.id);
+            if (index !== -1) {
+                imagesData[index] = result.album;
+            }
+            
+            showNotification('相册更新成功', true);
+            renderCurrentTab();
+            modal.remove();
+            
+        } catch (error) {
+            console.error('更新相册失败:', error);
+            showNotification('更新失败: ' + error.message, false);
+        }
+    });
+    
+    // 点击背景关闭
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
     });
 }
 
