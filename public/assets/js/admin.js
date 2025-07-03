@@ -718,18 +718,27 @@ async function saveArticle() {
         // 如果是编辑模式且没有上传新图片，保留原有封面图片
         let coverImage = null;
         if (imageUrl) {
-            // 有新上传的图片
+            // 有新上传的图片 - 包含完整的图片元数据
+            const fileName = `images/${Date.now()}_${imageFile.name}`;
             coverImage = {
                 url: imageUrl,
+                fileName: fileName,
+                title: imageFile.name.replace(/\.[^/.]+$/, ''),
                 alt: title,
-                caption: ''
+                caption: '',
+                size: imageFile.size,
+                type: imageFile.type
             };
         } else if (editingItem && !removedCoverImage) {
             // 编辑模式，且没有删除封面图片，保留原有封面图片
             coverImage = editingItem.coverImage || (editingItem.imageUrl ? {
                 url: editingItem.imageUrl,
+                fileName: '',
+                title: title,
                 alt: title,
-                caption: ''
+                caption: '',
+                size: 0,
+                type: 'image/jpeg'
             } : null);
         } else if (editingItem && removedCoverImage) {
             // 编辑模式，且删除了封面图片，明确设置为null
@@ -862,9 +871,10 @@ async function saveImages() {
                 const imageUrl = await uploadImageToCloudflare(file);
                 
                 // 添加到上传成功列表
+                const fileName = `images/${Date.now()}_${file.name}`;
                 uploadedImages.push({
                     url: imageUrl,
-                    fileName: file.name,
+                    fileName: fileName,
                     title: file.name.replace(/\.[^/.]+$/, ''),
                     size: file.size,
                     type: file.type

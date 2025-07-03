@@ -88,15 +88,9 @@ export async function handleUpload(request, env) {
         // 构造公开访问URL
         const imageUrl = `https://images.wengguodong.com/${fileName}`;
 
-        // 自动创建相册
-        await createImageAlbum(env, {
-            url: imageUrl,
-            fileName: fileName,
-            title: sanitizeFileName(file.name || 'unknown'),
-            size: file.size,
-            type: file.type,
-            uploadedBy: authResult.user
-        });
+        // 注意：这里只上传图片到R2，不自动创建相册
+        // 相册创建由前端明确调用 /images API 完成
+        // 文章中的图片索引由文章系统自己管理
 
         return new Response(JSON.stringify({
             success: true,
@@ -264,45 +258,5 @@ async function generateSessionFingerprint(request) {
     return Array.from(hashArray, b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// 创建单图相册
-async function createImageAlbum(env, imageData) {
-    try {
-        // 生成相册ID
-        const albumId = 'album_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        const currentTime = new Date().toISOString();
-        
-        // 构造相册对象
-        const album = {
-            id: albumId,
-            title: imageData.title || '未命名图片',
-            description: '单图上传',
-            category: '默认分类',
-            tags: [],
-            images: [{
-                url: imageData.url,
-                fileName: imageData.fileName,
-                title: imageData.title || imageData.fileName,
-                size: imageData.size || 0,
-                type: imageData.type || 'image/jpeg'
-            }],
-            imageCount: 1,
-            coverImage: {
-                url: imageData.url,
-                fileName: imageData.fileName,
-                title: imageData.title || imageData.fileName,
-                size: imageData.size || 0,
-                type: imageData.type || 'image/jpeg'
-            },
-            uploadedBy: imageData.uploadedBy || 'unknown',
-            createdAt: currentTime,
-            updatedAt: currentTime
-        };
-
-        // 保存到IMAGES_KV
-        await env.IMAGES_KV.put(`album_${albumId}`, JSON.stringify(album));
-
-    } catch (error) {
-        console.error('Failed to create image album:', error);
-        // 不抛出错误，避免影响上传流程
-    }
-}
+// 上传功能现在只负责将图片上传到R2存储
+// 图片的索引管理由各自的系统（文章或相册）负责

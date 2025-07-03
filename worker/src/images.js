@@ -239,12 +239,24 @@ async function deleteImageAlbum(albumId, env) {
             });
         }
 
-        // 从R2删除所有图片文件
+        // 检查图片是否被文章使用
+        const imageUsageCheck = await checkImageUsageInArticles(album.images, env);
+        
+        // 只删除没有被文章使用的图片
         const deletePromises = album.images.map(async (image) => {
-            try {
-                await env.IMAGES_BUCKET.delete(image.fileName);
-            } catch (r2Error) {
-                console.error(`Failed to delete ${image.fileName} from R2:`, r2Error);
+            const isUsedInArticles = imageUsageCheck.some(usage => 
+                usage.fileName === image.fileName && usage.isUsed
+            );
+            
+            if (!isUsedInArticles) {
+                try {
+                    await env.IMAGES_BUCKET.delete(image.fileName);
+                    console.log(`Deleted ${image.fileName} from R2`);
+                } catch (r2Error) {
+                    console.error(`Failed to delete ${image.fileName} from R2:`, r2Error);
+                }
+            } else {
+                console.log(`Skipped deleting ${image.fileName} - used in articles`);
             }
         });
 
@@ -253,9 +265,12 @@ async function deleteImageAlbum(albumId, env) {
         // 从IMAGES_KV删除相册记录
         await env.IMAGES_KV.delete(`album_${albumId}`);
 
+        const usedImagesCount = imageUsageCheck.filter(usage => usage.isUsed).length;
+        const deletedImagesCount = album.imageCount - usedImagesCount;
+
         return new Response(JSON.stringify({
             success: true,
-            message: `Album deleted successfully (${album.imageCount} images)`
+            message: `Album deleted successfully. ${deletedImagesCount} images deleted from R2, ${usedImagesCount} images preserved (used in articles)`
         }), {
             status: 200,
             headers: {
@@ -273,6 +288,66 @@ async function deleteImageAlbum(albumId, env) {
                 'Content-Type': 'application/json'
             }
         });
+    }
+}
+
+// 检查图片是否被文章使用
+async function checkImageUsageInArticles(images, env) {
+    try {
+        // 获取所有文章的键
+        const articleKeys = await env.CONTENT_KV.list({
+            prefix: 'article:'
+        });
+
+        const imageUsage = images.map(img => ({
+            fileName: img.fileName,
+            url: img.url,
+            isUsed: false
+        }));
+
+        // 检查每篇文章
+        for (const key of articleKeys.keys) {
+            try {
+                const article = await env.CONTENT_KV.get(key.name, 'json');
+                if (article) {
+                    // 检查封面图片
+                    if (article.coverImage) {
+                        const coverImageUsage = imageUsage.find(usage => 
+                            usage.url === article.coverImage.url || 
+                            usage.fileName === article.coverImage.fileName
+                        );
+                        if (coverImageUsage) {
+                            coverImageUsage.isUsed = true;
+                        }
+                    }
+
+                    // 检查文章中的图片
+                    if (article.images && Array.isArray(article.images)) {
+                        article.images.forEach(articleImg => {
+                            const imageUsageItem = imageUsage.find(usage => 
+                                usage.url === articleImg.url || 
+                                usage.fileName === articleImg.fileName
+                            );
+                            if (imageUsageItem) {
+                                imageUsageItem.isUsed = true;
+                            }
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error(`Failed to check article ${key.name}:`, error);
+            }
+        }
+
+        return imageUsage;
+    } catch (error) {
+        console.error('Failed to check image usage:', error);
+        // 如果检查失败，为了安全起见，假设所有图片都被使用
+        return images.map(img => ({
+            fileName: img.fileName,
+            url: img.url,
+            isUsed: true
+        }));
     }
 }
 
@@ -394,6 +469,10 @@ async function syncImagesFromR2(request, env) {
                     url: imageUrl,
                     fileName: obj.key,
                     title: imageName,
+                    alt: imageName,
+                    caption: '',
+                    width: null,
+                    height: null,
                     size: obj.size,
                     type: obj.httpMetadata?.contentType || 'image/jpeg'
                 }],
@@ -402,6 +481,8 @@ async function syncImagesFromR2(request, env) {
                     url: imageUrl,
                     fileName: obj.key,
                     title: imageName,
+                    alt: imageName,
+                    caption: '',
                     size: obj.size,
                     type: obj.httpMetadata?.contentType || 'image/jpeg'
                 },

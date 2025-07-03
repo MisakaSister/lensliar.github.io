@@ -195,11 +195,14 @@ async function createArticle(articleData, env) {
             images: Array.isArray(articleData.images) ? articleData.images.map(img => ({
                 id: img.id || `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                 url: sanitizeInput(img.url, true),
+                fileName: sanitizeInput(img.fileName || ''),
+                title: sanitizeInput(img.title || img.fileName || ''),
                 alt: sanitizeInput(img.alt || ''),
                 caption: sanitizeInput(img.caption || ''),
                 width: parseInt(img.width) || null,
                 height: parseInt(img.height) || null,
-                size: parseInt(img.size) || null
+                size: parseInt(img.size) || null,
+                type: sanitizeInput(img.type || 'image/jpeg')
             })) : [],
             
             // 文章中的附件
@@ -327,11 +330,14 @@ async function updateArticle(id, articleData, env) {
             images: Array.isArray(articleData.images) ? articleData.images.map(img => ({
                 id: img.id || `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                 url: sanitizeInput(img.url, true),
+                fileName: sanitizeInput(img.fileName || ''),
+                title: sanitizeInput(img.title || img.fileName || ''),
                 alt: sanitizeInput(img.alt || ''),
                 caption: sanitizeInput(img.caption || ''),
                 width: parseInt(img.width) || null,
                 height: parseInt(img.height) || null,
-                size: parseInt(img.size) || null
+                size: parseInt(img.size) || null,
+                type: sanitizeInput(img.type || 'image/jpeg')
             })) : existingArticle.images,
             
             // 更新附件
