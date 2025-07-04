@@ -74,8 +74,8 @@ function setupEventListeners() {
     });
     
     // 文件选择
-    document.getElementById('article-image').addEventListener('change', handleArticleImageSelect);
-    document.getElementById('image-files').addEventListener('change', handleMultipleFileSelect);
+    document.getElementById('article-image-file').addEventListener('change', handleArticleImageSelect);
+    // image-files 已在HTML中使用内联事件处理器，无需重复绑定
 }
 
 // 加载所有内容
@@ -361,7 +361,7 @@ function resetArticleForm() {
     document.getElementById('article-title').value = '';
     document.getElementById('article-category').value = '';
     document.getElementById('article-content').value = '';
-    document.getElementById('article-image').value = '';
+    document.getElementById('article-image-file').value = '';
     document.getElementById('article-image-preview').style.display = 'none';
     document.getElementById('article-image-preview').innerHTML = '';
     editingItem = null;
@@ -417,7 +417,7 @@ function handleArticleImageSelect(event) {
 
 // 移除文章图片
 function removeArticleImage() {
-    document.getElementById('article-image').value = '';
+    document.getElementById('article-image-file').value = '';
     document.getElementById('article-image-preview').style.display = 'none';
     document.getElementById('article-image-preview').innerHTML = '';
     removedCoverImage = true;
@@ -511,7 +511,7 @@ async function saveArticle() {
     const title = document.getElementById('article-title').value.trim();
     const category = document.getElementById('article-category').value.trim();
     const content = document.getElementById('article-content').value.trim();
-    const imageFile = document.getElementById('article-image').files[0];
+    const imageFile = document.getElementById('article-image-file').files[0];
     
     if (!title || !content) {
         showNotification('请填写标题和内容', false);
