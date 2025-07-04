@@ -2,6 +2,7 @@
 
 import { handleError } from './error-handler.js';
 import { checkRateLimit } from './rate-limiter.js';
+import { sanitizeObject, sanitizeText, sanitizeUrl } from './xss-protection.js';
 
 export async function handleContent(request, env) {
     try {
@@ -154,12 +155,14 @@ async function createArticle(articleData, env) {
             });
         }
 
-        // 清理输入数据
-        const cleanTitle = sanitizeInput(articleData.title);
-        const cleanContent = sanitizeInput(articleData.content);
+        // 使用新的XSS防护清理整个对象
+        const sanitizedData = sanitizeObject(articleData, {
+            allowHtml: false, // 不允许HTML内容
+            allowUrls: true   // 允许URL
+        });
         
         // 再次验证清理后的数据
-        if (!cleanTitle.trim() || !cleanContent.trim()) {
+        if (!sanitizedData.title?.trim() || !sanitizedData.content?.trim()) {
             return new Response(JSON.stringify({
                 error: 'Article title and content cannot be empty'
             }), {
@@ -171,63 +174,59 @@ async function createArticle(articleData, env) {
         }
 
         // 生成文章ID
-        const articleId = articleData.id || `article_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const articleId = sanitizedData.id || `article_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
         // 构造完整的文章对象
         const article = {
             id: articleId,
-            title: cleanTitle,
-            content: cleanContent,
-            summary: sanitizeInput(articleData.summary || articleData.content.substring(0, 200)),
-            category: sanitizeInput(articleData.category || ''),
-            tags: Array.isArray(articleData.tags) ? articleData.tags.map(tag => sanitizeInput(tag)) : [],
+            title: sanitizedData.title,
+            content: sanitizedData.content,
+            summary: sanitizedData.summary || sanitizedData.content.substring(0, 200),
+            category: sanitizedData.category || '',
+            tags: Array.isArray(sanitizedData.tags) ? sanitizedData.tags : [],
             
             // 封面图片
-            coverImage: articleData.coverImage ? {
-                url: sanitizeInput(articleData.coverImage.url, true),
-                alt: sanitizeInput(articleData.coverImage.alt || ''),
-                caption: sanitizeInput(articleData.coverImage.caption || '')
-            } : null,
+            coverImage: sanitizedData.coverImage || null,
             
             // 文章中的图片集合
-            images: Array.isArray(articleData.images) ? articleData.images.map(img => ({
+            images: Array.isArray(sanitizedData.images) ? sanitizedData.images.map(img => ({
                 id: img.id || `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                url: sanitizeInput(img.url, true),
-                fileName: sanitizeInput(img.fileName || ''),
-                title: sanitizeInput(img.title || img.fileName || ''),
-                alt: sanitizeInput(img.alt || ''),
-                caption: sanitizeInput(img.caption || ''),
+                url: img.url,
+                fileName: img.fileName || '',
+                title: img.title || img.fileName || '',
+                alt: img.alt || '',
+                caption: img.caption || '',
                 width: parseInt(img.width) || null,
                 height: parseInt(img.height) || null,
                 size: parseInt(img.size) || null,
-                type: sanitizeInput(img.type || 'image/jpeg')
+                type: img.type || 'image/jpeg'
             })) : [],
             
             // 文章中的附件
-            attachments: Array.isArray(articleData.attachments) ? articleData.attachments.map(att => ({
+            attachments: Array.isArray(sanitizedData.attachments) ? sanitizedData.attachments.map(att => ({
                 id: att.id || `att_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                name: sanitizeInput(att.name),
-                url: sanitizeInput(att.url, true),
-                type: sanitizeInput(att.type || ''),
+                name: att.name,
+                url: att.url,
+                type: att.type || '',
                 size: parseInt(att.size) || null
             })) : [],
             
             // 元数据
-            author: sanitizeInput(articleData.author || 'Admin'),
-            status: articleData.status || 'published', // draft, published, archived
-            visibility: articleData.visibility || 'public', // public, private, unlisted
+            author: sanitizedData.author || 'Admin',
+            status: sanitizedData.status || 'published', // draft, published, archived
+            visibility: sanitizedData.visibility || 'public', // public, private, unlisted
             
             // 时间戳
-            createdAt: articleData.createdAt || new Date().toISOString(),
+            createdAt: sanitizedData.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-            publishedAt: articleData.status === 'published' ? (articleData.publishedAt || new Date().toISOString()) : null,
+            publishedAt: sanitizedData.status === 'published' ? (sanitizedData.publishedAt || new Date().toISOString()) : null,
             
             // SEO信息
             seo: {
-                metaTitle: sanitizeInput(articleData.seo?.metaTitle || articleData.title),
-                metaDescription: sanitizeInput(articleData.seo?.metaDescription || articleData.summary || ''),
-                keywords: Array.isArray(articleData.seo?.keywords) ? articleData.seo.keywords.map(k => sanitizeInput(k)) : [],
-                slug: sanitizeInput(articleData.seo?.slug || generateSlug(articleData.title))
+                metaTitle: sanitizedData.seo?.metaTitle || sanitizedData.title,
+                metaDescription: sanitizedData.seo?.metaDescription || sanitizedData.summary || '',
+                keywords: Array.isArray(sanitizedData.seo?.keywords) ? sanitizedData.seo.keywords : [],
+                slug: sanitizedData.seo?.slug || generateSlug(sanitizedData.title)
             },
             
             // 统计信息

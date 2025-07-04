@@ -97,17 +97,23 @@ export function addCorsHeaders(request, response,env) {
     newResponse.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
     newResponse.headers.set("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
     
-    // 🔒 内容安全策略 - 防止XSS攻击
+    // 🔒 强化的内容安全策略 - 防止XSS攻击
     const csp = [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+        "script-src 'self' 'unsafe-inline'", // 移除了unsafe-eval以提高安全性
         "style-src 'self' 'unsafe-inline'",
-        "img-src 'self' data: https:",
-        "font-src 'self' data:",
-        "connect-src 'self' https://worker.wengguodong.com",
+        "img-src 'self' data: https: blob:",
+        "font-src 'self' data: https:",
+        "connect-src 'self' https://worker.wengguodong.com https://images.wengguodong.com",
         "frame-ancestors 'none'",
         "base-uri 'self'",
-        "form-action 'self'"
+        "form-action 'self'",
+        "object-src 'none'",
+        "media-src 'self' https:",
+        "child-src 'none'",
+        "worker-src 'self'",
+        "manifest-src 'self'",
+        "upgrade-insecure-requests"
     ].join('; ');
     
     newResponse.headers.set("Content-Security-Policy", csp);
