@@ -17,47 +17,23 @@ class AlbumManager {
     // 加载相册数据
     async loadAlbums() {
         try {
-            console.log('🔄 开始加载相册数据...');
-            console.log('📡 请求URL:', `${this.apiBase}/images`);
-            
             const response = await fetch(`${this.apiBase}/images`, {
                 method: 'GET',
                 headers: this.getAuthHeaders()
             });
 
-            console.log('📥 相册API响应状态:', response.status);
-
             if (!response.ok) {
                 const error = await response.text();
-                console.error('❌ 加载相册失败:', error);
                 throw new Error(`HTTP ${response.status}: ${error}`);
             }
 
             const result = await response.json();
-            console.log('✅ 相册API响应数据:', {
-                success: result.success,
-                totalImages: result.totalImages,
-                imagesCount: result.images ? result.images.length : 0,
-                categories: result.categories
-            });
             
             // 确保result.images是数组
             this.albums = Array.isArray(result.images) ? result.images : [];
-            console.log(`📊 共加载 ${this.albums.length} 个相册`);
-            
-            // 输出每个相册的基本信息
-            this.albums.forEach((album, index) => {
-                console.log(`📷 相册 ${index + 1}:`, {
-                    id: album.id,
-                    title: album.title,
-                    imageCount: album.imageCount,
-                    createdAt: album.createdAt
-                });
-            });
             
             return this.albums;
         } catch (error) {
-            console.error('❌ 加载相册异常:', error);
             throw error;
         }
     }
@@ -65,32 +41,24 @@ class AlbumManager {
     // 创建相册
     async createAlbum(albumData) {
         try {
-            console.log('🔄 开始创建相册...');
-            console.log('📤 发送数据:', JSON.stringify(albumData, null, 2));
-            
             const response = await fetch(`${this.apiBase}/images`, {
                 method: 'POST',
                 headers: this.getAuthHeaders(),
                 body: JSON.stringify(albumData)
             });
 
-            console.log('📥 创建相册API响应状态:', response.status);
-
             if (!response.ok) {
                 const error = await response.text();
-                console.error('❌ 创建相册失败:', error);
                 throw new Error(`HTTP ${response.status}: ${error}`);
             }
 
             const result = await response.json();
-            console.log('✅ 相册创建成功:', result);
             
             // 重新加载数据确保同步
             await this.loadAlbums();
             
             return result;
         } catch (error) {
-            console.error('❌ 创建相册异常:', error);
             throw error;
         }
     }
@@ -98,32 +66,24 @@ class AlbumManager {
     // 更新相册
     async updateAlbum(albumId, updateData) {
         try {
-            console.log('🔄 开始更新相册:', albumId);
-            console.log('📤 更新数据:', JSON.stringify(updateData, null, 2));
-            
             const response = await fetch(`${this.apiBase}/images/${albumId}`, {
                 method: 'PUT',
                 headers: this.getAuthHeaders(),
                 body: JSON.stringify(updateData)
             });
 
-            console.log('📥 更新相册API响应状态:', response.status);
-
             if (!response.ok) {
                 const error = await response.text();
-                console.error('❌ 更新相册失败:', error);
                 throw new Error(`HTTP ${response.status}: ${error}`);
             }
 
             const result = await response.json();
-            console.log('✅ 相册更新成功:', result);
             
             // 重新加载数据确保同步
             await this.loadAlbums();
             
             return result;
         } catch (error) {
-            console.error('❌ 更新相册异常:', error);
             throw error;
         }
     }
@@ -131,8 +91,6 @@ class AlbumManager {
     // 删除相册
     async deleteAlbum(albumId) {
         try {
-            console.log('🔄 开始删除相册:', albumId);
-            
             const response = await fetch(`${this.apiBase}/images/${albumId}`, {
                 method: 'DELETE',
                 headers: {
@@ -140,23 +98,18 @@ class AlbumManager {
                 }
             });
 
-            console.log('📥 删除相册API响应状态:', response.status);
-
             if (!response.ok) {
                 const error = await response.text();
-                console.error('❌ 删除相册失败:', error);
                 throw new Error(`HTTP ${response.status}: ${error}`);
             }
 
             const result = await response.json();
-            console.log('✅ 相册删除成功:', result);
             
             // 重新加载数据确保同步
             await this.loadAlbums();
             
             return result;
         } catch (error) {
-            console.error('❌ 删除相册异常:', error);
             throw error;
         }
     }
@@ -164,12 +117,6 @@ class AlbumManager {
     // 上传图片文件
     async uploadImage(file) {
         try {
-            console.log('🔄 开始上传图片:', {
-                fileName: file.name,
-                fileSize: file.size,
-                fileType: file.type
-            });
-            
             const formData = new FormData();
             formData.append('file', file);
             
@@ -181,16 +128,12 @@ class AlbumManager {
                 body: formData
             });
 
-            console.log('📥 上传图片API响应状态:', response.status);
-
             if (!response.ok) {
                 const error = await response.text();
-                console.error('❌ 上传图片失败:', error);
                 throw new Error(`HTTP ${response.status}: ${error}`);
             }
 
             const result = await response.json();
-            console.log('✅ 图片上传成功:', result);
             
             return {
                 url: result.url,
@@ -199,7 +142,6 @@ class AlbumManager {
                 type: result.type
             };
         } catch (error) {
-            console.error('❌ 上传图片异常:', error);
             throw error;
         }
     }
@@ -207,10 +149,6 @@ class AlbumManager {
     // 批量上传图片并创建相册
     async uploadAndCreateAlbum(files, albumInfo) {
         try {
-            console.log('🔄 开始批量上传并创建相册...');
-            console.log('📁 文件数量:', files.length);
-            console.log('📋 相册信息:', albumInfo);
-            
             const uploadedImages = [];
             
             // 逐个上传图片
@@ -227,9 +165,7 @@ class AlbumManager {
                         size: uploadResult.size,
                         type: uploadResult.type
                     });
-                    console.log(`✅ 图片 ${i + 1}/${files.length} 上传成功`);
                 } catch (error) {
-                    console.error(`❌ 图片 ${i + 1}/${files.length} 上传失败:`, error);
                     throw error;
                 }
             }
@@ -244,11 +180,9 @@ class AlbumManager {
             };
             
             const result = await this.createAlbum(albumData);
-            console.log('🎉 相册创建完成!');
             
             return result;
         } catch (error) {
-            console.error('❌ 批量上传并创建相册失败:', error);
             throw error;
         }
     }
@@ -265,11 +199,7 @@ class AlbumManager {
 
     // 搜索相册
     searchAlbums(query) {
-        console.log('🔍 搜索相册，查询条件:', query);
-        console.log('📚 当前相册总数:', this.albums.length);
-        
         if (!query) {
-            console.log('✅ 无搜索条件，返回所有相册');
             return this.albums;
         }
         
@@ -281,7 +211,6 @@ class AlbumManager {
             (album.tags || []).some(tag => (tag || '').toLowerCase().includes(searchTerm))
         );
         
-        console.log('🎯 搜索结果数量:', filtered.length);
         return filtered;
     }
 

@@ -20,11 +20,10 @@ async function getContentData() {
         if (response.ok) {
             return await response.json();
         } else {
-            console.error('获取内容失败:', response.status);
+
             return { articles: [], images: [] };
         }
     } catch (error) {
-        console.error('网络错误:', error);
         return { articles: [], images: [] };
     }
 }
@@ -34,7 +33,7 @@ async function getAdminContentData() {
     const token = localStorage.getItem('authToken');
 
     if (!token) {
-        console.error('No auth token found');
+
         // 重定向到登录页面
         if (window.location.pathname.includes('admin.html')) {
             showNotification('请先登录', false);
@@ -58,11 +57,11 @@ async function getAdminContentData() {
             return await response.json();
         } else {
             const errorData = await response.json();
-            console.error('获取管理员内容失败:', response.status, errorData.error);
+
             
             // 如果是401错误，说明token无效，清除并重定向到登录页面
             if (response.status === 401) {
-                console.log('🔍 401错误 - 清除无效token并重定向到登录页面');
+
                 localStorage.removeItem('authToken');
                 showNotification('登录已过期，请重新登录', false);
                 setTimeout(() => {
@@ -75,7 +74,6 @@ async function getAdminContentData() {
             return { articles: [], images: [] };
         }
     } catch (error) {
-        console.error('网络错误:', error);
         showNotification('网络错误，请重试', false);
         return { articles: [], images: [] };
     }

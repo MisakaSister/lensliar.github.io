@@ -2,7 +2,7 @@
 
 // 登录函数
 async function login(event) {
-    console.log('登录函数被调用了！', event);
+
     
     // 阻止表单默认提交行为
     if (event) {
@@ -21,7 +21,7 @@ async function login(event) {
     showLoading(true);
 
     try {
-        console.log('正在尝试登录...', { username, API_BASE });
+
         
         const response = await fetch(`${API_BASE}/auth/login`, {
             method: 'POST',
@@ -46,17 +46,12 @@ async function login(event) {
                 window.location.href = 'admin.html';
             }, 1000);
         } else {
-            console.log('登录失败详情:', {
-                status: response.status,
-                statusText: response.statusText,
-                error: data.error,
-                headers: Object.fromEntries(response.headers.entries())
-            });
+
             showLoading(false);
             showNotification(data.error || '用户名或密码错误', false);
         }
     } catch (error) {
-        console.error('登录错误:', error);
+
         showLoading(false);
         showNotification('登录错误：网络异常，请重试', false);
     }
