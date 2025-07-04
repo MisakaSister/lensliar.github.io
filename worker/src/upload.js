@@ -1,4 +1,9 @@
 // worker/src/upload.js
+
+import { handleError, createError } from './error-handler.js';
+import { checkRateLimit } from './rate-limiter.js';
+import { validateImageFile, validateFileContent, validateFilename, generateSafeFilename } from './file-validator.js';
+
 export async function handleUpload(request, env) {
     try {
         // 🔒 严格的HTTP方法验证
@@ -15,17 +20,7 @@ export async function handleUpload(request, env) {
         }
 
         // 🔒 基础速率限制
-        const rateLimitResult = await checkUploadRateLimit(request, env);
-        if (!rateLimitResult.allowed) {
-            return new Response(JSON.stringify({
-                error: rateLimitResult.error
-            }), {
-                status: 429,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
+        await checkRateLimit(request, env, 'upload');
 
         // 验证权限
         const authResult = await verifyAuth(request, env);
@@ -56,20 +51,12 @@ export async function handleUpload(request, env) {
         }
 
         // 🔒 增强文件验证
-        const validationResult = validateUploadFile(file);
-        if (!validationResult.valid) {
-            return new Response(JSON.stringify({
-                error: validationResult.error
-            }), {
-                status: 400,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
+        validateFilename(file.name);
+        validateImageFile(file, file.type);
+        await validateFileContent(file, file.type);
 
         // 🔒 生成安全的文件名
-        const fileName = await generateSecureFileName(file.type);
+        const fileName = generateSafeFilename(file.name);
 
         // 上传到R2存储
         await env.IMAGES_BUCKET.put(fileName, file.stream(), {
@@ -106,15 +93,7 @@ export async function handleUpload(request, env) {
         });
 
     } catch (error) {
-
-        return new Response(JSON.stringify({
-            error: error.message || 'Upload failed'
-        }), {
-            status: 500,
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        return handleError(error, request);
     }
 }
 
@@ -137,8 +116,8 @@ async function verifyAuth(request, env) {
         return { success: false, error: 'Token expired' };
     }
 
-    // 🔒 验证会话指纹（防止会话劫持）- 暂时禁用用于调试
-    if (tokenData.sessionFingerprint && false) { // 暂时禁用
+    // 🔒 验证会话指纹（防止会话劫持）
+    if (tokenData.sessionFingerprint) {
         const currentFingerprint = await generateSessionFingerprint(request);
         if (tokenData.sessionFingerprint !== currentFingerprint) {
             await env.AUTH_KV.delete(token);

@@ -1,6 +1,12 @@
 // worker/src/public.js - 公开内容API
+
+import { handleError } from './error-handler.js';
+import { checkRateLimit } from './rate-limiter.js';
+
 export async function handlePublicAPI(request, env) {
     try {
+        // 公共API速率限制
+        await checkRateLimit(request, env, 'public');
         const url = new URL(request.url);
         const pathParts = url.pathname.split('/').filter(part => part);
 
@@ -47,15 +53,7 @@ export async function handlePublicAPI(request, env) {
         });
 
     } catch (error) {
-
-        return new Response(JSON.stringify({
-            error: "Internal server error"
-        }), {
-            status: 500,
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        return handleError(error, request);
     }
 }
 

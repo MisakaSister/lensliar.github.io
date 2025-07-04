@@ -1,6 +1,12 @@
 // worker/src/content.js
+
+import { handleError } from './error-handler.js';
+import { checkRateLimit } from './rate-limiter.js';
+
 export async function handleContent(request, env) {
     try {
+        // 内容API速率限制
+        await checkRateLimit(request, env, 'content');
         // 🔒 严格的HTTP方法验证
         if (!['GET', 'POST', 'PUT', 'DELETE'].includes(request.method)) {
             return new Response(JSON.stringify({
@@ -68,15 +74,7 @@ export async function handleContent(request, env) {
         });
 
     } catch (error) {
-
-        return new Response(JSON.stringify({
-            error: error.message
-        }), {
-            status: 500,
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        return handleError(error, request);
     }
 }
 
@@ -468,8 +466,8 @@ export async function verifyAuth(request, env) {
         return { success: false, error: 'Token expired' };
     }
 
-    // 🔒 验证会话指纹（防止会话劫持）- 暂时禁用用于调试
-    if (tokenData.sessionFingerprint && false) { // 暂时禁用
+    // 🔒 验证会话指纹（防止会话劫持）
+    if (tokenData.sessionFingerprint) {
         const currentFingerprint = await generateSessionFingerprint(request);
         if (tokenData.sessionFingerprint !== currentFingerprint) {
             await env.AUTH_KV.delete(token);

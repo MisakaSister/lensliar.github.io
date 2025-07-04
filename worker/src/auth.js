@@ -1,5 +1,7 @@
 import bcrypt from 'bcryptjs';
 import {addCorsHeaders, handleCors} from "./cors";
+import { handleError, createError } from './error-handler.js';
+import { checkRateLimit } from './rate-limiter.js';
 
 export async function handleAuth(request, env) {
     // 先处理OPTIONS预检请求
@@ -8,79 +10,64 @@ export async function handleAuth(request, env) {
     const {pathname} = new URL(request.url);
 
     if (pathname === '/auth/login' && request.method === 'POST') {
-        // 🔒 基础速率限制
-        const rateLimitResult = await checkBasicRateLimit(request, env);
-        if (!rateLimitResult.allowed) {
-            return new Response(JSON.stringify({
-                error: rateLimitResult.error
-            }), {
-                status: 429,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                }
-            });
-        }
+        try {
+            // 🔒 基础速率限制
+            await checkRateLimit(request, env, 'login');
 
-        const {username, password} = await request.json();
+            const {username, password} = await request.json();
 
-        // 🔒 基本输入验证
-        if (!username || !password || 
-            typeof username !== 'string' || typeof password !== 'string' ||
-            username.length > 50 || password.length > 100) {
-            return new Response(JSON.stringify({
-                error: "Invalid input"
-            }), {
-                status: 400,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                }
-            });
-        }
-
-        // 验证凭证
-        const isValid = await verifyCredentials(username, password, env);
-
-        if (isValid) {
-            // 🔒 清理旧的token（防止会话固定）
-            await cleanupExpiredTokens(env, request.headers.get('CF-Connecting-IP'));
-            
-            // 🔒 创建更安全的令牌
-            const token = await generateSecureToken();
-
-            // 🔒 存储令牌到KV，包含更多安全信息
-            await env.AUTH_KV.put(token, JSON.stringify({
-                user: username,
-                expires: Date.now() + 3600000, // 1小时有效期
-                created: Date.now(),
-                ip: request.headers.get('CF-Connecting-IP') || 'unknown',
-                userAgent: request.headers.get('User-Agent') || 'unknown',
-                // 🔒 添加会话指纹
-                sessionFingerprint: await generateSessionFingerprint(request)
-            }), {expirationTtl: 3600});
-
-            return new Response(JSON.stringify({token}), {
-                status: 200,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                }
-            });
-        }
-
-        // 🔒 记录失败的登录尝试
-        await recordFailedLogin(request, env);
-
-        return new Response(JSON.stringify({
-            error: "账号密码错误"
-        }), {
-            status: 401,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
+            // 🔒 基本输入验证
+            if (!username || !password || 
+                typeof username !== 'string' || typeof password !== 'string' ||
+                username.length > 50 || password.length > 100) {
+                throw createError('VALIDATION_ERROR', 'Invalid input');
             }
-        });
+
+            // 验证凭证
+            const isValid = await verifyCredentials(username, password, env);
+
+            if (isValid) {
+                // 🔒 清理旧的token（防止会话固定）
+                await cleanupExpiredTokens(env, request.headers.get('CF-Connecting-IP'));
+                
+                // 🔒 创建更安全的令牌
+                const token = await generateSecureToken();
+
+                // 🔒 存储令牌到KV，包含更多安全信息
+                await env.AUTH_KV.put(token, JSON.stringify({
+                    user: username,
+                    expires: Date.now() + 3600000, // 1小时有效期
+                    created: Date.now(),
+                    ip: request.headers.get('CF-Connecting-IP') || 'unknown',
+                    userAgent: request.headers.get('User-Agent') || 'unknown',
+                    // 🔒 添加会话指纹
+                    sessionFingerprint: await generateSessionFingerprint(request)
+                }), {expirationTtl: 3600});
+
+                return new Response(JSON.stringify({token}), {
+                    status: 200,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    }
+                });
+            }
+
+            // 🔒 记录失败的登录尝试
+            await recordFailedLogin(request, env);
+
+            return new Response(JSON.stringify({
+                error: "账号密码错误"
+            }), {
+                status: 401,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                }
+            });
+        } catch (error) {
+            return handleError(error, request);
+        }
     }
 
     return new Response(JSON.stringify({

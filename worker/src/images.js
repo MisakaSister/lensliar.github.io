@@ -1,5 +1,7 @@
 // worker/src/images.js - 相册管理模块
 import { verifyAuth } from './content.js';
+import { handleError } from './error-handler.js';
+import { checkRateLimit } from './rate-limiter.js';
 
 export async function handleImages(request, env) {
     const url = new URL(request.url);
@@ -7,6 +9,8 @@ export async function handleImages(request, env) {
     const method = request.method;
 
     try {
+        // 图片管理API速率限制
+        await checkRateLimit(request, env, 'content');
         // 验证认证
         const authResult = await verifyAuth(request, env);
         if (!authResult.success) {
@@ -51,14 +55,7 @@ export async function handleImages(request, env) {
         });
 
     } catch (error) {
-        return new Response(JSON.stringify({
-            error: 'Internal Server Error'
-        }), {
-            status: 500,
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        return handleError(error, request);
     }
 }
 

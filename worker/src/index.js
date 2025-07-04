@@ -4,6 +4,8 @@ import { handleContent } from './content.js';
 import { handlePublicAPI } from './public.js';
 import { handleUpload } from './upload.js';
 import { handleImages } from './images.js';
+import { handleError } from './error-handler.js';
+import { checkRateLimit } from './rate-limiter.js';
 
 export default {
     async fetch(request, env, ctx) {
@@ -13,6 +15,9 @@ export default {
         }
 
         try {
+            // 全局速率限制
+            await checkRateLimit(request, env, 'global');
+            
             const url = new URL(request.url);
             const pathname = url.pathname;
             
@@ -57,15 +62,8 @@ export default {
             }), env);
 
         } catch (error) {
-    
-            return addCorsHeaders(request, new Response(JSON.stringify({
-                error: 'Internal Server Error'
-            }), {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }), env);
+            const errorResponse = handleError(error, request);
+            return addCorsHeaders(request, errorResponse, env);
         }
     }
 };

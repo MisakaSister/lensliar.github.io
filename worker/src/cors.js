@@ -39,8 +39,13 @@ export function handleCors(request,env) {
     const isAllowed = isOriginAllowed(origin, allowedOrigins);
 
     if (request.method === "OPTIONS") {
+        if (!isAllowed) {
+            // 如果域名不被允许，直接拒绝
+            return new Response(null, { status: 403 });
+        }
+        
         const headers = {
-            "Access-Control-Allow-Origin": isAllowed ? origin : allowedOrigins[0],
+            "Access-Control-Allow-Origin": origin,
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
             "Access-Control-Allow-Credentials": "true",
