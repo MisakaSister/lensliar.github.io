@@ -5,3 +5,4 @@ package-lock.json
 /worker/.wrangler/
 /worker/node_modules/
 package.json
+.cursor/rules/decode1.mdc
