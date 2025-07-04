@@ -1,5 +1,4 @@
 // 管理后台主文件
-const API_BASE = 'https://api.wengguodong.com';
 
 // 管理器实例
 let articleManager;
