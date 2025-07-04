@@ -265,15 +265,24 @@ class AlbumManager {
 
     // 搜索相册
     searchAlbums(query) {
-        if (!query) return this.albums;
+        console.log('🔍 搜索相册，查询条件:', query);
+        console.log('📚 当前相册总数:', this.albums.length);
+        
+        if (!query) {
+            console.log('✅ 无搜索条件，返回所有相册');
+            return this.albums;
+        }
         
         const searchTerm = query.toLowerCase();
-        return this.albums.filter(album => 
-            album.title.toLowerCase().includes(searchTerm) ||
-            album.description.toLowerCase().includes(searchTerm) ||
-            album.category.toLowerCase().includes(searchTerm) ||
-            album.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+        const filtered = this.albums.filter(album => 
+            (album.title || '').toLowerCase().includes(searchTerm) ||
+            (album.description || '').toLowerCase().includes(searchTerm) ||
+            (album.category || '').toLowerCase().includes(searchTerm) ||
+            (album.tags || []).some(tag => (tag || '').toLowerCase().includes(searchTerm))
         );
+        
+        console.log('🎯 搜索结果数量:', filtered.length);
+        return filtered;
     }
 
     // 按分类过滤相册

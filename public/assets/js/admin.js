@@ -247,7 +247,16 @@ function renderImages() {
     }
     
     // 渲染相册卡片
-    container.innerHTML = paginatedAlbums.map(album => {
+    console.log('🎨 渲染相册列表，共', paginatedAlbums.length, '个相册');
+    
+    container.innerHTML = paginatedAlbums.map((album, index) => {
+        console.log(`🖼️ 渲染相册 ${index + 1}:`, {
+            id: album.id,
+            title: album.title,
+            imageCount: album.imageCount,
+            coverImage: album.coverImage?.url
+        });
+        
         const coverImageUrl = album.coverImage?.url || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik04NyA2NUw5MyA3MUwxMDcgNTdMMTIzIDczTDEzNyA1OUwxNTMgNzVMMTY3IDYxTDE4MyA3N0wxOTcgNjNWMTM3SDE3VjEzN0g5N1YxMzdIMTdWNjNMMzMgNzdMNDcgNjNMNjMgNzlMNzcgNjVMODcgNjVaIiBmaWxsPSIjREREREREIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjQwIiByPSIxNSIgZmlsbD0iI0RERERERCIvPgo8L3N2Zz4K';
         
         return `
@@ -276,6 +285,8 @@ function renderImages() {
             </div>
         `;
     }).join('');
+    
+    console.log('✅ 相册列表渲染完成');
     
     // 渲染分页
     renderPagination('images', totalPages);
