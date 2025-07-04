@@ -16,30 +16,21 @@ class ArticleManager {
     // 加载文章数据
     async loadArticles() {
         try {
-            console.log('🔄 开始加载文章数据...');
-            
             const response = await fetch(`${this.apiBase}/content`, {
                 method: 'GET',
                 headers: this.getAuthHeaders()
             });
 
-            console.log('📥 文章API响应状态:', response.status);
-
             if (!response.ok) {
                 const error = await response.text();
-                console.error('❌ 加载文章失败:', error);
                 throw new Error(`HTTP ${response.status}: ${error}`);
             }
 
             const result = await response.json();
-            console.log('✅ 文章数据加载成功:', result);
-            
             this.articles = result.articles || [];
-            console.log(`📊 共加载 ${this.articles.length} 篇文章`);
             
             return this.articles;
         } catch (error) {
-            console.error('❌ 加载文章异常:', error);
             throw error;
         }
     }
@@ -47,32 +38,24 @@ class ArticleManager {
     // 创建文章
     async createArticle(articleData) {
         try {
-            console.log('🔄 开始创建文章...');
-            console.log('📤 发送数据:', JSON.stringify(articleData, null, 2));
-            
             const response = await fetch(`${this.apiBase}/content`, {
                 method: 'POST',
                 headers: this.getAuthHeaders(),
                 body: JSON.stringify(articleData)
             });
 
-            console.log('📥 创建文章API响应状态:', response.status);
-
             if (!response.ok) {
                 const error = await response.text();
-                console.error('❌ 创建文章失败:', error);
                 throw new Error(`HTTP ${response.status}: ${error}`);
             }
 
             const result = await response.json();
-            console.log('✅ 文章创建成功:', result);
             
             // 重新加载数据确保同步
             await this.loadArticles();
             
             return result;
         } catch (error) {
-            console.error('❌ 创建文章异常:', error);
             throw error;
         }
     }
@@ -80,32 +63,24 @@ class ArticleManager {
     // 更新文章
     async updateArticle(articleId, updateData) {
         try {
-            console.log('🔄 开始更新文章:', articleId);
-            console.log('📤 更新数据:', JSON.stringify(updateData, null, 2));
-            
             const response = await fetch(`${this.apiBase}/content/${articleId}`, {
                 method: 'PUT',
                 headers: this.getAuthHeaders(),
                 body: JSON.stringify(updateData)
             });
 
-            console.log('📥 更新文章API响应状态:', response.status);
-
             if (!response.ok) {
                 const error = await response.text();
-                console.error('❌ 更新文章失败:', error);
                 throw new Error(`HTTP ${response.status}: ${error}`);
             }
 
             const result = await response.json();
-            console.log('✅ 文章更新成功:', result);
             
             // 重新加载数据确保同步
             await this.loadArticles();
             
             return result;
         } catch (error) {
-            console.error('❌ 更新文章异常:', error);
             throw error;
         }
     }
@@ -113,8 +88,6 @@ class ArticleManager {
     // 删除文章
     async deleteArticle(articleId) {
         try {
-            console.log('🔄 开始删除文章:', articleId);
-            
             const response = await fetch(`${this.apiBase}/content/${articleId}`, {
                 method: 'DELETE',
                 headers: {
@@ -122,23 +95,18 @@ class ArticleManager {
                 }
             });
 
-            console.log('📥 删除文章API响应状态:', response.status);
-
             if (!response.ok) {
                 const error = await response.text();
-                console.error('❌ 删除文章失败:', error);
                 throw new Error(`HTTP ${response.status}: ${error}`);
             }
 
             const result = await response.json();
-            console.log('✅ 文章删除成功:', result);
             
             // 重新加载数据确保同步
             await this.loadArticles();
             
             return result;
         } catch (error) {
-            console.error('❌ 删除文章异常:', error);
             throw error;
         }
     }
@@ -146,12 +114,6 @@ class ArticleManager {
     // 上传图片文件
     async uploadImage(file) {
         try {
-            console.log('🔄 开始上传图片:', {
-                fileName: file.name,
-                fileSize: file.size,
-                fileType: file.type
-            });
-            
             const formData = new FormData();
             formData.append('file', file);
             
@@ -163,16 +125,12 @@ class ArticleManager {
                 body: formData
             });
 
-            console.log('📥 上传图片API响应状态:', response.status);
-
             if (!response.ok) {
                 const error = await response.text();
-                console.error('❌ 上传图片失败:', error);
                 throw new Error(`HTTP ${response.status}: ${error}`);
             }
 
             const result = await response.json();
-            console.log('✅ 图片上传成功:', result);
             
             return {
                 url: result.url,
@@ -181,7 +139,6 @@ class ArticleManager {
                 type: result.type
             };
         } catch (error) {
-            console.error('❌ 上传图片异常:', error);
             throw error;
         }
     }

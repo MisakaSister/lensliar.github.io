@@ -57,7 +57,7 @@ export default {
             }), env);
 
         } catch (error) {
-            console.error('Worker error:', error);
+    
             return addCorsHeaders(request, new Response(JSON.stringify({
                 error: 'Internal Server Error'
             }), {

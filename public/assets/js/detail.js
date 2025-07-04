@@ -111,7 +111,7 @@ async function loadDetailContent() {
             showError();
         }
     } catch (error) {
-        console.error('加载详情错误:', error);
+
         showError();
     }
 }

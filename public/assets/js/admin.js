@@ -15,12 +15,12 @@ const pageSize = 10;
 
 // 初始化
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 管理后台初始化...');
+    
     
     // 检查登录状态
     const token = localStorage.getItem('authToken');
     if (!token) {
-        console.log('❌ 未登录，跳转到登录页面');
+
         window.location.href = 'login.html';
         return;
     }
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 初始化界面
     switchTab('articles');
     
-    console.log('✅ 管理后台初始化完成');
+    
 });
 
 // 设置事件监听器
@@ -81,7 +81,7 @@ function setupEventListeners() {
 // 加载所有内容
 async function loadAllContent() {
     try {
-        console.log('🔄 开始加载所有内容...');
+
         
         // 并行加载文章和相册数据
         const [articles, albums] = await Promise.allSettled([
@@ -90,22 +90,22 @@ async function loadAllContent() {
         ]);
         
         if (articles.status === 'rejected') {
-            console.error('❌ 加载文章失败:', articles.reason);
+
             showNotification('加载文章失败: ' + articles.reason.message, false);
         }
         
         if (albums.status === 'rejected') {
-            console.error('❌ 加载相册失败:', albums.reason);
+
             showNotification('加载相册失败: ' + albums.reason.message, false);
         }
         
         // 更新统计信息
         updateStats();
         
-        console.log('✅ 内容加载完成');
+
         
     } catch (error) {
-        console.error('❌ 加载内容异常:', error);
+
         showNotification('加载内容失败: ' + error.message, false);
     }
 }
@@ -246,15 +246,10 @@ function renderImages() {
     }
     
     // 渲染相册卡片
-    console.log('🎨 渲染相册列表，共', paginatedAlbums.length, '个相册');
+
     
     container.innerHTML = paginatedAlbums.map((album, index) => {
-        console.log(`🖼️ 渲染相册 ${index + 1}:`, {
-            id: album.id,
-            title: album.title,
-            imageCount: album.imageCount,
-            coverImage: album.coverImage?.url
-        });
+
         
         const coverImageUrl = album.coverImage?.url || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik04NyA2NUw5MyA3MUwxMDcgNTdMMTIzIDczTDEzNyA1OUwxNTMgNzVMMTY3IDYxTDE4MyA3N0wxOTcgNjNWMTM3SDE3VjEzN0g5N1YxMzdIMTdWNjNMMzMgNzdMNDcgNjNMNjMgNzlMNzcgNjVMODcgNjVaIiBmaWxsPSIjREREREREIi8+CjxjaXJjbGUgY3g9IjE1MCIgY3k9IjQwIiByPSIxNSIgZmlsbD0iI0RERERERCIvPgo8L3N2Zz4K';
         
@@ -285,7 +280,7 @@ function renderImages() {
         `;
     }).join('');
     
-    console.log('✅ 相册列表渲染完成');
+
     
     // 渲染分页
     renderPagination('images', totalPages);
@@ -560,7 +555,7 @@ async function saveArticle() {
         renderCurrentTab();
         
     } catch (error) {
-        console.error('保存文章失败:', error);
+
         showNotification('保存失败: ' + error.message, false);
     }
 }
@@ -590,13 +585,12 @@ async function saveImages() {
             tags: []
         };
         
-        console.log('🔄 开始创建相册...');
+
         await albumManager.uploadAndCreateAlbum(selectedFiles, albumInfo);
         
         showNotification(`成功创建相册，包含 ${selectedFiles.length} 张图片！`, true);
         
         // 立即重新加载数据并刷新界面
-        console.log('🔄 重新加载相册数据...');
         await albumManager.loadAlbums();
         
         setTimeout(() => {
@@ -606,7 +600,7 @@ async function saveImages() {
         }, 1000);
         
     } catch (error) {
-        console.error('创建相册失败:', error);
+
         showNotification('创建相册失败: ' + error.message, false);
     } finally {
         saveBtn.disabled = false;
@@ -655,7 +649,7 @@ async function deleteArticle(id) {
         updateStats();
         renderCurrentTab();
     } catch (error) {
-        console.error('删除文章失败:', error);
+
         showNotification('删除失败: ' + error.message, false);
     }
 }
@@ -815,14 +809,13 @@ function showEditAlbumModal(album) {
             showNotification('相册更新成功', true);
             
             // 立即重新加载数据并刷新界面
-            console.log('🔄 重新加载相册数据...');
             await albumManager.loadAlbums();
             
             updateStats();
             renderCurrentTab();
             modal.remove();
         } catch (error) {
-            console.error('更新相册失败:', error);
+
             showNotification('更新失败: ' + error.message, false);
         }
     });
@@ -848,13 +841,12 @@ async function deleteAlbum(id) {
         showNotification(`${itemName}删除成功`, true);
         
         // 立即重新加载数据并刷新界面
-        console.log('🔄 重新加载相册数据...');
         await albumManager.loadAlbums();
         
         updateStats();
         renderCurrentTab();
     } catch (error) {
-        console.error(`删除${itemName}失败:`, error);
+
         showNotification('删除失败: ' + error.message, false);
     }
 }

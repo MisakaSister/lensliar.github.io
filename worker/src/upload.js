@@ -106,7 +106,7 @@ export async function handleUpload(request, env) {
         });
 
     } catch (error) {
-        console.error('Upload error:', error);
+
         return new Response(JSON.stringify({
             error: error.message || 'Upload failed'
         }), {

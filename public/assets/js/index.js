@@ -40,13 +40,13 @@ async function loadContent() {
             const content = await response.json();
             renderContent(content);
         } else {
-            console.error('加载内容失败:', response.status);
+
             // 即使API失败也显示空状态，而不是完全不显示
             renderContent({ articles: [], images: [] });
             showNotification('加载内容失败，请稍后重试', false);
         }
     } catch (error) {
-        console.error('加载内容异常:', error);
+
         // 网络错误时也显示空状态
         renderContent({ articles: [], images: [] });
         showNotification('网络错误，请检查网络连接', false);
@@ -153,7 +153,7 @@ function renderContent(content) {
     // 在控制台输出统计信息
     const totalArticles = content.articles ? content.articles.length : 0;
     const totalImages = content.images ? content.images.length : 0;
-    console.log(`统计信息 - 文章: ${totalArticles}, 图片: ${totalImages}`);
+
 }
 
 // 格式化日期
@@ -166,7 +166,7 @@ function formatDate(dateString) {
 // 打开图片查看器
 function openImageViewer(imageId) {
     // 这里需要实现图片查看器功能
-    console.log('打开图片查看器:', imageId);
+
 }
 
 // 查看详情

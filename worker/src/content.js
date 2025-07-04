@@ -68,7 +68,7 @@ export async function handleContent(request, env) {
         });
 
     } catch (error) {
-        console.error('Content API error:', error);
+
         return new Response(JSON.stringify({
             error: error.message
         }), {

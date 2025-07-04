@@ -169,7 +169,7 @@ async function recordFailedLogin(request, env) {
 async function cleanupExpiredTokens(env, clientIP) {
     // 这里可以添加批量清理逻辑
     // 由于KV的限制，我们依赖TTL自动清理
-    console.log('Token cleanup executed for IP:', clientIP);
+
 }
 
 // 🔒 生成会话指纹

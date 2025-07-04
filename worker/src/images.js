@@ -51,7 +51,6 @@ export async function handleImages(request, env) {
         });
 
     } catch (error) {
-        console.error('Images API error:', error);
         return new Response(JSON.stringify({
             error: 'Internal Server Error'
         }), {
@@ -73,37 +72,23 @@ async function getImages(request, env) {
         const category = url.searchParams.get('category') || '';
 
         // 获取所有图片KV键
-        console.log('🔍 Listing albums from IMAGES_KV with prefix: album_');
         const listResult = await env.IMAGES_KV.list({
             prefix: 'album_'
         });
-
-        console.log('📋 Found album keys:', listResult.keys.map(k => k.name));
-        console.log('📊 Total keys found:', listResult.keys.length);
 
         const images = [];
         
         // 批量获取图片数据
         for (const key of listResult.keys) {
             try {
-                console.log(`🔄 Loading album data for key: ${key.name}`);
                 const imageData = await env.IMAGES_KV.get(key.name, 'json');
                 if (imageData) {
                     images.push(imageData);
-                    console.log(`✅ Loaded album ${key.name}:`, {
-                        title: imageData.title,
-                        imageCount: imageData.imageCount,
-                        createdAt: imageData.createdAt
-                    });
-                } else {
-                    console.log(`❌ No data found for key ${key.name}`);
                 }
             } catch (error) {
-                console.error(`❌ Failed to get album ${key.name}:`, error);
+                // Silently skip failed keys
             }
         }
-
-        console.log('📈 Total albums loaded:', images.length);
 
         // 按创建时间排序（最新的在前）
         images.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -155,7 +140,6 @@ async function getImages(request, env) {
         });
 
     } catch (error) {
-        console.error('Get images error:', error);
         return new Response(JSON.stringify({
             error: 'Failed to get images'
         }), {
@@ -223,26 +207,16 @@ async function saveImageAlbum(request, env) {
 
         // 保存到IMAGES_KV
         const kvKey = `album_${albumId}`;
-        console.log('Saving album to IMAGES_KV:', {
-            key: kvKey,
-            albumId: albumId,
-            title: album.title,
-            imageCount: album.imageCount
-        });
         
         try {
             await env.IMAGES_KV.put(kvKey, JSON.stringify(album));
-            console.log('✅ Album saved to KV successfully');
             
             // 验证保存是否成功
             const savedAlbum = await env.IMAGES_KV.get(kvKey, 'json');
-            if (savedAlbum) {
-                console.log('✅ Album verification successful:', savedAlbum.title);
-            } else {
-                console.log('❌ Album verification failed - not found in KV');
+            if (!savedAlbum) {
+                throw new Error('Album verification failed');
             }
         } catch (kvError) {
-            console.error('❌ Failed to save album to KV:', kvError);
             throw new Error('Failed to save album to KV storage');
         }
 
@@ -257,7 +231,7 @@ async function saveImageAlbum(request, env) {
         });
 
     } catch (error) {
-        console.error('Save image album error:', error);
+
         return new Response(JSON.stringify({
             error: 'Failed to save image album'
         }), {
@@ -297,12 +271,9 @@ async function deleteImageAlbum(albumId, env) {
             if (!isUsedInArticles) {
                 try {
                     await env.IMAGES_BUCKET.delete(image.fileName);
-                    console.log(`Deleted ${image.fileName} from R2`);
                 } catch (r2Error) {
-                    console.error(`Failed to delete ${image.fileName} from R2:`, r2Error);
+                    // Silently handle R2 deletion errors
                 }
-            } else {
-                console.log(`Skipped deleting ${image.fileName} - used in articles`);
             }
         });
 
@@ -325,7 +296,7 @@ async function deleteImageAlbum(albumId, env) {
         });
 
     } catch (error) {
-        console.error('Delete album error:', error);
+
         return new Response(JSON.stringify({
             error: 'Failed to delete album'
         }), {
@@ -381,13 +352,13 @@ async function checkImageUsageInArticles(images, env) {
                     }
                 }
             } catch (error) {
-                console.error(`Failed to check article ${key.name}:`, error);
+
             }
         }
 
         return imageUsage;
     } catch (error) {
-        console.error('Failed to check image usage:', error);
+
         // 如果检查失败，为了安全起见，假设所有图片都被使用
         return images.map(img => ({
             fileName: img.fileName,
@@ -439,7 +410,7 @@ async function updateImageAlbum(albumId, request, env) {
         });
 
     } catch (error) {
-        console.error('Update album error:', error);
+
         return new Response(JSON.stringify({
             error: 'Failed to update album'
         }), {
