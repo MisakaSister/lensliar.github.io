@@ -1,6 +1,7 @@
 // index.js - 首页功能
 
 // 全局变量
+const API_BASE = 'https://api.wengguodong.com';
 let imagesData = [];
 
 // 初始化页面
