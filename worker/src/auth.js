@@ -159,12 +159,17 @@ async function cleanupExpiredTokens(env, clientIP) {
 
 }
 
-// 🔒 生成会话指纹
+// 🔒 生成会话指纹（更温和的版本）
 async function generateSessionFingerprint(request) {
+    // 只使用相对稳定的User-Agent前缀，忽略版本号
+    const userAgent = request.headers.get('User-Agent') || '';
+    const stableUserAgent = userAgent.split('/')[0] || userAgent.substring(0, 50);
+    
     const components = [
-        request.headers.get('User-Agent') || '',
+        stableUserAgent,
         request.headers.get('Accept-Language') || '',
-        request.headers.get('CF-Connecting-IP') || ''
+        // 暂时移除IP检查，因为CDN可能导致IP变化
+        // request.headers.get('CF-Connecting-IP') || ''
     ];
     
     const fingerprint = components.join('|');

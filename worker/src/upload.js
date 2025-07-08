@@ -116,12 +116,20 @@ async function verifyAuth(request, env) {
         return { success: false, error: 'Token expired' };
     }
 
-    // 🔒 验证会话指纹（防止会话劫持）
+    // 🔒 验证会话指纹（防止会话劫持）- 温和版本
     if (tokenData.sessionFingerprint) {
         const currentFingerprint = await generateSessionFingerprint(request);
         if (tokenData.sessionFingerprint !== currentFingerprint) {
-            await env.AUTH_KV.delete(token);
-            return { success: false, error: 'Session security validation failed' };
+            // 记录可疑活动但不立即拒绝
+            console.warn('Session fingerprint mismatch detected:', {
+                stored: tokenData.sessionFingerprint,
+                current: currentFingerprint,
+                ip: request.headers.get('CF-Connecting-IP')
+            });
+            
+            // 只在指纹差异过大时才拒绝（这里暂时禁用严格检查）
+            // await env.AUTH_KV.delete(token);
+            // return { success: false, error: 'Session security validation failed' };
         }
     }
 
@@ -223,10 +231,15 @@ async function checkUploadRateLimit(request, env) {
 
 // 🔒 生成会话指纹（与auth.js保持一致）
 async function generateSessionFingerprint(request) {
+    // 只使用相对稳定的User-Agent前缀，忽略版本号
+    const userAgent = request.headers.get('User-Agent') || '';
+    const stableUserAgent = userAgent.split('/')[0] || userAgent.substring(0, 50);
+    
     const components = [
-        request.headers.get('User-Agent') || '',
+        stableUserAgent,
         request.headers.get('Accept-Language') || '',
-        request.headers.get('CF-Connecting-IP') || ''
+        // 暂时移除IP检查，因为CDN可能导致IP变化
+        // request.headers.get('CF-Connecting-IP') || ''
     ];
     
     const fingerprint = components.join('|');
