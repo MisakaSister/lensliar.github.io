@@ -61,7 +61,7 @@ class XSSProtection {
 
         // 监控localStorage访问，但不改变存储格式
         localStorage.setItem = function(key, value) {
-            if (key === 'adminToken') {
+            if (key === 'authToken' || key === 'adminToken') {
                 // 验证token格式
                 if (!xssInstance.isValidToken(value)) {
                     if (xssInstance.options.logWarnings) {
@@ -77,7 +77,7 @@ class XSSProtection {
         localStorage.getItem = function(key) {
             const result = originalGetItem.call(this, key);
             
-            if (key === 'adminToken' && result) {
+            if ((key === 'authToken' || key === 'adminToken') && result) {
                 // 检查token是否有效，但不强制删除
                 if (!xssInstance.isValidToken(result)) {
                     if (xssInstance.options.logWarnings) {
@@ -353,7 +353,7 @@ class XSSProtection {
         }
 
         // 添加CSRF防护
-        const token = localStorage.getItem('adminToken');
+        const token = localStorage.getItem('authToken');
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
