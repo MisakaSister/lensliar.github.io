@@ -116,21 +116,9 @@ async function verifyAuth(request, env) {
         return { success: false, error: 'Token expired' };
     }
 
-    // 🔒 验证会话指纹（防止会话劫持）- 温和版本
-    if (tokenData.sessionFingerprint) {
-        const currentFingerprint = await generateSessionFingerprint(request);
-        if (tokenData.sessionFingerprint !== currentFingerprint) {
-            // 记录可疑活动但不立即拒绝
-            console.warn('Session fingerprint mismatch detected:', {
-                stored: tokenData.sessionFingerprint,
-                current: currentFingerprint,
-                ip: request.headers.get('CF-Connecting-IP')
-            });
-            
-            // 只在指纹差异过大时才拒绝（这里暂时禁用严格检查）
-            // await env.AUTH_KV.delete(token);
-            // return { success: false, error: 'Session security validation failed' };
-        }
+    // 🔒 会话指纹验证已临时完全禁用
+    if (false && tokenData.sessionFingerprint) {
+        // 验证逻辑已临时禁用，直到问题解决
     }
 
     return { success: true, user: tokenData.user };
