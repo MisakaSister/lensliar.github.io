@@ -3,6 +3,7 @@
 import { handleError } from './error-handler.js';
 import { checkRateLimit } from './rate-limiter.js';
 import { sanitizeObject, sanitizeText, sanitizeUrl } from './xss-protection.js';
+import { validateSessionWithSmartFingerprint } from './smart-fingerprint.js';
 
 export async function handleContent(request, env) {
     try {
@@ -465,9 +466,18 @@ export async function verifyAuth(request, env) {
         return { success: false, error: 'Token expired' };
     }
 
-    // 🔒 会话指纹验证已临时完全禁用
-    if (false && tokenData.sessionFingerprint) {
-        // 验证逻辑已临时禁用，直到问题解决
+    // 🔒 使用智能会话指纹验证
+    if (tokenData.sessionFingerprint) {
+        const smartValidation = await validateSessionWithSmartFingerprint(request, tokenData, env);
+        if (!smartValidation.success) {
+            await env.AUTH_KV.delete(token);
+            return smartValidation;
+        }
+        
+        // 如果有警告，记录但继续
+        if (smartValidation.warning) {
+            console.warn('[Smart Fingerprint]', smartValidation.warning);
+        }
     }
 
     return { success: true, user: tokenData.user };

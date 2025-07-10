@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import {addCorsHeaders, handleCors} from "./cors";
 import { handleError, createError } from './error-handler.js';
 import { checkRateLimit } from './rate-limiter.js';
+import { SmartFingerprintValidator } from './smart-fingerprint.js';
 
 export async function handleAuth(request, env) {
     // 先处理OPTIONS预检请求
@@ -33,6 +34,10 @@ export async function handleAuth(request, env) {
                 // 🔒 创建更安全的令牌
                 const token = await generateSecureToken();
 
+                // 🔒 使用智能指纹系统
+                const fingerprintValidator = new SmartFingerprintValidator(env);
+                const smartFingerprint = await fingerprintValidator.generateSmartFingerprint(request);
+                
                 // 🔒 存储令牌到KV，包含更多安全信息
                 await env.AUTH_KV.put(token, JSON.stringify({
                     user: username,
@@ -40,8 +45,8 @@ export async function handleAuth(request, env) {
                     created: Date.now(),
                     ip: request.headers.get('CF-Connecting-IP') || 'unknown',
                     userAgent: request.headers.get('User-Agent') || 'unknown',
-                    // 🔒 添加会话指纹
-                    sessionFingerprint: await generateSessionFingerprint(request)
+                    // 🔒 使用智能会话指纹
+                    sessionFingerprint: smartFingerprint
                 }), {expirationTtl: 3600});
 
                 return new Response(JSON.stringify({token}), {
