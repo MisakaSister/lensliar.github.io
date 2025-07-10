@@ -2,8 +2,6 @@
 
 // 登录函数
 async function login(event) {
-
-    
     // 阻止表单默认提交行为
     if (event) {
         event.preventDefault();
@@ -21,7 +19,8 @@ async function login(event) {
     showLoading(true);
 
     try {
-
+        // 等待智能指纹系统初始化
+        await ensureSmartFingerprintReady();
         
         const response = await fetch(`${API_BASE}/auth/login`, {
             method: 'POST',
@@ -46,15 +45,44 @@ async function login(event) {
                 window.location.href = 'admin.html';
             }, 1000);
         } else {
-
             showLoading(false);
             showNotification(data.error || '用户名或密码错误', false);
         }
     } catch (error) {
-
+        console.error('登录错误:', error);
         showLoading(false);
         showNotification('登录错误：网络异常，请重试', false);
     }
+}
+
+// 确保智能指纹系统准备就绪
+async function ensureSmartFingerprintReady() {
+    return new Promise((resolve) => {
+        let attempts = 0;
+        const maxAttempts = 50; // 最多等待5秒
+        
+        const checkReady = () => {
+            attempts++;
+            
+            // 检查智能指纹系统是否已初始化
+            if (window.smartFingerprintClient && window.smartFingerprintClient.initialized) {
+                resolve();
+                return;
+            }
+            
+            // 超时后继续执行（降级处理）
+            if (attempts >= maxAttempts) {
+                console.warn('智能指纹系统初始化超时，继续登录');
+                resolve();
+                return;
+            }
+            
+            // 继续等待
+            setTimeout(checkReady, 100);
+        };
+        
+        checkReady();
+    });
 }
 
 // 显示/隐藏加载动画

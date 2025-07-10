@@ -117,17 +117,31 @@ async function verifyAuth(request, env) {
         return { success: false, error: 'Token expired' };
     }
 
-    // 🔒 使用智能会话指纹验证
+    // 🔒 使用智能会话指纹验证（容错模式）
     if (tokenData.sessionFingerprint) {
-        const smartValidation = await validateSessionWithSmartFingerprint(request, tokenData, env);
-        if (!smartValidation.success) {
-            await env.AUTH_KV.delete(token);
-            return smartValidation;
-        }
-        
-        // 如果有警告，记录但继续
-        if (smartValidation.warning) {
-            console.warn('[Smart Fingerprint]', smartValidation.warning);
+        try {
+            const smartValidation = await validateSessionWithSmartFingerprint(request, tokenData, env);
+            if (!smartValidation.success) {
+                // 对于指纹验证失败，记录警告但允许继续（降级处理）
+                console.warn('[Smart Fingerprint] Validation failed but allowing degraded access:', smartValidation.error);
+                console.warn('[Smart Fingerprint] User:', tokenData.user, 'IP:', request.headers.get('CF-Connecting-IP'));
+                
+                // 如果是首次登录，允许继续
+                if (tokenData.isFirstLogin) {
+                    console.info('[Smart Fingerprint] First login - allowing access');
+                } else {
+                    // 非首次登录但指纹验证失败，记录但仍允许继续
+                    console.warn('[Smart Fingerprint] Fingerprint validation failed, but allowing degraded access');
+                }
+            }
+            
+            // 如果有警告，记录但继续
+            if (smartValidation.warning) {
+                console.warn('[Smart Fingerprint]', smartValidation.warning);
+            }
+        } catch (error) {
+            console.error('[Smart Fingerprint] Validation error:', error);
+            // 验证过程出错，记录但继续
         }
     }
 

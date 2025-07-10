@@ -224,6 +224,9 @@ function initSmartFingerprint() {
     if (!smartFingerprintClient) {
         smartFingerprintClient = new SmartFingerprintClient();
         
+        // 暴露到全局
+        window.smartFingerprintClient = smartFingerprintClient;
+        
         // 增强全局fetch
         if (typeof window !== 'undefined' && window.fetch) {
             window.originalFetch = window.fetch;

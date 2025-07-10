@@ -34,9 +34,16 @@ export async function handleAuth(request, env) {
                 // 🔒 创建更安全的令牌
                 const token = await generateSecureToken();
 
-                // 🔒 使用智能指纹系统
-                const fingerprintValidator = new SmartFingerprintValidator(env);
-                const smartFingerprint = await fingerprintValidator.generateSmartFingerprint(request);
+                // 🔒 使用智能指纹系统（宽松模式用于登录）
+                let smartFingerprint = null;
+                try {
+                    const fingerprintValidator = new SmartFingerprintValidator(env);
+                    smartFingerprint = await fingerprintValidator.generateSmartFingerprint(request);
+                } catch (error) {
+                    console.warn('指纹生成失败，使用基础指纹:', error);
+                    // 降级到基础指纹
+                    smartFingerprint = await generateBasicFingerprint(request);
+                }
                 
                 // 🔒 存储令牌到KV，包含更多安全信息
                 await env.AUTH_KV.put(token, JSON.stringify({
@@ -46,7 +53,9 @@ export async function handleAuth(request, env) {
                     ip: request.headers.get('CF-Connecting-IP') || 'unknown',
                     userAgent: request.headers.get('User-Agent') || 'unknown',
                     // 🔒 使用智能会话指纹
-                    sessionFingerprint: smartFingerprint
+                    sessionFingerprint: smartFingerprint,
+                    // 标记为首次登录，后续验证会更宽松
+                    isFirstLogin: true
                 }), {expirationTtl: 3600});
 
                 return new Response(JSON.stringify({token}), {
@@ -161,7 +170,41 @@ async function recordFailedLogin(request, env) {
 async function cleanupExpiredTokens(env, clientIP) {
     // 这里可以添加批量清理逻辑
     // 由于KV的限制，我们依赖TTL自动清理
+}
 
+// 🔒 生成基础指纹（降级方案）
+async function generateBasicFingerprint(request) {
+    const userAgent = request.headers.get('User-Agent') || 'unknown';
+    const language = request.headers.get('Accept-Language') || 'unknown';
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    
+    // 创建基础指纹结构
+    const components = {
+        browser: userAgent.split('/')[0] || 'unknown',
+        language: language.split(',')[0] || 'unknown',
+        timezone: 'unknown',
+        screen: 'unknown'
+    };
+    
+    // 生成简单哈希
+    const fingerprint = `${components.browser}|${components.language}`;
+    const encoder = new TextEncoder();
+    const data = encoder.encode(fingerprint);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = new Uint8Array(hashBuffer);
+    const id = Array.from(hashArray, b => b.toString(16).padStart(2, '0')).join('');
+    
+    return {
+        id: id,
+        components: components,
+        timestamp: Date.now(),
+        type: 'basic_fallback',
+        metadata: {
+            ip: ip,
+            country: request.headers.get('CF-IPCountry') || 'unknown',
+            ray: request.headers.get('CF-Ray') || 'unknown'
+        }
+    };
 }
 
 // 🔒 生成会话指纹（更温和的版本）

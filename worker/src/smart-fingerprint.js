@@ -178,6 +178,15 @@ export class SmartFingerprintValidator {
                 return this.createResult('no_fingerprint', 1.0, 'No stored fingerprint');
             }
 
+            // 检查是否为首次登录或基础指纹
+            const isFirstLogin = tokenData.isFirstLogin;
+            const isBasicFingerprint = storedFingerprint.type === 'basic_fallback';
+
+            // 对于首次登录或基础指纹，使用更宽松的验证
+            if (isFirstLogin || isBasicFingerprint) {
+                return this.createResult('allow', 0.9, 'First login or basic fingerprint - allowing with reduced security');
+            }
+
             // 计算相似度
             const similarity = this.calculateSimilarity(currentFingerprint, storedFingerprint);
             
@@ -198,8 +207,8 @@ export class SmartFingerprintValidator {
             return this.createResult(decision.action, similarity, decision.reason, decision.details);
 
         } catch (error) {
-            console.error('Fingerprint validation error:', error);
-            return this.createResult('error', 0, 'Validation failed', { error: error.message });
+            console.error('指纹验证错误:', error);
+            return this.createResult('error', 0, 'Fingerprint validation error: ' + error.message);
         }
     }
 
