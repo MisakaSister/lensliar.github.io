@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .debug {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>登录测试</h2>
+        <p>测试智能指纹系统和登录功能</p>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">用户名:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">密码:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit">登录</button>
+        </form>
+        
+        <div id="loading" class="loading">
+            <p>正在登录...</p>
+        </div>
+        
+        <div id="message"></div>
+        
+        <div id="debug" class="debug" style="display: none;">
+            <h4>调试信息:</h4>
+            <div id="debugContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "https://worker.wengguodong.com";
+        
+        // 显示消息
+        function showMessage(text, type = 'success') {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+        }
+        
+        // 显示调试信息
+        function showDebug(info) {
+            const debugDiv = document.getElementById('debug');
+            const debugContent = document.getElementById('debugContent');
+            debugContent.innerHTML = `<pre>${JSON.stringify(info, null, 2)}</pre>`;
+            debugDiv.style.display = 'block';
+        }
+        
+        // 登录测试
+        async function testLogin(username, password) {
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+            
+            try {
+                // 收集客户端信息
+                const clientInfo = {
+                    userAgent: navigator.userAgent,
+                    language: navigator.language,
+                    platform: navigator.platform,
+                    screenResolution: `${screen.width}x${screen.height}`,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                };
+                
+                showDebug({
+                    step: 'Starting login',
+                    clientInfo: clientInfo,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // 发送登录请求
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Screen-Info': `${screen.width}x${screen.height}:${screen.colorDepth}:${window.devicePixelRatio}`,
+                        'X-Timezone': clientInfo.timezone
+                    },
+                    body: JSON.stringify({ username, password }),
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                showDebug({
+                    step: 'Login response',
+                    status: response.status,
+                    data: data,
+                    headers: Object.fromEntries(response.headers.entries())
+                });
+                
+                if (response.ok) {
+                    showMessage('登录成功！', 'success');
+                    
+                    // 测试获取内容
+                    if (data.token) {
+                        await testContentAccess(data.token);
+                    }
+                } else {
+                    showMessage(`登录失败: ${data.error || '未知错误'}`, 'error');
+                }
+                
+            } catch (error) {
+                showMessage(`网络错误: ${error.message}`, 'error');
+                showDebug({
+                    step: 'Login error',
+                    error: error.message,
+                    stack: error.stack
+                });
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+        
+        // 测试内容访问
+        async function testContentAccess(token) {
+            try {
+                const response = await fetch(`${API_BASE}/content`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                showDebug({
+                    step: 'Content access test',
+                    status: response.status,
+                    success: response.ok,
+                    data: data
+                });
+                
+            } catch (error) {
+                showDebug({
+                    step: 'Content access error',
+                    error: error.message
+                });
+            }
+        }
+        
+        // 表单提交处理
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showMessage('请输入用户名和密码', 'error');
+                return;
+            }
+            
+            await testLogin(username, password);
+        });
+        
+        // 页面加载时显示环境信息
+        window.addEventListener('load', () => {
+            showDebug({
+                step: 'Page loaded',
+                environment: {
+                    userAgent: navigator.userAgent,
+                    language: navigator.language,
+                    platform: navigator.platform,
+                    cookieEnabled: navigator.cookieEnabled,
+                    onLine: navigator.onLine,
+                    screenResolution: `${screen.width}x${screen.height}`,
+                    colorDepth: screen.colorDepth,
+                    devicePixelRatio: window.devicePixelRatio,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
