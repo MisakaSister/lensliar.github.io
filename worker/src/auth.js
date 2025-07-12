@@ -12,6 +12,8 @@ export async function handleAuth(request, env) {
 
     if (pathname === '/auth/login' && request.method === 'POST') {
         try {
+            console.log('[认证] 开始处理登录请求');
+            
             // 🔒 基础速率限制
             await checkRateLimit(request, env, 'login');
 
@@ -21,13 +23,17 @@ export async function handleAuth(request, env) {
             if (!username || !password || 
                 typeof username !== 'string' || typeof password !== 'string' ||
                 username.length > 50 || password.length > 100) {
+                console.warn('[认证] 输入验证失败');
                 throw createError('VALIDATION_ERROR', 'Invalid input');
             }
 
             // 验证凭证
+            console.log('[认证] 验证用户凭证');
             const isValid = await verifyCredentials(username, password, env);
 
             if (isValid) {
+                console.log('[认证] 凭证验证成功，生成token');
+                
                 // 🔒 清理旧的token（防止会话固定）
                 await cleanupExpiredTokens(env, request.headers.get('CF-Connecting-IP'));
                 
@@ -39,14 +45,15 @@ export async function handleAuth(request, env) {
                 try {
                     const fingerprintValidator = new SmartFingerprintValidator(env);
                     smartFingerprint = await fingerprintValidator.generateSmartFingerprint(request);
+                    console.log('[认证] 智能指纹生成成功');
                 } catch (error) {
-                    console.warn('指纹生成失败，使用基础指纹:', error);
+                    console.warn('[认证] 智能指纹生成失败，使用基础指纹:', error);
                     // 降级到基础指纹
                     smartFingerprint = await generateBasicFingerprint(request);
                 }
                 
                 // 🔒 存储令牌到KV，包含更多安全信息
-                await env.AUTH_KV.put(token, JSON.stringify({
+                const tokenData = {
                     user: username,
                     expires: Date.now() + 3600000, // 1小时有效期
                     created: Date.now(),
@@ -56,7 +63,11 @@ export async function handleAuth(request, env) {
                     sessionFingerprint: smartFingerprint,
                     // 标记为首次登录，后续验证会更宽松
                     isFirstLogin: true
-                }), {expirationTtl: 3600});
+                };
+                
+                await env.AUTH_KV.put(token, JSON.stringify(tokenData), {expirationTtl: 3600});
+                
+                console.log('[认证] 登录成功，token已生成');
 
                 return new Response(JSON.stringify({token}), {
                     status: 200,
@@ -68,6 +79,7 @@ export async function handleAuth(request, env) {
             }
 
             // 🔒 记录失败的登录尝试
+            console.warn('[认证] 登录失败，记录失败尝试');
             await recordFailedLogin(request, env);
 
             return new Response(JSON.stringify({
@@ -80,6 +92,7 @@ export async function handleAuth(request, env) {
                 }
             });
         } catch (error) {
+            console.error('[认证] 登录处理异常:', error);
             return handleError(error, request);
         }
     }
@@ -104,6 +117,12 @@ async function verifyCredentials(username, password, env) {
     let isValid = false;
     
     try {
+        // 检查环境变量是否配置
+        if (!env.SECRET_ADMIN_USERNAME || !env.SECRET_ADMIN_PASSWORD_HASH || !env.SECRET_PEPPER) {
+            console.error('[认证] 环境变量配置不完整');
+            throw new Error('Server configuration error');
+        }
+        
         // 检查用户名（恒定时间）
         const usernameValid = username === env.SECRET_ADMIN_USERNAME;
         
@@ -113,7 +132,10 @@ async function verifyCredentials(username, password, env) {
         
         isValid = usernameValid && passwordValid;
         
+        console.log(`[认证] 用户名验证: ${usernameValid ? '通过' : '失败'}`);
+        
     } catch (error) {
+        console.error('[认证] 凭证验证异常:', error);
         // 确保发生错误时也有固定延迟
         isValid = false;
     }
@@ -164,12 +186,15 @@ async function recordFailedLogin(request, env) {
     const count = current ? parseInt(current) + 1 : 1;
     
     await env.AUTH_KV.put(key, count.toString(), { expirationTtl: 3600 }); // 1小时TTL
+    
+    console.log(`[认证] 记录失败登录尝试: IP=${clientIP}, 次数=${count}`);
 }
 
 // 🔒 清理过期token
 async function cleanupExpiredTokens(env, clientIP) {
     // 这里可以添加批量清理逻辑
     // 由于KV的限制，我们依赖TTL自动清理
+    console.log('[认证] 清理过期token (依赖TTL自动清理)');
 }
 
 // 🔒 生成基础指纹（降级方案）
@@ -193,6 +218,8 @@ async function generateBasicFingerprint(request) {
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = new Uint8Array(hashBuffer);
     const id = Array.from(hashArray, b => b.toString(16).padStart(2, '0')).join('');
+    
+    console.log('[认证] 生成基础指纹完成');
     
     return {
         id: id,

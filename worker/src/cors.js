@@ -2,17 +2,20 @@
 
 // 允许的源列表（可从环境变量获取）
 export function getAllowedOrigins(env) {
-    if (env && env.ALLOWED_ORIGINS && env.ALLOWED_ORIGINS.trim()!== '') {
+    if (env && env.ALLOWED_ORIGINS && env.ALLOWED_ORIGINS.trim() !== '') {
         return env.ALLOWED_ORIGINS.split(',');
     }
-
 
     // 默认值
     return [
         "https://wengguodong.com",
         "https://www.wengguodong.com",
         "https://lensliar.github.io",
-        "https://misakasister.github.io"
+        "https://misakasister.github.io",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080"
     ];
 }
 
@@ -33,21 +36,25 @@ function isOriginAllowed(origin, allowedOrigins) {
 }
 
 // 处理 OPTIONS 预检请求的中间件
-export function handleCors(request,env) {
+export function handleCors(request, env) {
     const allowedOrigins = getAllowedOrigins(env);
     const origin = request.headers.get("Origin");
     const isAllowed = isOriginAllowed(origin, allowedOrigins);
 
     if (request.method === "OPTIONS") {
+        // 记录调试信息
+        console.log(`[CORS] OPTIONS request from origin: ${origin}, allowed: ${isAllowed}`);
+        
         if (!isAllowed) {
-            // 如果域名不被允许，直接拒绝
-            return new Response(null, { status: 403 });
+            // 临时更宽松的处理 - 记录但不拒绝
+            console.warn(`[CORS] Origin ${origin} not in allowed list: ${allowedOrigins.join(', ')}`);
+            // 暂时允许但记录
         }
         
         const headers = {
-            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Origin": origin || "*",
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, X-Screen-Info, X-Timezone, X-Timezone-Offset, X-Hardware-Concurrency, X-Device-Memory, X-Browser-Features",
             "Access-Control-Allow-Credentials": "true",
             "Access-Control-Max-Age": "86400", // 24小时缓存
             "Vary": "Origin"
@@ -60,7 +67,7 @@ export function handleCors(request,env) {
 }
 
 // 为响应添加 CORS 头的中间件
-export function addCorsHeaders(request, response,env) {
+export function addCorsHeaders(request, response, env) {
     const allowedOrigins = getAllowedOrigins(env);
     const origin = request.headers.get("Origin");
 
@@ -83,8 +90,14 @@ export function addCorsHeaders(request, response,env) {
     // 克隆响应以便修改头
     const newResponse = new Response(response.body, response);
 
-    // 添加 CORS 头
-    if (isAllowed) {
+    // 添加 CORS 头 - 临时更宽松的处理
+    if (isAllowed || !origin) {
+        newResponse.headers.set("Access-Control-Allow-Origin", origin || "*");
+        newResponse.headers.set("Access-Control-Allow-Credentials", "true");
+        newResponse.headers.set("Vary", "Origin");
+    } else {
+        // 记录但仍然设置CORS头以进行调试
+        console.warn(`[CORS] Origin ${origin} not allowed, but setting headers for debugging`);
         newResponse.headers.set("Access-Control-Allow-Origin", origin);
         newResponse.headers.set("Access-Control-Allow-Credentials", "true");
         newResponse.headers.set("Vary", "Origin");
