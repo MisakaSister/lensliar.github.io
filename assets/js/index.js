@@ -87,8 +87,8 @@ function renderContent(content) {
     const articlesContainer = document.getElementById('articles-container');
     const imagesContainer = document.getElementById('images-container');
 
-    // 保存图片数据到全局变量
-    imagesData = content.images || [];
+    // 保存图片数据到全局变量（限制为3条）
+    imagesData = content.images ? content.images.slice(0, 3) : [];
 
     // 清空容器
     articlesContainer.innerHTML = '';
