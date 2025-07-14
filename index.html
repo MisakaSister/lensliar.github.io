@@ -3,38 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的个人博客</title>
+    <title>创作空间</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+<!-- 页面加载动画 -->
+<div class="page-loading" id="page-loading">
+    <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">正在加载创作空间...</div>
+    </div>
+</div>
+
 <header>
     <nav>
         <div class="logo">
-            <i class="fas fa-feather"></i>
-            我的个人博客
+            <i class="fas fa-palette"></i>
+            <span class="logo-text">创作空间</span>
         </div>
         <div class="nav-links">
             <a href="#" class="nav-item active" data-section="home">
                 <i class="fas fa-home"></i>
-                首页
+                <span>首页</span>
             </a>
             <a href="#" class="nav-item" data-section="articles">
                 <i class="fas fa-newspaper"></i>
-                文章
+                <span>文章</span>
+                <span class="nav-badge" id="articles-badge">0</span>
             </a>
             <a href="#" class="nav-item" data-section="albums">
                 <i class="fas fa-images"></i>
-                相册
+                <span>相册</span>
+                <span class="nav-badge" id="albums-badge">0</span>
             </a>
             <a href="admin.html" id="admin-link">
                 <i class="fas fa-cog"></i>
-                管理后台
+                <span>管理</span>
             </a>
             <a href="#" id="logout-link">
                 <i class="fas fa-sign-out-alt"></i>
-                退出
+                <span>退出</span>
             </a>
         </div>
     </nav>
@@ -43,20 +53,58 @@
 <div class="container">
     <!-- 首页欢迎区域 -->
     <div class="welcome-section" id="welcome-section">
+        <div class="welcome-bg">
+            <div class="floating-shapes">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+                <div class="shape shape-3"></div>
+                <div class="shape shape-4"></div>
+            </div>
+        </div>
         <div class="welcome-content">
-            <h1 class="welcome-title">欢迎来到我的博客</h1>
-            <p class="welcome-description">在这里分享我的思考、记录生活的点点滴滴</p>
+            <h1 class="welcome-title">
+                <span class="title-line">欢迎来到</span>
+                <span class="title-highlight">创作空间</span>
+            </h1>
+            <p class="welcome-description">探索精彩内容，分享创意灵感</p>
             <div class="welcome-stats">
-                <div class="stat-item">
-                    <i class="fas fa-newspaper"></i>
-                    <span class="stat-number" id="articles-count">0</span>
-                    <span class="stat-label">篇文章</span>
+                <div class="stat-item" data-aos="fade-up" data-aos-delay="100">
+                    <div class="stat-icon">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <div class="stat-details">
+                        <span class="stat-number" id="articles-count">0</span>
+                        <span class="stat-label">文章</span>
+                    </div>
                 </div>
-                <div class="stat-item">
+                <div class="stat-item" data-aos="fade-up" data-aos-delay="200">
+                    <div class="stat-icon">
+                        <i class="fas fa-images"></i>
+                    </div>
+                    <div class="stat-details">
+                        <span class="stat-number" id="albums-count">0</span>
+                        <span class="stat-label">相册</span>
+                    </div>
+                </div>
+                <div class="stat-item" data-aos="fade-up" data-aos-delay="300">
+                    <div class="stat-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div class="stat-details">
+                        <span class="stat-number" id="views-count">0</span>
+                        <span class="stat-label">浏览</span>
+                    </div>
+                </div>
+            </div>
+            <div class="welcome-actions">
+                <button class="btn btn-explore" onclick="switchSection('articles')">
+                    <i class="fas fa-rocket"></i>
+                    探索文章
+                </button>
+                <button class="btn btn-gallery" onclick="switchSection('albums')">
                     <i class="fas fa-images"></i>
-                    <span class="stat-number" id="albums-count">0</span>
-                    <span class="stat-label">个相册</span>
-                </div>
+                    浏览相册
+                </button>
             </div>
         </div>
     </div>
@@ -66,23 +114,52 @@
         <div class="page-header">
             <h1 class="page-main-title">
                 <i class="fas fa-newspaper"></i>
-                我的文章
+                文章精选
             </h1>
-            <div class="section-actions">
-                <input type="text" class="search-input" placeholder="搜索文章..." id="articles-search">
-                <select class="filter-select" id="articles-filter">
-                    <option value="">所有分类</option>
-                </select>
+            <p class="page-subtitle">发现精彩内容，启发创意思维</p>
+        </div>
+        
+        <div class="content-controls">
+            <div class="controls-left">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="search-input" placeholder="搜索文章标题、内容..." id="articles-search">
+                </div>
+                <div class="filter-container">
+                    <select class="filter-select" id="articles-filter">
+                        <option value="">所有分类</option>
+                    </select>
+                </div>
+            </div>
+            <div class="controls-right">
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="grid" title="网格视图">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button class="view-btn" data-view="list" title="列表视图">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+                <div class="sort-container">
+                    <select class="sort-select" id="articles-sort">
+                        <option value="date-desc">最新发布</option>
+                        <option value="date-asc">最早发布</option>
+                        <option value="title-asc">标题A-Z</option>
+                        <option value="title-desc">标题Z-A</option>
+                    </select>
+                </div>
             </div>
         </div>
+
         <div class="content-grid" id="articles-container">
             <div class="loading">
                 <div class="spinner"></div>
-                正在加载文章...
+                <span>正在加载精彩内容...</span>
             </div>
         </div>
-        <div class="view-more">
-            <button class="btn btn-primary" id="load-more-articles">
+        
+        <div class="load-more-section">
+            <button class="btn btn-load-more" id="load-more-articles">
                 <i class="fas fa-plus"></i>
                 加载更多文章
             </button>
@@ -94,23 +171,52 @@
         <div class="page-header">
             <h1 class="page-main-title">
                 <i class="fas fa-images"></i>
-                我的相册
+                相册集锦
             </h1>
-            <div class="section-actions">
-                <input type="text" class="search-input" placeholder="搜索相册..." id="images-search">
-                <select class="filter-select" id="images-filter">
-                    <option value="">所有分类</option>
-                </select>
+            <p class="page-subtitle">记录美好瞬间，分享视觉盛宴</p>
+        </div>
+        
+        <div class="content-controls">
+            <div class="controls-left">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="search-input" placeholder="搜索相册标题、描述..." id="images-search">
+                </div>
+                <div class="filter-container">
+                    <select class="filter-select" id="images-filter">
+                        <option value="">所有分类</option>
+                    </select>
+                </div>
+            </div>
+            <div class="controls-right">
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="grid" title="网格视图">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button class="view-btn" data-view="masonry" title="瀑布流">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                </div>
+                <div class="sort-container">
+                    <select class="sort-select" id="images-sort">
+                        <option value="date-desc">最新创建</option>
+                        <option value="date-asc">最早创建</option>
+                        <option value="title-asc">标题A-Z</option>
+                        <option value="title-desc">标题Z-A</option>
+                    </select>
+                </div>
             </div>
         </div>
+
         <div class="content-grid" id="images-container">
             <div class="loading">
                 <div class="spinner"></div>
-                正在加载相册...
+                <span>正在加载精美相册...</span>
             </div>
         </div>
-        <div class="view-more">
-            <button class="btn btn-primary" id="load-more-images">
+        
+        <div class="load-more-section">
+            <button class="btn btn-load-more" id="load-more-images">
                 <i class="fas fa-plus"></i>
                 加载更多相册
             </button>
@@ -123,7 +229,18 @@
     <div class="image-viewer-content">
         <div class="image-viewer-header">
             <h3 class="image-title" id="viewer-title">图片标题</h3>
-            <button class="close-btn" onclick="closeImageViewer()">&times;</button>
+            <div class="viewer-actions">
+                <button class="action-btn" onclick="toggleFullscreen()" title="全屏">
+                    <i class="fas fa-expand"></i>
+                </button>
+                <button class="action-btn" onclick="downloadImage()" title="下载">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button class="action-btn" onclick="shareImage()" title="分享">
+                    <i class="fas fa-share"></i>
+                </button>
+                <button class="close-btn" onclick="closeImageViewer()">&times;</button>
+            </div>
         </div>
         <div class="image-viewer-body">
             <button class="nav-btn prev-btn" onclick="showPrevImage()">
@@ -132,13 +249,13 @@
             <div class="image-container">
                 <img id="viewer-image" src="" alt="">
                 <div class="zoom-controls">
-                    <button class="zoom-btn" onclick="zoomIn()">
+                    <button class="zoom-btn" onclick="zoomIn()" title="放大">
                         <i class="fas fa-search-plus"></i>
                     </button>
-                    <button class="zoom-btn" onclick="zoomOut()">
+                    <button class="zoom-btn" onclick="zoomOut()" title="缩小">
                         <i class="fas fa-search-minus"></i>
                     </button>
-                    <button class="zoom-btn" onclick="resetZoom()">
+                    <button class="zoom-btn" onclick="resetZoom()" title="重置">
                         <i class="fas fa-expand-arrows-alt"></i>
                     </button>
                 </div>
@@ -152,16 +269,26 @@
                 <span class="image-counter" id="image-counter">1 / 1</span>
                 <span class="image-date" id="viewer-date">2023-01-01</span>
             </div>
+            <div class="image-tags" id="image-tags">
+                <!-- 图片标签将在这里动态添加 -->
+            </div>
         </div>
     </div>
 </div>
 
-
+<!-- 快捷功能面板 -->
+<div class="quick-actions">
+    <button class="quick-btn" onclick="scrollToTop()" title="返回顶部">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    <button class="quick-btn" onclick="toggleTheme()" title="切换主题">
+        <i class="fas fa-moon"></i>
+    </button>
+</div>
 
 <div id="notification" class="notification"></div>
 
 <script src="assets/js/app.js"></script>
-    <script src="assets/js/xss-protection.js"></script>
-    <script src="assets/js/index.js"></script>
+<script src="assets/js/index.js"></script>
 </body>
 </html>
