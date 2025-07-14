@@ -3,38 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>详情 - 静态内容管理系统</title>
+    <title>内容详情 - 创作空间</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/detail.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+<!-- 页面加载动画 -->
+<div class="page-loading" id="page-loading">
+    <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">正在加载内容详情...</div>
+    </div>
+</div>
+
 <header>
     <nav>
         <div class="logo">
-            <i class="fas fa-globe"></i>
-            静态内容管理系统
+            <i class="fas fa-palette"></i>
+            <span class="logo-text">创作空间</span>
         </div>
         <div class="nav-links">
-            <a href="index.html">
+            <a href="index.html" class="nav-item">
                 <i class="fas fa-home"></i>
-                返回首页
+                <span>返回首页</span>
             </a>
-            <a href="admin.html" id="admin-link">
+            <a href="admin.html" id="admin-link" class="nav-item">
                 <i class="fas fa-cog"></i>
-                管理后台
+                <span>管理</span>
             </a>
         </div>
     </nav>
 </header>
 
 <div class="container">
+    <!-- 背景装饰元素 -->
+    <div class="page-background">
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+        </div>
+    </div>
+
     <div class="detail-navigation">
-        <button class="nav-button prev-button" id="prev-content" onclick="navigateContent('prev')">
+        <button class="nav-button prev-button" id="prev-content" onclick="navigateContent('prev')" title="上一篇">
             <i class="fas fa-chevron-left"></i>
             <span class="nav-text">上一篇</span>
         </button>
-        <button class="nav-button next-button" id="next-content" onclick="navigateContent('next')">
+        <button class="nav-button next-button" id="next-content" onclick="navigateContent('next')" title="下一篇">
             <span class="nav-text">下一篇</span>
             <i class="fas fa-chevron-right"></i>
         </button>
@@ -43,12 +60,17 @@
     <div id="detail-container" class="detail-container">
         <div class="loading">
             <div class="spinner"></div>
-            正在加载内容...
+            <span>正在加载精彩内容...</span>
         </div>
     </div>
 
-    <div class="related-content" id="related-content">
-        <h3 class="related-title">相关内容</h3>
+    <div class="related-content" id="related-content" style="display: none;">
+        <div class="section-header">
+            <h3 class="related-title">
+                <i class="fas fa-heart"></i>
+                相关推荐
+            </h3>
+        </div>
         <div class="related-grid" id="related-grid">
             <!-- 相关内容将通过JavaScript动态加载 -->
         </div>
@@ -59,8 +81,19 @@
 <div id="image-viewer" class="modal image-viewer">
     <div class="image-viewer-content">
         <div class="image-viewer-header">
-            <h3 class="image-title" id="viewer-title">图片</h3>
-            <button class="close-btn" onclick="closeImageViewer()">&times;</button>
+            <h3 class="image-title" id="viewer-title">图片详情</h3>
+            <div class="viewer-actions">
+                <button class="action-btn" onclick="toggleFullscreen()" title="全屏">
+                    <i class="fas fa-expand"></i>
+                </button>
+                <button class="action-btn" onclick="downloadImage()" title="下载">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button class="action-btn" onclick="shareImage()" title="分享">
+                    <i class="fas fa-share"></i>
+                </button>
+                <button class="close-btn" onclick="closeImageViewer()">&times;</button>
+            </div>
         </div>
         <div class="image-viewer-body">
             <button class="nav-btn prev-btn" onclick="showPrevImage()" id="prev-image-btn">
@@ -77,9 +110,6 @@
                     </button>
                     <button class="zoom-btn" onclick="resetZoom()" title="重置">
                         <i class="fas fa-expand-arrows-alt"></i>
-                    </button>
-                    <button class="zoom-btn" onclick="toggleFullscreen()" title="全屏">
-                        <i class="fas fa-expand"></i>
                     </button>
                 </div>
             </div>
@@ -108,40 +138,58 @@
 <div id="share-modal" class="modal">
     <div class="modal-content share-modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">分享内容</h3>
+            <h3 class="modal-title">
+                <i class="fas fa-share-alt"></i>
+                分享内容
+            </h3>
             <button class="close-btn" onclick="closeShareModal()">&times;</button>
         </div>
         <div class="share-options">
-            <button class="share-btn" onclick="shareToWeChat()">
+            <button class="share-btn" onclick="shareToWeChat()" title="分享到微信">
                 <i class="fab fa-weixin"></i>
-                微信
+                <span>微信</span>
             </button>
-            <button class="share-btn" onclick="shareToWeibo()">
+            <button class="share-btn" onclick="shareToWeibo()" title="分享到微博">
                 <i class="fab fa-weibo"></i>
-                微博
+                <span>微博</span>
             </button>
-            <button class="share-btn" onclick="copyLink()">
+            <button class="share-btn" onclick="copyLink()" title="复制链接">
                 <i class="fas fa-link"></i>
-                复制链接
+                <span>复制链接</span>
             </button>
-            <button class="share-btn" onclick="shareToQQ()">
+            <button class="share-btn" onclick="shareToQQ()" title="分享到QQ">
                 <i class="fab fa-qq"></i>
-                QQ
+                <span>QQ</span>
             </button>
         </div>
         <div class="share-link">
-            <input type="text" id="share-url" readonly>
-            <button class="btn btn-primary" onclick="copyShareUrl()">复制</button>
+            <div class="link-container">
+                <input type="text" id="share-url" readonly>
+                <button class="btn btn-primary" onclick="copyShareUrl()">
+                    <i class="fas fa-copy"></i>
+                    复制
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
-
+<!-- 快捷功能面板 -->
+<div class="quick-actions">
+    <button class="quick-btn" onclick="scrollToTop()" title="返回顶部">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    <button class="quick-btn" onclick="toggleTheme()" title="切换主题">
+        <i class="fas fa-moon"></i>
+    </button>
+    <button class="quick-btn" onclick="goBackToIndex()" title="返回首页">
+        <i class="fas fa-home"></i>
+    </button>
+</div>
 
 <div id="notification" class="notification"></div>
 
 <script src="assets/js/app.js"></script>
-    <script src="assets/js/xss-protection.js"></script>
-    <script src="assets/js/detail.js"></script>
+<script src="assets/js/detail.js"></script>
 </body>
 </html>

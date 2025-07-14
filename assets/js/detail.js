@@ -46,7 +46,29 @@ function formatDate(dateString) {
 
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
+    // 初始化主题
+    initTheme();
+    
+    // 加载详情内容
     loadDetailContent();
+    
+    // 检查是否已登录
+    if (localStorage.getItem('authToken')) {
+        document.getElementById('admin-link').style.display = 'block';
+    } else {
+        document.getElementById('admin-link').style.display = 'none';
+    }
+    
+    // 隐藏页面加载动画
+    setTimeout(() => {
+        const pageLoading = document.getElementById('page-loading');
+        if (pageLoading) {
+            pageLoading.classList.add('hide');
+            setTimeout(() => {
+                pageLoading.style.display = 'none';
+            }, 500);
+        }
+    }, 800);
 });
 
 // 加载详情内容
@@ -429,4 +451,100 @@ function showNotification(message, isSuccess = true) {
             notification.classList.remove('show');
         }, 3000);
     }
-} 
+}
+
+// 初始化主题
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-theme');
+        const themeIcon = document.querySelector('.quick-btn i');
+        if (themeIcon) {
+            themeIcon.classList.replace('fa-moon', 'fa-sun');
+        }
+    }
+}
+
+// 切换主题
+function toggleTheme() {
+    const isDarkTheme = document.body.classList.contains('dark-theme');
+    document.body.classList.toggle('dark-theme');
+    
+    const themeIcon = document.querySelector('.quick-btn i');
+    if (themeIcon) {
+        if (!isDarkTheme) {
+            themeIcon.classList.replace('fa-moon', 'fa-sun');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            themeIcon.classList.replace('fa-sun', 'fa-moon');
+            localStorage.setItem('theme', 'light');
+        }
+    }
+}
+
+// 返回顶部
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
+// 键盘快捷键
+document.addEventListener('keydown', function(e) {
+    if (document.getElementById('image-viewer').classList.contains('active')) {
+        switch(e.key) {
+            case 'Escape':
+                closeImageViewer();
+                break;
+            case 'ArrowLeft':
+                showPrevImage();
+                break;
+            case 'ArrowRight':
+                showNextImage();
+                break;
+            case '+':
+            case '=':
+                zoomIn();
+                break;
+            case '-':
+                zoomOut();
+                break;
+            case '0':
+                resetZoom();
+                break;
+        }
+    }
+});
+
+// 全局点击事件
+document.addEventListener('click', function(e) {
+    if (e.target.id === 'image-viewer') {
+        closeImageViewer();
+    }
+    if (e.target.id === 'share-modal') {
+        closeShareModal();
+    }
+});
+
+// 滚动事件
+let ticking = false;
+window.addEventListener('scroll', function() {
+    if (!ticking) {
+        requestAnimationFrame(function() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const quickActions = document.querySelector('.quick-actions');
+            
+            if (quickActions) {
+                if (scrollTop > 200) {
+                    quickActions.style.opacity = '1';
+                } else {
+                    quickActions.style.opacity = '0.7';
+                }
+            }
+            
+            ticking = false;
+        });
+        ticking = true;
+    }
+});
