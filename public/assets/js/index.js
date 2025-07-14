@@ -2,6 +2,8 @@
 
 // 全局变量
 let imagesData = [];
+let allContent = { articles: [], images: [] };
+let currentSection = 'home';
 
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
@@ -17,12 +19,183 @@ document.addEventListener('DOMContentLoaded', function() {
     // 加载内容
     loadContent();
 
+    // 绑定导航切换事件
+    setupNavigation();
+
+    // 绑定搜索功能
+    setupSearchFunctionality();
+
     // 绑定退出按钮
     document.getElementById('logout-link').addEventListener('click', function(e) {
         e.preventDefault();
         logout();
     });
 });
+
+// 设置导航功能
+function setupNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const section = this.dataset.section;
+            switchSection(section);
+        });
+    });
+}
+
+// 切换页面区域
+function switchSection(section) {
+    if (section === currentSection) return;
+    
+    // 更新导航状态
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    document.querySelector(`[data-section="${section}"]`).classList.add('active');
+    
+    // 隐藏所有区域
+    document.getElementById('welcome-section').style.display = 'none';
+    document.getElementById('articles-section').style.display = 'none';
+    document.getElementById('albums-section').style.display = 'none';
+    
+    // 显示对应区域
+    switch(section) {
+        case 'home':
+            document.getElementById('welcome-section').style.display = 'block';
+            break;
+        case 'articles':
+            document.getElementById('articles-section').style.display = 'block';
+            renderArticles();
+            break;
+        case 'albums':
+            document.getElementById('albums-section').style.display = 'block';
+            renderAlbums();
+            break;
+    }
+    
+    currentSection = section;
+}
+
+// 设置搜索功能
+function setupSearchFunctionality() {
+    const articlesSearch = document.getElementById('articles-search');
+    const imagesSearch = document.getElementById('images-search');
+    
+    if (articlesSearch) {
+        articlesSearch.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            searchAndRenderArticles(query);
+        });
+    }
+    
+    if (imagesSearch) {
+        imagesSearch.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            searchAndRenderAlbums(query);
+        });
+    }
+}
+
+// 搜索文章并渲染
+function searchAndRenderArticles(query) {
+    const container = document.getElementById('articles-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    let filteredArticles = allContent.articles || [];
+    
+    if (query) {
+        filteredArticles = filteredArticles.filter(article => 
+            article.title.toLowerCase().includes(query) ||
+            article.content.toLowerCase().includes(query) ||
+            (article.category && article.category.toLowerCase().includes(query))
+        );
+    }
+    
+    if (filteredArticles.length > 0) {
+        filteredArticles.forEach(article => {
+            const articleElement = document.createElement('div');
+            articleElement.className = 'card';
+            const imageUrl = article.coverImage?.url ? decodeHtmlEntities(article.coverImage.url) : 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg';
+            articleElement.innerHTML = `
+                <img src="${imageUrl}" alt="${article.title}" class="card-img">
+                <div class="card-body">
+                    <h3 class="card-title">${article.title}</h3>
+                    <p class="card-text">${decodeContentImages(article.content).substring(0, 150)}...</p>
+                    <div class="card-meta">
+                        <span class="card-date">
+                            <i class="fas fa-calendar"></i>
+                            ${formatDate(article.date || article.createdAt)}
+                        </span>
+                        <span class="card-category">
+                            <i class="fas fa-tag"></i>
+                            ${article.category || '未分类'}
+                        </span>
+                    </div>
+                    <button class="btn btn-primary" onclick="viewDetail('article', '${article.id}')">
+                        <i class="fas fa-eye"></i>
+                        阅读全文
+                    </button>
+                </div>
+            `;
+            container.appendChild(articleElement);
+        });
+    } else {
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>未找到相关文章</h3><p>没有找到包含"${query}"的文章</p></div>`;
+    }
+}
+
+// 搜索相册并渲染
+function searchAndRenderAlbums(query) {
+    const container = document.getElementById('images-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    let filteredAlbums = allContent.images || [];
+    
+    if (query) {
+        filteredAlbums = filteredAlbums.filter(album => 
+            album.title.toLowerCase().includes(query) ||
+            (album.description && album.description.toLowerCase().includes(query)) ||
+            (album.category && album.category.toLowerCase().includes(query))
+        );
+    }
+    
+    if (filteredAlbums.length > 0) {
+        filteredAlbums.forEach(album => {
+            const albumElement = document.createElement('div');
+            albumElement.className = 'card';
+            const imageUrl = album.coverImage?.url || album.url || 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg';
+            albumElement.innerHTML = `
+                <img src="${decodeHtmlEntities(imageUrl)}" alt="${album.title}" class="card-img" onclick="viewDetail('album', '${album.id}')">
+                <div class="card-body">
+                    <h3 class="card-title">${album.title}</h3>
+                    <p class="card-text">${album.description ? album.description.substring(0, 100) + '...' : '这是一个精美的相册'}</p>
+                    <div class="card-meta">
+                        <span class="card-date">
+                            <i class="fas fa-calendar"></i>
+                            ${formatDate(album.createdAt)}
+                        </span>
+                        <span class="card-count">
+                            <i class="fas fa-images"></i>
+                            ${album.imageCount || album.images?.length || 0} 张图片
+                        </span>
+                    </div>
+                    <button class="btn btn-primary" onclick="viewDetail('album', '${album.id}')">
+                        <i class="fas fa-eye"></i>
+                        查看相册
+                    </button>
+                </div>
+            `;
+            container.appendChild(albumElement);
+        });
+    } else {
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><h3>未找到相关相册</h3><p>没有找到包含"${query}"的相册</p></div>`;
+    }
+}
 
 // 加载内容
 async function loadContent() {
@@ -38,17 +211,21 @@ async function loadContent() {
 
         if (response.ok) {
             const content = await response.json();
+            allContent = content;
             renderContent(content);
+            updateStats(content);
         } else {
-
             // 即使API失败也显示空状态，而不是完全不显示
-            renderContent({ articles: [], images: [] });
+            allContent = { articles: [], images: [] };
+            renderContent(allContent);
+            updateStats(allContent);
             showNotification('加载内容失败，请稍后重试', false);
         }
     } catch (error) {
-
         // 网络错误时也显示空状态
-        renderContent({ articles: [], images: [] });
+        allContent = { articles: [], images: [] };
+        renderContent(allContent);
+        updateStats(allContent);
         showNotification('网络错误，请检查网络连接', false);
     }
 }
@@ -82,55 +259,86 @@ function decodeContentImages(content) {
     });
 }
 
-// 渲染内容
+// 渲染内容（首页用，初始化时调用）
 function renderContent(content) {
-    const articlesContainer = document.getElementById('articles-container');
-    const imagesContainer = document.getElementById('images-container');
-
     // 保存图片数据到全局变量（限制为3条）
     imagesData = content.images ? content.images.slice(0, 3) : [];
+    
+    // 首页默认显示欢迎区域
+    document.getElementById('welcome-section').style.display = 'block';
+    document.getElementById('articles-section').style.display = 'none';
+    document.getElementById('albums-section').style.display = 'none';
+}
 
-    // 清空容器
+// 更新统计信息
+function updateStats(content) {
+    const articlesCount = content.articles ? content.articles.length : 0;
+    const albumsCount = content.images ? content.images.length : 0;
+    
+    const articlesCountEl = document.getElementById('articles-count');
+    const albumsCountEl = document.getElementById('albums-count');
+    
+    if (articlesCountEl) articlesCountEl.textContent = articlesCount;
+    if (albumsCountEl) albumsCountEl.textContent = albumsCount;
+}
+
+// 单独渲染文章
+function renderArticles() {
+    const articlesContainer = document.getElementById('articles-container');
+    if (!articlesContainer) return;
+    
     articlesContainer.innerHTML = '';
-    imagesContainer.innerHTML = '';
-
-    // 渲染文章
-    if (content.articles && content.articles.length > 0) {
-    content.articles.slice(0, 3).forEach(article => {
-        const articleElement = document.createElement('div');
-        articleElement.className = 'card';
-        const imageUrl = article.coverImage?.url ? decodeHtmlEntities(article.coverImage.url) : 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg';
-        articleElement.innerHTML = `
+    
+    if (allContent.articles && allContent.articles.length > 0) {
+        allContent.articles.forEach(article => {
+            const articleElement = document.createElement('div');
+            articleElement.className = 'card';
+            const imageUrl = article.coverImage?.url ? decodeHtmlEntities(article.coverImage.url) : 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg';
+            articleElement.innerHTML = `
                 <img src="${imageUrl}" alt="${article.title}" class="card-img">
                 <div class="card-body">
                     <h3 class="card-title">${article.title}</h3>
-                    <p class="card-text">${decodeContentImages(article.content).substring(0, 100)}...</p>
+                    <p class="card-text">${decodeContentImages(article.content).substring(0, 150)}...</p>
                     <div class="card-meta">
                         <span class="card-date">
                             <i class="fas fa-calendar"></i>
                             ${formatDate(article.date || article.createdAt)}
                         </span>
+                        <span class="card-category">
+                            <i class="fas fa-tag"></i>
+                            ${article.category || '未分类'}
+                        </span>
                     </div>
-                    <button class="btn" onclick="viewDetail('article', '${article.id}')">查看详情</button>
+                    <button class="btn btn-primary" onclick="viewDetail('article', '${article.id}')">
+                        <i class="fas fa-eye"></i>
+                        阅读全文
+                    </button>
                 </div>
             `;
-        articlesContainer.appendChild(articleElement);
-    });
+            articlesContainer.appendChild(articleElement);
+        });
     } else {
-        articlesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-newspaper empty-icon"></i><h3>暂无文章</h3><p>还没有发布任何文章</p></div>';
+        articlesContainer.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><h3>暂无文章</h3><p>还没有发布任何文章，快去写一篇吧！</p></div>';
     }
+}
 
-    // 渲染相册
-    if (content.images && content.images.length > 0) {
-    content.images.slice(0, 3).forEach(album => {
-        const albumElement = document.createElement('div');
-        albumElement.className = 'card';
-        const imageUrl = album.coverImage?.url || album.url || 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg';
-        albumElement.innerHTML = `
+// 单独渲染相册
+function renderAlbums() {
+    const imagesContainer = document.getElementById('images-container');
+    if (!imagesContainer) return;
+    
+    imagesContainer.innerHTML = '';
+    
+    if (allContent.images && allContent.images.length > 0) {
+        allContent.images.forEach(album => {
+            const albumElement = document.createElement('div');
+            albumElement.className = 'card';
+            const imageUrl = album.coverImage?.url || album.url || 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg';
+            albumElement.innerHTML = `
                 <img src="${decodeHtmlEntities(imageUrl)}" alt="${album.title}" class="card-img" onclick="viewDetail('album', '${album.id}')">
                 <div class="card-body">
                     <h3 class="card-title">${album.title}</h3>
-                    <p class="card-text">${album.description ? album.description.substring(0, 100) + '...' : ''}</p>
+                    <p class="card-text">${album.description ? album.description.substring(0, 100) + '...' : '这是一个精美的相册'}</p>
                     <div class="card-meta">
                         <span class="card-date">
                             <i class="fas fa-calendar"></i>
@@ -141,19 +349,17 @@ function renderContent(content) {
                             ${album.imageCount || album.images?.length || 0} 张图片
                         </span>
                     </div>
-                    <button class="btn" onclick="viewDetail('album', '${album.id}')">查看相册</button>
+                    <button class="btn btn-primary" onclick="viewDetail('album', '${album.id}')">
+                        <i class="fas fa-eye"></i>
+                        查看相册
+                    </button>
                 </div>
             `;
             imagesContainer.appendChild(albumElement);
-    });
+        });
     } else {
-        imagesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-images empty-icon"></i><h3>暂无相册</h3><p>还没有创建任何相册</p></div>';
+        imagesContainer.innerHTML = '<div class="empty-state"><div class="empty-icon">📸</div><h3>暂无相册</h3><p>还没有创建任何相册，快去拍照吧！</p></div>';
     }
-
-    // 在控制台输出统计信息
-    const totalArticles = content.articles ? content.articles.length : 0;
-    const totalImages = content.images ? content.images.length : 0;
-
 }
 
 // 格式化日期

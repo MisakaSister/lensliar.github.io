@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>首页 - 静态内容管理系统</title>
+    <title>我的个人博客</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -12,13 +12,21 @@
 <header>
     <nav>
         <div class="logo">
-            <i class="fas fa-globe"></i>
-            静态内容管理系统
+            <i class="fas fa-feather"></i>
+            我的个人博客
         </div>
         <div class="nav-links">
-            <a href="index.html" class="active">
+            <a href="#" class="nav-item active" data-section="home">
                 <i class="fas fa-home"></i>
                 首页
+            </a>
+            <a href="#" class="nav-item" data-section="articles">
+                <i class="fas fa-newspaper"></i>
+                文章
+            </a>
+            <a href="#" class="nav-item" data-section="albums">
+                <i class="fas fa-images"></i>
+                相册
             </a>
             <a href="admin.html" id="admin-link">
                 <i class="fas fa-cog"></i>
@@ -33,65 +41,80 @@
 </header>
 
 <div class="container">
-    <!-- 页面标题 -->
-    <div class="page-header">
-        <h1 class="page-main-title">内容展示</h1>
-    </div>
-    
-    <div class="content-sections">
-        <section class="content-section">
-            <div class="section-header">
-                <h2 class="section-title">
+    <!-- 首页欢迎区域 -->
+    <div class="welcome-section" id="welcome-section">
+        <div class="welcome-content">
+            <h1 class="welcome-title">欢迎来到我的博客</h1>
+            <p class="welcome-description">在这里分享我的思考、记录生活的点点滴滴</p>
+            <div class="welcome-stats">
+                <div class="stat-item">
                     <i class="fas fa-newspaper"></i>
-                    最新文章
-                </h2>
-                <div class="section-actions">
-                    <input type="text" class="search-input" placeholder="搜索文章..." id="articles-search">
-                    <select class="filter-select" id="articles-filter">
-                        <option value="">所有分类</option>
-                    </select>
+                    <span class="stat-number" id="articles-count">0</span>
+                    <span class="stat-label">篇文章</span>
                 </div>
-            </div>
-        <div class="content-grid" id="articles-container">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    正在加载文章...
-                </div>
-            </div>
-            <div class="view-more">
-                <button class="btn btn-primary" id="load-more-articles">
-                    <i class="fas fa-plus"></i>
-                    加载更多文章
-                </button>
-        </div>
-    </section>
-
-        <section class="content-section">
-            <div class="section-header">
-                <h2 class="section-title">
+                <div class="stat-item">
                     <i class="fas fa-images"></i>
-                    精彩图片
-                </h2>
-                <div class="section-actions">
-                    <input type="text" class="search-input" placeholder="搜索图片..." id="images-search">
-                    <select class="filter-select" id="images-filter">
-                        <option value="">所有分类</option>
-                    </select>
+                    <span class="stat-number" id="albums-count">0</span>
+                    <span class="stat-label">个相册</span>
                 </div>
             </div>
-            <div class="content-grid" id="images-container">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    正在加载图片...
-                </div>
+        </div>
+    </div>
+
+    <!-- 文章区域 -->
+    <div class="content-sections" id="articles-section" style="display: none;">
+        <div class="page-header">
+            <h1 class="page-main-title">
+                <i class="fas fa-newspaper"></i>
+                我的文章
+            </h1>
+            <div class="section-actions">
+                <input type="text" class="search-input" placeholder="搜索文章..." id="articles-search">
+                <select class="filter-select" id="articles-filter">
+                    <option value="">所有分类</option>
+                </select>
             </div>
-            <div class="view-more">
-                <button class="btn btn-primary" id="load-more-images">
-                    <i class="fas fa-plus"></i>
-                    加载更多图片
-                </button>
+        </div>
+        <div class="content-grid" id="articles-container">
+            <div class="loading">
+                <div class="spinner"></div>
+                正在加载文章...
             </div>
-        </section>
+        </div>
+        <div class="view-more">
+            <button class="btn btn-primary" id="load-more-articles">
+                <i class="fas fa-plus"></i>
+                加载更多文章
+            </button>
+        </div>
+    </div>
+
+    <!-- 相册区域 -->
+    <div class="content-sections" id="albums-section" style="display: none;">
+        <div class="page-header">
+            <h1 class="page-main-title">
+                <i class="fas fa-images"></i>
+                我的相册
+            </h1>
+            <div class="section-actions">
+                <input type="text" class="search-input" placeholder="搜索相册..." id="images-search">
+                <select class="filter-select" id="images-filter">
+                    <option value="">所有分类</option>
+                </select>
+            </div>
+        </div>
+        <div class="content-grid" id="images-container">
+            <div class="loading">
+                <div class="spinner"></div>
+                正在加载相册...
+            </div>
+        </div>
+        <div class="view-more">
+            <button class="btn btn-primary" id="load-more-images">
+                <i class="fas fa-plus"></i>
+                加载更多相册
+            </button>
+        </div>
     </div>
 </div>
 
