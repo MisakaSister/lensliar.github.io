@@ -96,7 +96,7 @@ function renderContent(content) {
 
     // 渲染文章
     if (content.articles && content.articles.length > 0) {
-    content.articles.forEach(article => {
+    content.articles.slice(0, 3).forEach(article => {
         const articleElement = document.createElement('div');
         articleElement.className = 'card';
         const imageUrl = article.coverImage?.url ? decodeHtmlEntities(article.coverImage.url) : 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg';
@@ -122,7 +122,7 @@ function renderContent(content) {
 
     // 渲染相册
     if (content.images && content.images.length > 0) {
-    content.images.forEach(album => {
+    content.images.slice(0, 3).forEach(album => {
         const albumElement = document.createElement('div');
         albumElement.className = 'card';
         const imageUrl = album.coverImage?.url || album.url || 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg';
