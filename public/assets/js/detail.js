@@ -51,8 +51,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 加载详情内容
 async function loadDetailContent() {
-    const detailData = JSON.parse(localStorage.getItem('currentDetail'));
-    if (!detailData) {
+    // 从URL参数获取数据
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get('type');
+    const id = urlParams.get('id');
+    
+    if (!type || !id) {
         document.getElementById('detail-container').innerHTML = `
                 <div class="detail-header">
                     <h1 class="detail-title">内容不存在</h1>
@@ -62,8 +66,6 @@ async function loadDetailContent() {
             `;
         return;
     }
-
-    const { type, id } = detailData;
 
     try {
         // 🌟 使用公开API，无需认证
@@ -129,7 +131,7 @@ function renderArticleDetail(article) {
             </div>
             ${article.coverImage?.url ? `<img src="${decodeHtmlEntities(article.coverImage.url)}" alt="${article.title}" class="detail-image">` : ''}
             <div class="detail-content">${decodeContentImages(article.content)}</div>
-            <button class="btn back-btn" onclick="window.history.back()">返回</button>
+            <button class="btn back-btn" onclick="goBackToIndex()">返回</button>
         `;
 }
 
@@ -148,7 +150,7 @@ function renderImageDetail(image) {
             <div class="detail-content">
                 <p>${image.description || ''}</p>
             </div>
-            <button class="btn back-btn" onclick="window.history.back()">返回</button>
+            <button class="btn back-btn" onclick="goBackToIndex()">返回</button>
         `;
 }
 
@@ -182,7 +184,7 @@ function renderAlbumDetail(album) {
         <div class="album-images-grid">
             ${imagesHtml}
         </div>
-        <button class="btn back-btn" onclick="window.history.back()">返回</button>
+        <button class="btn back-btn" onclick="goBackToIndex()">返回</button>
     `;
 }
 
@@ -197,11 +199,32 @@ function showError() {
         `;
 }
 
+// 返回首页功能
+function goBackToIndex() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get('type');
+    
+    // 设置目标区域以便首页正确显示对应的内容区域
+    if (type === 'article') {
+        localStorage.setItem('targetSection', 'articles');
+    } else if (type === 'album') {
+        localStorage.setItem('targetSection', 'albums');
+    }
+    
+    window.location.href = 'index.html';
+}
+
 // 导航功能
 function navigateContent(direction) {
-    if (!currentDetail || !allContent) return;
+    if (!allContent) return;
 
-    const { type, id } = currentDetail;
+    // 从URL参数获取当前信息
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get('type');
+    const id = urlParams.get('id');
+    
+    if (!type || !id) return;
+
     const data = type === 'article' ? allContent.articles : allContent.images;
     const currentIndex = data.findIndex(item => item.id === id);
 
@@ -216,8 +239,8 @@ function navigateContent(direction) {
 
     if (newIndex >= 0 && newIndex < data.length) {
         const newItem = data[newIndex];
-        localStorage.setItem('currentDetail', JSON.stringify({ type, id: newItem.id }));
-        window.location.reload();
+        // 使用URL参数导航
+        window.location.href = `detail.html?type=${type}&id=${newItem.id}`;
     }
 }
 
@@ -232,9 +255,14 @@ function openImageViewer(imageUrl, imageIndex = 0) {
     const viewerTitle = document.getElementById('viewer-title');
     
     if (viewer && viewerImage && viewerTitle) {
+        // 从URL参数获取当前详情信息
+        const urlParams = new URLSearchParams(window.location.search);
+        const type = urlParams.get('type');
+        const id = urlParams.get('id');
+        
         // 如果是相册详情页，设置当前图片列表
-        if (currentDetail && currentDetail.type === 'album') {
-            const album = allContent.images.find(i => i.id === currentDetail.id);
+        if (type === 'album' && id) {
+            const album = allContent.images.find(i => i.id === id);
             if (album && album.images) {
                 currentImages = album.images;
                 currentImageIndex = imageIndex;
