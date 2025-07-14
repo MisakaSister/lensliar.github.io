@@ -47,7 +47,38 @@ function formatDate(dateString) {
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
     loadDetailContent();
+    setupNavigation();
+    
+    // 检查是否已登录
+    if (localStorage.getItem('authToken')) {
+        document.getElementById('admin-link').style.display = 'block';
+    } else {
+        document.getElementById('admin-link').style.display = 'none';
+    }
 });
+
+// 设置导航功能
+function setupNavigation() {
+    const navLinks = document.querySelectorAll('.nav-item');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const href = this.getAttribute('href');
+            
+            if (href === 'index.html') {
+                window.location.href = 'index.html';
+            } else if (href === 'index.html#articles') {
+                // 返回首页并切换到文章区域
+                localStorage.setItem('targetSection', 'articles');
+                window.location.href = 'index.html';
+            } else if (href === 'index.html#albums') {
+                // 返回首页并切换到相册区域
+                localStorage.setItem('targetSection', 'albums');
+                window.location.href = 'index.html';
+            }
+        });
+    });
+}
 
 // 加载详情内容
 async function loadDetailContent() {
@@ -57,7 +88,10 @@ async function loadDetailContent() {
                 <div class="detail-header">
                     <h1 class="detail-title">内容不存在</h1>
                     <p>请从首页选择内容查看</p>
-                    <button class="btn back-btn" onclick="window.location.href='index.html'">返回首页</button>
+                    <button class="btn back-btn" onclick="window.location.href='index.html'">
+                        <i class="fas fa-arrow-left"></i>
+                        返回首页
+                    </button>
                 </div>
             `;
         return;
@@ -104,7 +138,10 @@ async function loadDetailContent() {
                     <div class="detail-header">
                         <h1 class="detail-title">内容不存在</h1>
                         <p>请求的内容可能已被删除</p>
-                        <button class="btn back-btn" onclick="window.location.href='index.html'">返回首页</button>
+                        <button class="btn back-btn" onclick="window.location.href='index.html'">
+                            <i class="fas fa-arrow-left"></i>
+                            返回首页
+                        </button>
                     </div>
                 `;
         } else {
@@ -129,7 +166,10 @@ function renderArticleDetail(article) {
             </div>
             ${article.coverImage?.url ? `<img src="${decodeHtmlEntities(article.coverImage.url)}" alt="${article.title}" class="detail-image">` : ''}
             <div class="detail-content">${decodeContentImages(article.content)}</div>
-            <button class="btn back-btn" onclick="window.history.back()">返回</button>
+            <button class="btn back-btn" onclick="window.history.back()">
+                <i class="fas fa-arrow-left"></i>
+                返回
+            </button>
         `;
 }
 
@@ -148,7 +188,10 @@ function renderImageDetail(image) {
             <div class="detail-content">
                 <p>${image.description || ''}</p>
             </div>
-            <button class="btn back-btn" onclick="window.history.back()">返回</button>
+            <button class="btn back-btn" onclick="window.history.back()">
+                <i class="fas fa-arrow-left"></i>
+                返回
+            </button>
         `;
 }
 
@@ -182,7 +225,10 @@ function renderAlbumDetail(album) {
         <div class="album-images-grid">
             ${imagesHtml}
         </div>
-        <button class="btn back-btn" onclick="window.history.back()">返回</button>
+        <button class="btn back-btn" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i>
+            返回
+        </button>
     `;
 }
 
@@ -192,7 +238,10 @@ function showError() {
             <div class="detail-header">
                 <h1 class="detail-title">加载失败</h1>
                 <p>无法加载内容，请稍后再试</p>
-                <button class="btn back-btn" onclick="window.location.href='index.html'">返回首页</button>
+                <button class="btn back-btn" onclick="window.location.href='index.html'">
+                    <i class="fas fa-arrow-left"></i>
+                    返回首页
+                </button>
             </div>
         `;
 }
