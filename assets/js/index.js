@@ -562,9 +562,7 @@ function createAlbumCard(album, index) {
             setTimeout(() => this.classList.remove('clicked'), 300);
             
             // 跳转到相册详情页面
-            setTimeout(() => {
-                viewDetail('album', album.id);
-            }, 100);
+            viewDetail('album', album.id);
         }
     });
     
