@@ -66,6 +66,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 500);
         }
     }, 800);
+
+    // 初始化相册交互
+    initAlbumInteractions();
+
+    // 添加触摸支持
+    addTouchSupport();
+    
+    // 初始化延迟加载
+    lazyLoadImages();
 });
 
 // 初始化主题
@@ -429,37 +438,103 @@ function createArticleCard(article, index) {
 // 创建相册卡片
 function createAlbumCard(album, index) {
     const albumElement = document.createElement('div');
-    albumElement.className = 'card';
+    albumElement.className = 'card album-card';
     albumElement.style.animationDelay = `${index * 0.1}s`;
     
     const imageUrl = album.coverImage?.url || album.url || 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg';
     
+    // 获取相册图片列表
+    const images = album.images || [];
+    const imageCount = album.imageCount || images.length || 0;
+    
+    // 创建图片轮播
+    const carouselImages = images.slice(0, 5).map(img => 
+        `<img src="${decodeHtmlEntities(img.url)}" alt="${img.title || album.title}" class="carousel-image" loading="lazy">`
+    ).join('');
+    
+    const carouselIndicators = images.slice(0, 5).map((_, i) => 
+        `<span class="carousel-indicator ${i === 0 ? 'active' : ''}" onclick="changeCarouselImage(this, ${i})"></span>`
+    ).join('');
+    
+    // 创建预览图片网格
+    const previewImages = images.slice(0, 4).map(img => 
+        `<div class="album-preview-item">
+            <img src="${decodeHtmlEntities(img.url)}" alt="${img.title || album.title}" loading="lazy">
+        </div>`
+    ).join('');
+    
     albumElement.innerHTML = `
-        <img src="${decodeHtmlEntities(imageUrl)}" alt="${album.title}" class="card-img" onclick="viewDetail('album', '${album.id}')" loading="lazy">
-        <div class="card-body">
-            <h3 class="card-title">${album.title}</h3>
-            <p class="card-text">${album.description ? album.description.substring(0, 100) + '...' : '这是一个精美的相册'}</p>
-            <div class="card-meta">
-                <span class="card-date">
-                    <i class="fas fa-calendar"></i>
-                    ${formatDate(album.createdAt)}
-                </span>
-                <span class="card-count">
-                    <i class="fas fa-images"></i>
-                    ${album.imageCount || album.images?.length || 0} 张图片
-                </span>
+        <div class="album-card-inner">
+            <!-- 正面 -->
+            <div class="album-card-front">
+                <div class="card-image-carousel">
+                    <div class="carousel-images" data-current="0">
+                        ${carouselImages.length > 0 ? carouselImages : `<img src="${decodeHtmlEntities(imageUrl)}" alt="${album.title}" class="carousel-image" loading="lazy">`}
+                    </div>
+                    ${images.length > 1 ? `
+                        <button class="carousel-nav prev" onclick="changeCarouselImage(this, -1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="carousel-nav next" onclick="changeCarouselImage(this, 1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <div class="carousel-indicators">
+                            ${carouselIndicators}
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">${album.title}</h3>
+                    <p class="card-text">${album.description ? album.description.substring(0, 80) + '...' : '这是一个精美的相册'}</p>
+                    <div class="card-meta">
+                        <span class="card-date">
+                            <i class="fas fa-calendar"></i>
+                            ${formatDate(album.createdAt)}
+                        </span>
+                        <span class="card-count">
+                            <i class="fas fa-images"></i>
+                            ${imageCount} 张图片
+                        </span>
+                    </div>
+                </div>
             </div>
-            <div class="card-actions">
-                <button class="btn btn-primary" onclick="viewDetail('album', '${album.id}')">
-                    <i class="fas fa-eye"></i>
-                    查看相册
-                </button>
-                <button class="btn btn-secondary" onclick="shareContent('album', '${album.id}', '${album.title}')">
-                    <i class="fas fa-share"></i>
-                </button>
+            
+            <!-- 背面 -->
+            <div class="album-card-back">
+                <div class="album-preview-grid">
+                    ${previewImages}
+                </div>
+                <div class="album-stats">
+                    <div class="album-stat">
+                        <span class="album-stat-number">${imageCount}</span>
+                        <span class="album-stat-label">图片</span>
+                    </div>
+                    <div class="album-stat">
+                        <span class="album-stat-number">${album.category || '未分类'}</span>
+                        <span class="album-stat-label">分类</span>
+                    </div>
+                </div>
+                <div class="album-actions">
+                    <button class="album-action-btn" onclick="viewDetail('album', '${album.id}'); event.stopPropagation();">
+                        <i class="fas fa-eye"></i>
+                        查看相册
+                    </button>
+                    <button class="album-action-btn" onclick="shareContent('album', '${album.id}', '${album.title}'); event.stopPropagation();">
+                        <i class="fas fa-share"></i>
+                        分享
+                    </button>
+                </div>
             </div>
         </div>
     `;
+    
+    // 添加点击效果
+    albumElement.addEventListener('click', function(e) {
+        if (!e.target.closest('.carousel-nav') && !e.target.closest('.carousel-indicator')) {
+            this.classList.add('clicked');
+            setTimeout(() => this.classList.remove('clicked'), 300);
+        }
+    });
     
     return albumElement;
 }
@@ -658,9 +733,14 @@ function renderAlbums() {
             const albumElement = createAlbumCard(album, index);
             container.appendChild(albumElement);
         });
+        
+        // 初始化相册交互功能
+        setTimeout(() => {
+            initAlbumInteractions();
+        }, 100);
     } else {
         container.innerHTML = `<div class="empty-state">
-            <div class="empty-icon">📸</div>
+            <div class="empty-icon">🖼️</div>
             <h3>暂无相册</h3>
             <p>还没有创建任何相册</p>
         </div>`;
@@ -867,3 +947,150 @@ window.addEventListener('scroll', function() {
         ticking = true;
     }
 });
+
+// 图片轮播控制函数
+function changeCarouselImage(element, direction) {
+    const card = element.closest('.album-card');
+    const carousel = card.querySelector('.carousel-images');
+    const indicators = card.querySelectorAll('.carousel-indicator');
+    const images = carousel.querySelectorAll('.carousel-image');
+    
+    if (images.length <= 1) return;
+    
+    let currentIndex = parseInt(carousel.dataset.current) || 0;
+    
+    if (typeof direction === 'number' && direction >= 0) {
+        // 直接设置索引
+        currentIndex = direction;
+    } else {
+        // 前进或后退
+        currentIndex += direction;
+        if (currentIndex < 0) currentIndex = images.length - 1;
+        if (currentIndex >= images.length) currentIndex = 0;
+    }
+    
+    carousel.dataset.current = currentIndex;
+    carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
+    
+    // 更新指示器
+    indicators.forEach((indicator, index) => {
+        indicator.classList.toggle('active', index === currentIndex);
+    });
+    
+    // 阻止事件冒泡
+    event.stopPropagation();
+}
+
+// 自动轮播
+function startAutoCarousel() {
+    const albumCards = document.querySelectorAll('.album-card');
+    
+    albumCards.forEach(card => {
+        const carousel = card.querySelector('.carousel-images');
+        const images = carousel?.querySelectorAll('.carousel-image');
+        
+        if (images && images.length > 1) {
+            setInterval(() => {
+                if (!card.matches(':hover')) {
+                    const nextBtn = card.querySelector('.carousel-nav.next');
+                    if (nextBtn) {
+                        changeCarouselImage(nextBtn, 1);
+                    }
+                }
+            }, 4000);
+        }
+    });
+}
+
+// 初始化相册卡片交互
+function initAlbumInteractions() {
+    // 启动自动轮播
+    setTimeout(startAutoCarousel, 1000);
+    
+    // 键盘导航
+    document.addEventListener('keydown', function(e) {
+        const focusedCard = document.querySelector('.album-card:hover');
+        if (focusedCard) {
+            const carousel = focusedCard.querySelector('.carousel-images');
+            const images = carousel?.querySelectorAll('.carousel-image');
+            
+            if (images && images.length > 1) {
+                if (e.key === 'ArrowLeft') {
+                    const prevBtn = focusedCard.querySelector('.carousel-nav.prev');
+                    if (prevBtn) changeCarouselImage(prevBtn, -1);
+                } else if (e.key === 'ArrowRight') {
+                    const nextBtn = focusedCard.querySelector('.carousel-nav.next');
+                    if (nextBtn) changeCarouselImage(nextBtn, 1);
+                }
+            }
+        }
+    });
+}
+
+// 触摸支持
+function addTouchSupport() {
+    document.addEventListener('touchstart', function(e) {
+        const card = e.target.closest('.album-card');
+        if (card) {
+            const carousel = card.querySelector('.carousel-images');
+            if (carousel) {
+                const startX = e.touches[0].clientX;
+                card.dataset.startX = startX;
+                card.dataset.startTime = Date.now();
+            }
+        }
+    });
+    
+    document.addEventListener('touchend', function(e) {
+        const card = e.target.closest('.album-card');
+        if (card && card.dataset.startX) {
+            const endX = e.changedTouches[0].clientX;
+            const startX = parseFloat(card.dataset.startX);
+            const timeDiff = Date.now() - parseInt(card.dataset.startTime);
+            const distance = Math.abs(endX - startX);
+            
+            // 滑动检测
+            if (distance > 50 && timeDiff < 500) {
+                const carousel = card.querySelector('.carousel-images');
+                const images = carousel?.querySelectorAll('.carousel-image');
+                
+                if (images && images.length > 1) {
+                    if (endX > startX) {
+                        // 向右滑动 - 上一张
+                        const prevBtn = card.querySelector('.carousel-nav.prev');
+                        if (prevBtn) changeCarouselImage(prevBtn, -1);
+                    } else {
+                        // 向左滑动 - 下一张
+                        const nextBtn = card.querySelector('.carousel-nav.next');
+                        if (nextBtn) changeCarouselImage(nextBtn, 1);
+                    }
+                }
+            }
+            
+            // 清除数据
+            delete card.dataset.startX;
+            delete card.dataset.startTime;
+        }
+    });
+}
+
+// 延迟加载图片
+function lazyLoadImages() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                const src = img.dataset.src;
+                if (src) {
+                    img.src = src;
+                    img.removeAttribute('data-src');
+                    observer.unobserve(img);
+                }
+            }
+        });
+    });
+    
+    document.querySelectorAll('[data-src]').forEach(img => {
+        observer.observe(img);
+    });
+}
