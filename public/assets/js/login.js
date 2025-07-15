@@ -19,9 +19,6 @@ async function login(event) {
     showLoading(true);
 
     try {
-        // 等待智能指纹系统初始化（减少超时时间）
-        await ensureSmartFingerprintReady();
-        
         // 添加超时控制
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
@@ -109,11 +106,7 @@ async function login(event) {
 
 // 获取指纹头部信息
 function getFingerprintHeaders() {
-    if (window.smartFingerprintClient && window.smartFingerprintClient.initialized) {
-        return window.smartFingerprintClient.getFingerprintForAPI();
-    }
-    
-    // 基础指纹信息
+    // 使用基础指纹信息
     return {
         'X-Screen-Info': `${screen.width}x${screen.height}:${screen.colorDepth}:${window.devicePixelRatio}`,
         'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -121,36 +114,7 @@ function getFingerprintHeaders() {
     };
 }
 
-// 确保智能指纹系统准备就绪
-async function ensureSmartFingerprintReady() {
-    return new Promise((resolve) => {
-        let attempts = 0;
-        const maxAttempts = 30; // 最多等待3秒
-        
-        const checkReady = () => {
-            attempts++;
-            
-            // 检查智能指纹系统是否已初始化
-            if (window.smartFingerprintClient && window.smartFingerprintClient.initialized) {
-                console.log('[指纹系统] 智能指纹系统已准备就绪');
-                resolve();
-                return;
-            }
-            
-            // 超时后继续执行（降级处理）
-            if (attempts >= maxAttempts) {
-                console.warn('[指纹系统] 智能指纹系统初始化超时，使用基础指纹');
-                resolve();
-                return;
-            }
-            
-            // 继续等待
-            setTimeout(checkReady, 100);
-        };
-        
-        checkReady();
-    });
-}
+
 
 // 显示/隐藏加载动画
 function showLoading(show) {

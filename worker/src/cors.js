@@ -54,7 +54,7 @@ export function handleCors(request, env) {
         const headers = {
             "Access-Control-Allow-Origin": origin || "*",
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, X-Screen-Info, X-Timezone, X-Timezone-Offset, X-Hardware-Concurrency, X-Device-Memory, X-Browser-Features",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, X-Screen-Info, X-Timezone, X-Timezone-Offset, X-Hardware-Concurrency, X-Device-Memory, X-Browser-Features, X-Language",
             "Access-Control-Allow-Credentials": "true",
             "Access-Control-Max-Age": "86400", // 24小时缓存
             "Vary": "Origin"
