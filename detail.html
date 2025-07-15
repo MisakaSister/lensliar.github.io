@@ -82,18 +82,7 @@
     <div class="image-viewer-content">
         <div class="image-viewer-header">
             <h3 class="image-title" id="viewer-title">图片详情</h3>
-            <div class="viewer-actions">
-                <button class="action-btn" onclick="toggleFullscreen()" title="全屏">
-                    <i class="fas fa-expand"></i>
-                </button>
-                <button class="action-btn" onclick="downloadImage()" title="下载">
-                    <i class="fas fa-download"></i>
-                </button>
-                <button class="action-btn" onclick="shareImage()" title="分享">
-                    <i class="fas fa-share"></i>
-                </button>
-                <button class="close-btn" onclick="closeImageViewer()">&times;</button>
-            </div>
+            <button class="close-btn" onclick="closeImageViewer()">&times;</button>
         </div>
         <div class="image-viewer-body">
             <button class="nav-btn prev-btn" onclick="showPrevImage()" id="prev-image-btn">
@@ -101,75 +90,13 @@
             </button>
             <div class="image-container">
                 <img id="viewer-image" src="" alt="">
-                <div class="zoom-controls">
-                    <button class="zoom-btn" onclick="zoomIn()" title="放大">
-                        <i class="fas fa-search-plus"></i>
-                    </button>
-                    <button class="zoom-btn" onclick="zoomOut()" title="缩小">
-                        <i class="fas fa-search-minus"></i>
-                    </button>
-                    <button class="zoom-btn" onclick="resetZoom()" title="重置">
-                        <i class="fas fa-expand-arrows-alt"></i>
-                    </button>
-                </div>
             </div>
             <button class="nav-btn next-btn" onclick="showNextImage()" id="next-image-btn">
                 <i class="fas fa-chevron-right"></i>
             </button>
         </div>
         <div class="image-viewer-footer">
-            <div class="image-info">
-                <span class="image-counter" id="image-counter">1 / 1</span>
-                <span class="zoom-level" id="zoom-level">100%</span>
-            </div>
-            <div class="image-actions">
-                <button class="action-btn" onclick="downloadImage()" title="下载">
-                    <i class="fas fa-download"></i>
-                </button>
-                <button class="action-btn" onclick="shareImage()" title="分享">
-                    <i class="fas fa-share"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 分享模态框 -->
-<div id="share-modal" class="modal">
-    <div class="modal-content share-modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title">
-                <i class="fas fa-share-alt"></i>
-                分享内容
-            </h3>
-            <button class="close-btn" onclick="closeShareModal()">&times;</button>
-        </div>
-        <div class="share-options">
-            <button class="share-btn" onclick="shareToWeChat()" title="分享到微信">
-                <i class="fab fa-weixin"></i>
-                <span>微信</span>
-            </button>
-            <button class="share-btn" onclick="shareToWeibo()" title="分享到微博">
-                <i class="fab fa-weibo"></i>
-                <span>微博</span>
-            </button>
-            <button class="share-btn" onclick="copyLink()" title="复制链接">
-                <i class="fas fa-link"></i>
-                <span>复制链接</span>
-            </button>
-            <button class="share-btn" onclick="shareToQQ()" title="分享到QQ">
-                <i class="fab fa-qq"></i>
-                <span>QQ</span>
-            </button>
-        </div>
-        <div class="share-link">
-            <div class="link-container">
-                <input type="text" id="share-url" readonly>
-                <button class="btn btn-primary" onclick="copyShareUrl()">
-                    <i class="fas fa-copy"></i>
-                    复制
-                </button>
-            </div>
+            <div class="image-counter" id="image-counter">1 / 1</div>
         </div>
     </div>
 </div>
