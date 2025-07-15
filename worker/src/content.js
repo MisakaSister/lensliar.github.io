@@ -80,18 +80,29 @@ export async function handleContent(request, env) {
     }
 }
 
+// 批量处理函数，限制并发数
+async function processBatch(items, processor, batchSize = 10) {
+    const results = [];
+    for (let i = 0; i < items.length; i += batchSize) {
+        const batch = items.slice(i, i + batchSize);
+        const batchResults = await Promise.all(batch.map(processor));
+        results.push(...batchResults);
+    }
+    return results;
+}
+
 // 获取所有文章列表
 async function getAllArticles(env) {
     try {
-        // 获取文章索引
-        const articleIndex = await env.CONTENT_KV.get("articles:index", "json") || [];
+        // 获取文章索引，限制数量
+        const articleIndex = (await env.CONTENT_KV.get("articles:index", "json") || []).slice(0, 100);
 
-        // 并行获取所有文章
-        const articlePromises = articleIndex.map(id => 
-            env.CONTENT_KV.get(`article:${id}`, "json")
+        // 批量获取文章，限制并发数
+        const articles = await processBatch(
+            articleIndex,
+            id => env.CONTENT_KV.get(`article:${id}`, "json"),
+            5 // 每批处理5个
         );
-
-        const articles = await Promise.all(articlePromises);
 
         // 过滤掉null值（已删除的文章）并按日期排序
         const validArticles = articles

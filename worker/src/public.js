@@ -57,26 +57,37 @@ export async function handlePublicAPI(request, env) {
     }
 }
 
+// 批量处理函数，限制并发数
+async function processBatch(items, processor, batchSize = 10) {
+    const results = [];
+    for (let i = 0; i < items.length; i += batchSize) {
+        const batch = items.slice(i, i + batchSize);
+        const batchResults = await Promise.all(batch.map(processor));
+        results.push(...batchResults);
+    }
+    return results;
+}
+
 // 获取公开内容
 async function getPublicContent(request, env) {
     try {
         const url = new URL(request.url);
         const page = parseInt(url.searchParams.get('page')) || 1;
-        const limit = Math.min(parseInt(url.searchParams.get('limit')) || 10, 50); // 最大50条
+        const limit = Math.min(parseInt(url.searchParams.get('limit')) || 10, 20); // 降低最大限制
         const category = url.searchParams.get('category');
         const tag = url.searchParams.get('tag');
         const status = url.searchParams.get('status') || 'published';
         const visibility = url.searchParams.get('visibility') || 'public';
 
-        // 获取文章索引
-        const articleIndex = await env.CONTENT_KV.get("articles:index", "json") || [];
+        // 获取文章索引，限制数量
+        const articleIndex = (await env.CONTENT_KV.get("articles:index", "json") || []).slice(0, 100);
 
-        // 并行获取所有文章
-        const articlePromises = articleIndex.map(id => 
-            env.CONTENT_KV.get(`article:${id}`, "json")
+        // 批量获取文章，限制并发数
+        const articles = await processBatch(
+            articleIndex,
+            id => env.CONTENT_KV.get(`article:${id}`, "json"),
+            5 // 每批处理5个
         );
-
-        const articles = await Promise.all(articlePromises);
 
         // 过滤文章
         let filteredArticles = articles
@@ -122,29 +133,24 @@ async function getPublicContent(request, env) {
             stats: article.stats
         }));
 
-        // 获取相册数据
-
+        // 获取相册数据，限制数量
         const albumKeys = await env.IMAGES_KV.list({
-            prefix: 'album_'
+            prefix: 'album_',
+            limit: 50 // 限制获取的相册数量
         });
 
-
-
-        const albumPromises = albumKeys.keys.map(key => 
-            env.IMAGES_KV.get(key.name, 'json')
+        // 批量获取相册数据
+        const albums = await processBatch(
+            albumKeys.keys,
+            key => env.IMAGES_KV.get(key.name, 'json'),
+            5 // 每批处理5个
         );
-
-        const albums = await Promise.all(albumPromises);
-
-
 
         // 过滤和排序相册
         const filteredAlbums = albums
             .filter(album => album && album.images && album.images.length > 0)
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-            .slice(0, 20); // 最多返回20个相册
-
-
+            .slice(0, 10); // 减少到10个相册
 
         // 构造公开的相册数据
         const publicAlbums = filteredAlbums.map(album => ({
