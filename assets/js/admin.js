@@ -144,6 +144,12 @@ function setupEventListeners() {
     // 文件选择
     document.getElementById('article-image-file').addEventListener('change', handleArticleImageSelect);
     // image-files 已在HTML中使用内联事件处理器，无需重复绑定
+    
+    // 退出登录
+    document.getElementById('logout-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        logout();
+    });
 }
 
 // 加载所有内容
@@ -993,5 +999,49 @@ function showNotification(message, isSuccess = true) {
         setTimeout(() => {
             notification.style.display = 'none';
         }, 3000);
+    }
+}
+
+// 隐藏页面加载动画
+function hideLoadingAnimation() {
+    const loadingElement = document.getElementById('page-loading');
+    if (loadingElement) {
+        loadingElement.style.display = 'none';
+    }
+}
+
+// 显示页面加载动画
+function showLoadingAnimation() {
+    const loadingElement = document.getElementById('page-loading');
+    if (loadingElement) {
+        loadingElement.style.display = 'flex';
+    }
+}
+
+// 搜索内容
+function searchContent(type) {
+    if (type === 'articles') {
+        currentPage.articles = 1;
+        renderArticles();
+    } else if (type === 'images') {
+        currentPage.images = 1;
+        renderImages();
+    }
+}
+
+// 滚动到顶部
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
+// 切换主题
+function toggleTheme() {
+    document.body.classList.toggle('dark-theme');
+    const icon = document.querySelector('.quick-btn i.fa-moon');
+    if (icon) {
+        icon.className = document.body.classList.contains('dark-theme') ? 'fas fa-sun' : 'fas fa-moon';
     }
 }
