@@ -11,8 +11,8 @@ let zoomLevel = 1;
 let totalViews = 0;
 
 // 分页控制
-let articlesDisplayed = 0;
-let imagesDisplayed = 0;
+let articlesDisplayed = 6;
+let imagesDisplayed = 6;
 const itemsPerPage = 6;
 
 // 初始化页面
@@ -229,8 +229,22 @@ function setupSortFunctionality() {
 
 // 设置分页功能
 function setupPagination() {
-    document.getElementById('load-more-articles').addEventListener('click', loadMoreArticles);
-    document.getElementById('load-more-images').addEventListener('click', loadMoreImages);
+    const loadMoreArticlesBtn = document.getElementById('load-more-articles');
+    const loadMoreImagesBtn = document.getElementById('load-more-images');
+    
+    if (loadMoreArticlesBtn) {
+        loadMoreArticlesBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            loadMoreArticles();
+        });
+    }
+    
+    if (loadMoreImagesBtn) {
+        loadMoreImagesBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            loadMoreImages();
+        });
+    }
 }
 
 // 加载更多文章

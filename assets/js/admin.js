@@ -3,6 +3,7 @@
 // 管理器实例
 let articleManager;
 let albumManager;
+let quillEditor;
 
 // 界面状态
 let currentTab = 'articles';
@@ -38,8 +39,55 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 初始化界面
     switchTab('articles');
     
+    // 初始化富文本编辑器
+    initQuillEditor();
     
 });
+
+// 初始化富文本编辑器
+function initQuillEditor() {
+    const toolbarOptions = [
+        ['bold', 'italic', 'underline', 'strike'],        // 格式化
+        ['blockquote', 'code-block'],                     // 引用和代码块
+        
+        [{ 'header': 1 }, { 'header': 2 }],              // 标题
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],    // 列表
+        [{ 'script': 'sub'}, { 'script': 'super' }],     // 上下标
+        [{ 'indent': '-1'}, { 'indent': '+1' }],         // 缩进
+        [{ 'direction': 'rtl' }],                         // 文本方向
+        
+        [{ 'size': ['small', false, 'large', 'huge'] }], // 字体大小
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],       // 标题
+        
+        [{ 'color': [] }, { 'background': [] }],          // 颜色
+        [{ 'font': [] }],                                 // 字体
+        [{ 'align': [] }],                                // 对齐
+        
+        ['link', 'image', 'video'],                       // 链接和媒体
+        ['clean']                                         // 清除格式
+    ];
+    
+    quillEditor = new Quill('#article-content-editor', {
+        theme: 'snow',
+        modules: {
+            toolbar: toolbarOptions
+        },
+        placeholder: '请输入文章内容...',
+        formats: [
+            'bold', 'italic', 'underline', 'strike',
+            'blockquote', 'code-block',
+            'header', 'list', 'script', 'indent', 'direction',
+            'size', 'color', 'background', 'font', 'align',
+            'link', 'image', 'video'
+        ]
+    });
+    
+    // 当编辑器内容改变时，更新隐藏的textarea
+    quillEditor.on('text-change', function() {
+        const content = quillEditor.root.innerHTML;
+        document.getElementById('article-content').value = content;
+    });
+}
 
 // 设置事件监听器
 function setupEventListeners() {
@@ -332,6 +380,16 @@ function openModal(type) {
     if (modal) {
         modal.style.display = 'block';
         document.body.style.overflow = 'hidden';
+        
+        // 设置模态框标题
+        if (type === 'article') {
+            const titleElement = document.getElementById('article-modal-title');
+            if (titleElement) {
+                titleElement.innerHTML = editingItem ? 
+                    '<i class="fas fa-edit"></i> 编辑文章' : 
+                    '<i class="fas fa-plus"></i> 新建文章';
+            }
+        }
     }
 }
 
@@ -359,6 +417,12 @@ function resetArticleForm() {
     document.getElementById('article-image-file').value = '';
     document.getElementById('article-image-preview').style.display = 'none';
     document.getElementById('article-image-preview').innerHTML = '';
+    
+    // 清空富文本编辑器
+    if (quillEditor) {
+        quillEditor.setText('');
+    }
+    
     editingItem = null;
     removedCoverImage = false;
 }
@@ -621,6 +685,11 @@ async function editArticle(id) {
     document.getElementById('article-title').value = article.title || '';
     document.getElementById('article-category').value = article.category || '';
     document.getElementById('article-content').value = article.content || '';
+    
+    // 加载富文本编辑器内容
+    if (quillEditor) {
+        quillEditor.root.innerHTML = article.content || '';
+    }
     
     // 显示封面图片预览
     if (article.coverImage?.url) {

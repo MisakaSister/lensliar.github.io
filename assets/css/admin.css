@@ -964,4 +964,94 @@ footer p {
     .form-actions {
         flex-direction: column;
     }
+}
+
+/* 富文本编辑器样式 */
+.quill-editor {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    transition: border-color 0.3s ease;
+    min-height: 200px;
+}
+
+.quill-editor:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.ql-toolbar {
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid #e9ecef;
+    background: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+    padding: 12px;
+}
+
+.ql-container {
+    border: none;
+    border-radius: 0 0 8px 8px;
+    font-size: 1rem;
+    line-height: 1.6;
+    min-height: 180px;
+}
+
+.ql-editor {
+    padding: 20px;
+    color: #495057;
+}
+
+.ql-editor.ql-blank::before {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.ql-snow .ql-tooltip {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.ql-snow .ql-picker-options {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.ql-snow .ql-stroke {
+    stroke: #495057;
+}
+
+.ql-snow .ql-fill {
+    fill: #495057;
+}
+
+.ql-snow .ql-picker-label:hover .ql-stroke,
+.ql-snow .ql-picker-label:hover .ql-fill {
+    stroke: #667eea;
+    fill: #667eea;
+}
+
+.ql-snow .ql-active .ql-stroke,
+.ql-snow .ql-active .ql-fill {
+    stroke: #667eea;
+    fill: #667eea;
+}
+
+@media (max-width: 768px) {
+    .ql-toolbar {
+        padding: 8px;
+    }
+    
+    .ql-container {
+        min-height: 150px;
+    }
+    
+    .ql-editor {
+        padding: 15px;
+    }
 } 
