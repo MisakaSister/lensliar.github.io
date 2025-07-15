@@ -118,6 +118,29 @@ function checkTargetSection() {
             switchSection(targetSection);
             localStorage.removeItem('targetSection');
         }, 100);
+    } else {
+        // 检查当前显示的区域，确保currentSection与实际显示的区域一致
+        const welcomeSection = document.getElementById('welcome-section');
+        const articlesSection = document.getElementById('articles-section');
+        const albumsSection = document.getElementById('albums-section');
+        
+        if (articlesSection && articlesSection.style.display !== 'none') {
+            currentSection = 'articles';
+        } else if (albumsSection && albumsSection.style.display !== 'none') {
+            currentSection = 'albums';
+        } else {
+            currentSection = 'home';
+        }
+        
+        // 更新导航状态
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            if (item.dataset.section === currentSection) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
     }
 }
 
@@ -634,6 +657,10 @@ function decodeContentImages(content) {
 function renderContent(content) {
     imagesData = content.images?.slice(0, 3) || [];
     totalViews = (content.articles?.length || 0) * 150 + (content.images?.length || 0) * 80;
+    
+    // 立即渲染文章和相册，确保在切换区域时数据已经准备好
+    renderArticles();
+    renderAlbums();
 }
 
 // 更新统计信息
