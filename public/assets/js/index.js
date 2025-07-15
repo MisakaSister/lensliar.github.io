@@ -551,11 +551,20 @@ function createAlbumCard(album, index) {
         </div>
     `;
     
-    // 添加点击效果
+    // 添加点击效果和导航
     albumElement.addEventListener('click', function(e) {
-        if (!e.target.closest('.carousel-nav') && !e.target.closest('.carousel-indicator')) {
+        // 如果点击的是导航按钮或指示器，不进行页面跳转
+        if (!e.target.closest('.carousel-nav') && 
+            !e.target.closest('.carousel-indicator') && 
+            !e.target.closest('.album-action-btn')) {
+            
             this.classList.add('clicked');
             setTimeout(() => this.classList.remove('clicked'), 300);
+            
+            // 跳转到相册详情页面
+            setTimeout(() => {
+                viewDetail('album', album.id);
+            }, 100);
         }
     });
     
