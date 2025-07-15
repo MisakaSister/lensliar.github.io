@@ -17,11 +17,9 @@ const pageSize = 10;
 // 初始化
 document.addEventListener('DOMContentLoaded', async function() {
     
-    
     // 检查登录状态
     const token = localStorage.getItem('authToken');
     if (!token) {
-
         window.location.href = 'login.html';
         return;
     }
@@ -33,15 +31,37 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 设置事件监听
     setupEventListeners();
     
-    // 加载数据
-    await loadAllContent();
+    // 尝试加载数据以验证token有效性
+    try {
+        await loadAllContent();
+        
+        // 初始化界面
+        switchTab('articles');
+    } catch (error) {
+        console.error('初始化失败:', error);
+        // 如果加载失败，可能是token无效，让用户重新登录
+        if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+            localStorage.removeItem('authToken');
+            window.location.href = 'login.html';
+            return;
+        }
+        showNotification('加载数据失败，请稍后重试', 'error');
+    }
     
-    // 初始化界面
-    switchTab('articles');
+    // 添加全局错误处理
+    window.addEventListener('unhandledrejection', function(event) {
+        console.error('未处理的Promise错误:', event.reason);
+        if (event.reason && event.reason.message && event.reason.message.includes('401')) {
+            localStorage.removeItem('authToken');
+            window.location.href = 'login.html';
+        }
+    });
     
     // 初始化富文本编辑器
     initQuillEditor();
     
+    // 隐藏加载动画
+    hideLoadingAnimation();
 });
 
 // 初始化富文本编辑器

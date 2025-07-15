@@ -5,6 +5,23 @@ class ArticleManager {
         this.articles = [];
     }
 
+    // 统一的响应处理
+    async handleResponse(response) {
+        if (!response.ok) {
+            // 如果是401错误，说明token无效，跳转到登录页面
+            if (response.status === 401) {
+                localStorage.removeItem('authToken');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const error = await response.text();
+            throw new Error(`请求失败: ${error}`);
+        }
+        
+        return await response.json();
+    }
+
     // 获取认证头
     getAuthHeaders() {
         return {
@@ -21,16 +38,13 @@ class ArticleManager {
                 headers: this.getAuthHeaders()
             });
 
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`HTTP ${response.status}: ${error}`);
-            }
-
-            const result = await response.json();
-            this.articles = result.articles || [];
+            const data = await this.handleResponse(response);
+            if (!data) return; // 401错误已处理
             
+            this.articles = data.articles || [];
             return this.articles;
         } catch (error) {
+            console.error('加载文章失败:', error);
             throw error;
         }
     }
@@ -44,43 +58,42 @@ class ArticleManager {
                 body: JSON.stringify(articleData)
             });
 
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`HTTP ${response.status}: ${error}`);
+            const data = await this.handleResponse(response);
+            if (!data) return; // 401错误已处理
+            
+            if (data.success) {
+                this.articles.push(data.article);
+                return data.article;
             }
-
-            const result = await response.json();
-            
-            // 重新加载数据确保同步
-            await this.loadArticles();
-            
-            return result;
+            throw new Error(data.error || '创建文章失败');
         } catch (error) {
+            console.error('创建文章失败:', error);
             throw error;
         }
     }
 
     // 更新文章
-    async updateArticle(articleId, updateData) {
+    async updateArticle(articleId, articleData) {
         try {
             const response = await fetch(`${this.apiBase}/content/${articleId}`, {
                 method: 'PUT',
                 headers: this.getAuthHeaders(),
-                body: JSON.stringify(updateData)
+                body: JSON.stringify(articleData)
             });
 
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`HTTP ${response.status}: ${error}`);
+            const data = await this.handleResponse(response);
+            if (!data) return; // 401错误已处理
+            
+            if (data.success) {
+                const index = this.articles.findIndex(a => a.id === articleId);
+                if (index !== -1) {
+                    this.articles[index] = data.article;
+                }
+                return data.article;
             }
-
-            const result = await response.json();
-            
-            // 重新加载数据确保同步
-            await this.loadArticles();
-            
-            return result;
+            throw new Error(data.error || '更新文章失败');
         } catch (error) {
+            console.error('更新文章失败:', error);
             throw error;
         }
     }
@@ -95,18 +108,16 @@ class ArticleManager {
                 }
             });
 
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`HTTP ${response.status}: ${error}`);
+            const data = await this.handleResponse(response);
+            if (!data) return; // 401错误已处理
+            
+            if (data.success) {
+                this.articles = this.articles.filter(a => a.id !== articleId);
+                return true;
             }
-
-            const result = await response.json();
-            
-            // 重新加载数据确保同步
-            await this.loadArticles();
-            
-            return result;
+            throw new Error(data.error || '删除文章失败');
         } catch (error) {
+            console.error('删除文章失败:', error);
             throw error;
         }
     }

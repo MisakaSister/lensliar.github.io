@@ -6,6 +6,23 @@ class AlbumManager {
         this.selectedFiles = [];
     }
 
+    // 统一的响应处理
+    async handleResponse(response) {
+        if (!response.ok) {
+            // 如果是401错误，说明token无效，跳转到登录页面
+            if (response.status === 401) {
+                localStorage.removeItem('authToken');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const error = await response.text();
+            throw new Error(`请求失败: ${error}`);
+        }
+        
+        return await response.json();
+    }
+
     // 获取认证头
     getAuthHeaders() {
         return {
@@ -22,12 +39,7 @@ class AlbumManager {
                 headers: this.getAuthHeaders()
             });
 
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`HTTP ${response.status}: ${error}`);
-            }
-
-            const result = await response.json();
+            const result = await this.handleResponse(response);
             
             // 确保result.images是数组
             this.albums = Array.isArray(result.images) ? result.images : [];
@@ -47,12 +59,7 @@ class AlbumManager {
                 body: JSON.stringify(albumData)
             });
 
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`HTTP ${response.status}: ${error}`);
-            }
-
-            const result = await response.json();
+            const result = await this.handleResponse(response);
             
             // 重新加载数据确保同步
             await this.loadAlbums();
@@ -72,12 +79,7 @@ class AlbumManager {
                 body: JSON.stringify(updateData)
             });
 
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`HTTP ${response.status}: ${error}`);
-            }
-
-            const result = await response.json();
+            const result = await this.handleResponse(response);
             
             // 重新加载数据确保同步
             await this.loadAlbums();
@@ -98,12 +100,7 @@ class AlbumManager {
                 }
             });
 
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`HTTP ${response.status}: ${error}`);
-            }
-
-            const result = await response.json();
+            const result = await this.handleResponse(response);
             
             // 重新加载数据确保同步
             await this.loadAlbums();
@@ -128,12 +125,7 @@ class AlbumManager {
                 body: formData
             });
 
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`HTTP ${response.status}: ${error}`);
-            }
-
-            const result = await response.json();
+            const result = await this.handleResponse(response);
             
             return {
                 url: result.url,
