@@ -76,7 +76,16 @@ export async function handleContent(request, env) {
         });
 
     } catch (error) {
-        return handleError(error, request);
+        console.error('[Content API] Error:', error);
+        return new Response(JSON.stringify({
+            error: "Internal server error",
+            message: error.message
+        }), {
+            status: 500,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
     }
 }
 
