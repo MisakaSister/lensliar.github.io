@@ -125,7 +125,8 @@ async function getPublicContent(request, env) {
                     description: album.description,
                     imageCount: album.imageCount,
                     createdAt: album.createdAt,
-                    coverImage: album.coverImage
+                    coverImage: album.coverImage,
+                    images: album.images || [] // 确保返回完整的images字段
                 }));
         } catch (error) {
             console.error('Error fetching albums:', error);
