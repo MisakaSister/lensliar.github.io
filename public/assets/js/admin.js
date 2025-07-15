@@ -995,3 +995,19 @@ function showNotification(message, isSuccess = true) {
         }, 3000);
     }
 }
+
+// 隐藏页面加载动画
+function hideLoadingAnimation() {
+    const loadingElement = document.getElementById('page-loading');
+    if (loadingElement) {
+        loadingElement.style.display = 'none';
+    }
+}
+
+// 显示页面加载动画
+function showLoadingAnimation() {
+    const loadingElement = document.getElementById('page-loading');
+    if (loadingElement) {
+        loadingElement.style.display = 'flex';
+    }
+}
