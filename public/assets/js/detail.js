@@ -269,7 +269,6 @@ function navigateContent(direction) {
 // 图片查看器功能
 let currentImageIndex = 0;
 let currentImages = [];
-let currentZoom = 1;
 
 function openImageViewer(imageUrl, imageIndex = 0) {
     const viewer = document.getElementById('image-viewer');
@@ -300,7 +299,6 @@ function openImageViewer(imageUrl, imageIndex = 0) {
         
         viewer.style.display = 'block';
         viewer.classList.add('active');
-        resetZoom();
     }
 }
 
@@ -319,17 +317,22 @@ function updateViewerImage() {
     
     if (currentImages.length > 0 && currentImageIndex >= 0 && currentImageIndex < currentImages.length) {
         const currentImage = currentImages[currentImageIndex];
-        
-        if (viewerImage) {
-            viewerImage.src = currentImage.url;
-        }
-        
-        if (viewerTitle) {
-            viewerTitle.textContent = currentImage.title || '图片详情';
-        }
+        viewerImage.src = decodeHtmlEntities(currentImage.url);
+        viewerTitle.textContent = currentImage.title || `图片 ${currentImageIndex + 1}`;
         
         if (imageCounter) {
             imageCounter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+        }
+        
+        // 更新导航按钮可见性
+        const prevBtn = document.getElementById('prev-image-btn');
+        const nextBtn = document.getElementById('next-image-btn');
+        
+        if (prevBtn) {
+            prevBtn.style.display = currentImages.length > 1 ? 'block' : 'none';
+        }
+        if (nextBtn) {
+            nextBtn.style.display = currentImages.length > 1 ? 'block' : 'none';
         }
     }
 }
@@ -338,7 +341,6 @@ function showPrevImage() {
     if (currentImages.length > 1) {
         currentImageIndex = (currentImageIndex - 1 + currentImages.length) % currentImages.length;
         updateViewerImage();
-        resetZoom();
     }
 }
 
@@ -346,97 +348,6 @@ function showNextImage() {
     if (currentImages.length > 1) {
         currentImageIndex = (currentImageIndex + 1) % currentImages.length;
         updateViewerImage();
-        resetZoom();
-    }
-}
-
-function zoomIn() {
-    currentZoom = Math.min(currentZoom * 1.2, 3);
-    applyZoom();
-}
-
-function zoomOut() {
-    currentZoom = Math.max(currentZoom / 1.2, 0.5);
-    applyZoom();
-}
-
-function resetZoom() {
-    currentZoom = 1;
-    applyZoom();
-}
-
-function applyZoom() {
-    const viewerImage = document.getElementById('viewer-image');
-    if (viewerImage) {
-        viewerImage.style.transform = `scale(${currentZoom})`;
-    }
-}
-
-function toggleFullscreen() {
-    const viewer = document.getElementById('image-viewer');
-    if (viewer) {
-        if (document.fullscreenElement) {
-            document.exitFullscreen();
-        } else {
-            viewer.requestFullscreen();
-        }
-    }
-}
-
-function downloadImage() {
-    const viewerImage = document.getElementById('viewer-image');
-    if (viewerImage && viewerImage.src) {
-        const link = document.createElement('a');
-        link.href = viewerImage.src;
-        link.download = 'image.jpg';
-        link.click();
-    }
-}
-
-function shareImage() {
-    const shareModal = document.getElementById('share-modal');
-    const shareUrl = document.getElementById('share-url');
-    
-    if (shareModal && shareUrl) {
-        shareUrl.value = window.location.href;
-        shareModal.style.display = 'block';
-    }
-}
-
-function closeShareModal() {
-    const shareModal = document.getElementById('share-modal');
-    if (shareModal) {
-        shareModal.style.display = 'none';
-    }
-}
-
-function shareToWeChat() {
-    showNotification('请复制链接到微信分享', true);
-}
-
-function shareToWeibo() {
-    const url = encodeURIComponent(window.location.href);
-    const title = encodeURIComponent(document.title);
-    window.open(`https://service.weibo.com/share/share.php?url=${url}&title=${title}`);
-}
-
-function shareToQQ() {
-    const url = encodeURIComponent(window.location.href);
-    const title = encodeURIComponent(document.title);
-    window.open(`https://connect.qq.com/widget/shareqq/index.html?url=${url}&title=${title}`);
-}
-
-function copyLink() {
-    copyShareUrl();
-}
-
-function copyShareUrl() {
-    const shareUrl = document.getElementById('share-url');
-    if (shareUrl) {
-        shareUrl.select();
-        document.execCommand('copy');
-        showNotification('链接已复制到剪贴板', true);
-        closeShareModal();
     }
 }
 
@@ -490,10 +401,10 @@ function scrollToTop() {
     });
 }
 
-// 键盘快捷键
+// 键盘事件处理
 document.addEventListener('keydown', function(e) {
-    if (document.getElementById('image-viewer').classList.contains('active')) {
-        switch(e.key) {
+    if (document.getElementById('image-viewer').style.display === 'block') {
+        switch (e.key) {
             case 'Escape':
                 closeImageViewer();
                 break;
@@ -503,27 +414,14 @@ document.addEventListener('keydown', function(e) {
             case 'ArrowRight':
                 showNextImage();
                 break;
-            case '+':
-            case '=':
-                zoomIn();
-                break;
-            case '-':
-                zoomOut();
-                break;
-            case '0':
-                resetZoom();
-                break;
         }
     }
 });
 
-// 全局点击事件
+// 点击事件处理
 document.addEventListener('click', function(e) {
     if (e.target.id === 'image-viewer') {
         closeImageViewer();
-    }
-    if (e.target.id === 'share-modal') {
-        closeShareModal();
     }
 });
 
