@@ -33,10 +33,16 @@ class ArticleManager {
     // 加载文章数据
     async loadArticles() {
         try {
+            const token = localStorage.getItem('authToken');
+            console.log('[ArticleManager] 尝试加载文章，token:', token ? token.substring(0, 20) + '...' : 'null');
+            
             const response = await fetch(`${this.apiBase}/content`, {
                 method: 'GET',
                 headers: this.getAuthHeaders()
             });
+
+            console.log('[ArticleManager] 响应状态:', response.status, response.statusText);
+            console.log('[ArticleManager] 响应头:', Object.fromEntries(response.headers.entries()));
 
             const data = await this.handleResponse(response);
             if (!data) return; // 401错误已处理
