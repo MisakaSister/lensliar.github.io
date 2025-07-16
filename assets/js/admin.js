@@ -323,9 +323,10 @@ function closeModal(type) {
 
 // 重置表单
 function resetForm(type) {
+    editingItem = null;
     if (type === 'article') {
         document.getElementById('article-form').reset();
-        if (quillEditor) quillEditor.setText('');
+        quillEditor.root.innerHTML = '';
         document.getElementById('article-image-preview').style.display = 'none';
         document.getElementById('article-modal-title').innerHTML = '<i class="fas fa-edit"></i> 新建文章';
     } else if (type === 'image') {
@@ -333,6 +334,140 @@ function resetForm(type) {
         document.getElementById('images-preview-container').style.display = 'none';
         selectedFiles = [];
         updateImageFormState();
+    }
+}
+
+// 更新图片表单状态
+function updateImageFormState() {
+    const previewContainer = document.getElementById('images-preview-container');
+    const uploadArea = document.querySelector('.file-upload-area');
+    
+    if (selectedFiles.length > 0) {
+        previewContainer.style.display = 'block';
+        if (uploadArea) uploadArea.style.display = 'none';
+    } else {
+        previewContainer.style.display = 'none';
+        if (uploadArea) uploadArea.style.display = 'block';
+    }
+}
+
+// 显示选中的文件
+function displaySelectedFiles() {
+    const container = document.getElementById('images-preview-container');
+    if (!container) return;
+    
+    if (selectedFiles.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.innerHTML = selectedFiles.map((file, index) => `
+        <div class="preview-item">
+            <img src="${file.url}" alt="${file.fileName}">
+            <div class="preview-info">
+                <span>${file.fileName}</span>
+                <span>${Utils.formatFileSize(file.size)}</span>
+            </div>
+            <button type="button" class="remove-btn" onclick="removeSelectedFile(${index})">&times;</button>
+        </div>
+    `).join('');
+    
+    container.style.display = 'block';
+    updateImageFormState();
+}
+
+// 移除选中的文件
+function removeSelectedFile(index) {
+    selectedFiles.splice(index, 1);
+    displaySelectedFiles();
+}
+
+// 处理文件选择
+async function handleFileSelect(event) {
+    const files = Array.from(event.target.files);
+    if (files.length === 0) return;
+    
+    // 验证文件
+    for (const file of files) {
+        const validation = Utils.validateFile(file);
+        if (!validation.valid) {
+            Utils.showNotification(validation.error, false);
+            return;
+        }
+    }
+    
+    try {
+        Utils.showNotification('正在上传文件...', true);
+        
+        // 上传文件
+        for (const file of files) {
+            const uploadedFile = await uploadFile(file);
+            selectedFiles.push(uploadedFile);
+        }
+        
+        displaySelectedFiles();
+        Utils.showNotification(`成功上传 ${files.length} 个文件`);
+        
+    } catch (error) {
+        Utils.showNotification('文件上传失败: ' + error.message, false);
+    }
+    
+    // 清空文件输入
+    event.target.value = '';
+}
+
+// 上传单个文件
+async function uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch(`${API_BASE}/upload`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: formData
+    });
+    
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || '上传失败');
+    }
+    
+    const result = await response.json();
+    return {
+        url: result.url,
+        fileName: result.fileName,
+        size: result.size,
+        type: result.type
+    };
+}
+
+// 处理多文件选择
+async function handleMultipleFileSelect(event) {
+    await handleFileSelect(event);
+}
+
+// 处理拖拽
+function handleDragOver(event) {
+    event.preventDefault();
+    event.currentTarget.classList.add('drag-over');
+}
+
+function handleDragLeave(event) {
+    event.preventDefault();
+    event.currentTarget.classList.remove('drag-over');
+}
+
+function handleDrop(event) {
+    event.preventDefault();
+    event.currentTarget.classList.remove('drag-over');
+    
+    const files = Array.from(event.dataTransfer.files);
+    if (files.length > 0) {
+        const fileInput = document.getElementById('image-files');
+        fileInput.files = event.dataTransfer.files;
+        handleFileSelect({ target: fileInput });
     }
 }
 
