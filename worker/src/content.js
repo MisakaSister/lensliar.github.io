@@ -32,10 +32,10 @@ export async function handleContent(request, env) {
         if (request.method === 'GET') {
             if (pathParts.length === 1) {
                 return await getAllArticles(env);
-            } else if (pathParts.length === 2) {
-                return await getArticle(pathParts[1], env);
             } else if (pathParts.length === 2 && pathParts[1] === 'categories') {
                 return await getArticleCategories(env);
+            } else if (pathParts.length === 2) {
+                return await getArticle(pathParts[1], env);
             }
         } else if (request.method === 'POST') {
             const articleData = await request.json();
