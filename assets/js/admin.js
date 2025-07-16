@@ -111,11 +111,14 @@ function initQuillEditor() {
                     // 获取当前光标位置
                     const range = quillEditor.getSelection();
                     
+                    // 如果光标位置为null，插入到文档末尾
+                    const insertIndex = range ? range.index : quillEditor.getLength();
+                    
                     // 插入图片到编辑器
-                    quillEditor.insertEmbed(range.index, 'image', uploadedFile.url);
+                    quillEditor.insertEmbed(insertIndex, 'image', uploadedFile.url);
                     
                     // 移动光标到图片后面
-                    quillEditor.setSelection(range.index + 1);
+                    quillEditor.setSelection(insertIndex + 1);
                     
                     Utils.showNotification('图片上传成功');
                     
@@ -164,11 +167,14 @@ function initQuillEditor() {
                 // 获取当前光标位置
                 const range = quillEditor.getSelection();
                 
+                // 如果光标位置为null，插入到文档末尾
+                const insertIndex = range ? range.index : quillEditor.getLength();
+                
                 // 插入图片到编辑器
-                quillEditor.insertEmbed(range.index, 'image', uploadedFile.url);
+                quillEditor.insertEmbed(insertIndex, 'image', uploadedFile.url);
                 
                 // 移动光标到图片后面
-                quillEditor.setSelection(range.index + 1);
+                quillEditor.setSelection(insertIndex + 1);
                 
                 Utils.showNotification('图片上传成功');
                 
@@ -206,11 +212,14 @@ async function imageHandler() {
             // 获取当前光标位置
             const range = quillEditor.getSelection();
             
+            // 如果光标位置为null，插入到文档末尾
+            const insertIndex = range ? range.index : quillEditor.getLength();
+            
             // 插入图片到编辑器
-            quillEditor.insertEmbed(range.index, 'image', uploadedFile.url);
+            quillEditor.insertEmbed(insertIndex, 'image', uploadedFile.url);
             
             // 移动光标到图片后面
-            quillEditor.setSelection(range.index + 1);
+            quillEditor.setSelection(insertIndex + 1);
             
             Utils.showNotification('图片上传成功');
             
