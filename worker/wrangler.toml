@@ -8,6 +8,9 @@ kv_namespaces = [
     { binding = "IMAGES_KV", id = "06d5b81527944a08ab8f7459bdf17c90"}
 ]
 
+
+d1_sql = "8fd2bf88-4ac2-400b-9f78-7bd364dab71d"
+
 # R2存储桶配置（用于存储图片）
 [[r2_buckets]]
 binding = "IMAGES_BUCKET"
