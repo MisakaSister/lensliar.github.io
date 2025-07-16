@@ -130,6 +130,11 @@ async function loadAllContent() {
         articleCategories = articleCategoriesResult.categories || [];
         albumCategories = albumCategoriesResult.categories || [];
         
+        console.log('加载完成 - 文章数量:', articleManager.getAll().length);
+        console.log('加载完成 - 相册数量:', albumManager.getAll().length);
+        console.log('文章分类数量:', articleCategories.length);
+        console.log('相册分类数量:', albumCategories.length);
+        
         updateStats();
         renderCurrentTab();
         Utils.showNotification('数据加载完成');
@@ -289,6 +294,9 @@ function renderArticles() {
 function renderImages() {
     const container = document.getElementById('images-container');
     const albums = albumManager.getAll();
+    
+    console.log('渲染相册列表，相册数量:', albums.length);
+    console.log('相册数据:', albums);
     
     if (albums.length === 0) {
         container.innerHTML = `

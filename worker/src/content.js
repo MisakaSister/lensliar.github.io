@@ -154,7 +154,7 @@ async function createArticle(articleData, env) {
                 images, attachments, author, status, visibility, 
                 created_at, updated_at, published_at, seo_meta_title, 
                 seo_meta_description, seo_keywords, seo_slug, views, likes, comments, shares
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).bind(
             articleId,
             articleData.title,
@@ -174,7 +174,11 @@ async function createArticle(articleData, env) {
             articleData.seo?.metaTitle || articleData.title,
             articleData.seo?.metaDescription || articleData.summary || '',
             JSON.stringify(Array.isArray(articleData.seo?.keywords) ? articleData.seo.keywords : []),
-            articleData.seo?.slug || generateSlug(articleData.title)
+            articleData.seo?.slug || generateSlug(articleData.title),
+            0, // views
+            0, // likes
+            0, // comments
+            0  // shares
         ).run();
 
         if (!success) {
@@ -221,6 +225,9 @@ async function createArticle(articleData, env) {
             }
         });
     } catch (error) {
+        console.error('Error creating article:', error);
+        console.error('Error details:', error.message);
+        console.error('Error stack:', error.stack);
         throw new Error(`Failed to create article: ${error.message}`);
     }
 }

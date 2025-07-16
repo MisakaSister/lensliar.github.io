@@ -256,7 +256,8 @@ async function saveImageAlbum(request, env) {
 
         return new Response(JSON.stringify({
             success: true,
-            album: album
+            album: album,
+            images: [album] // 为了兼容性，也返回images字段
         }), {
             status: 200,
             headers: {
@@ -266,8 +267,11 @@ async function saveImageAlbum(request, env) {
 
     } catch (error) {
         console.error('Error saving album:', error);
+        console.error('Error details:', error.message);
+        console.error('Error stack:', error.stack);
         return new Response(JSON.stringify({
-            error: 'Failed to save image album'
+            error: 'Failed to save image album',
+            details: error.message
         }), {
             status: 500,
             headers: {
@@ -469,7 +473,8 @@ async function updateImageAlbum(albumId, request, env) {
 
         return new Response(JSON.stringify({
             success: true,
-            album: updatedAlbum
+            album: updatedAlbum,
+            images: [updatedAlbum] // 为了兼容性，也返回images字段
         }), {
             status: 200,
             headers: {
