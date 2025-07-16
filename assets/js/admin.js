@@ -387,6 +387,12 @@ function openModal(type) {
     } else if (type === 'image') {
         document.getElementById('image-modal').style.display = 'flex';
         renderAlbumCategorySelect();
+        
+        // 设置初始按钮状态
+        const saveButton = document.getElementById('save-images-btn');
+        if (saveButton) {
+            saveButton.disabled = selectedFiles.length === 0;
+        }
     }
 }
 
@@ -437,12 +443,22 @@ function resetForm(type) {
         document.getElementById('article-form').reset();
         quillEditor.root.innerHTML = '';
         document.getElementById('article-image-preview').style.display = 'none';
+        const coverImageElement = document.getElementById('article-cover-image');
+        if (coverImageElement) {
+            coverImageElement.value = '';
+        }
         document.getElementById('article-modal-title').innerHTML = '<i class="fas fa-edit"></i> 新建文章';
     } else if (type === 'image') {
         document.getElementById('image-form').reset();
         document.getElementById('images-preview-container').style.display = 'none';
         selectedFiles = [];
         updateImageFormState();
+        
+        // 重置保存按钮状态
+        const saveButton = document.getElementById('save-images-btn');
+        if (saveButton) {
+            saveButton.disabled = true;
+        }
     }
 }
 
@@ -450,13 +466,16 @@ function resetForm(type) {
 function updateImageFormState() {
     const previewContainer = document.getElementById('images-preview-container');
     const uploadArea = document.querySelector('.file-upload-area');
+    const saveButton = document.getElementById('save-images-btn');
     
     if (selectedFiles.length > 0) {
         previewContainer.style.display = 'block';
         if (uploadArea) uploadArea.style.display = 'none';
+        if (saveButton) saveButton.disabled = false;
     } else {
         previewContainer.style.display = 'none';
         if (uploadArea) uploadArea.style.display = 'block';
+        if (saveButton) saveButton.disabled = true;
     }
 }
 
@@ -483,12 +502,24 @@ function displaySelectedFiles() {
     
     container.style.display = 'block';
     updateImageFormState();
+    
+    // 更新保存按钮状态
+    const saveButton = document.getElementById('save-images-btn');
+    if (saveButton) {
+        saveButton.disabled = selectedFiles.length === 0;
+    }
 }
 
 // 移除选中的文件
 function removeSelectedFile(index) {
     selectedFiles.splice(index, 1);
     displaySelectedFiles();
+    
+    // 更新保存按钮状态
+    const saveButton = document.getElementById('save-images-btn');
+    if (saveButton) {
+        saveButton.disabled = selectedFiles.length === 0;
+    }
 }
 
 // 处理文件选择
@@ -519,6 +550,11 @@ async function handleFileSelect(event) {
         
     } catch (error) {
         Utils.showNotification('文件上传失败: ' + error.message, false);
+        // 更新按钮状态
+        const saveButton = document.getElementById('save-images-btn');
+        if (saveButton) {
+            saveButton.disabled = selectedFiles.length === 0;
+        }
     }
     
     // 清空文件输入
@@ -607,7 +643,10 @@ async function handleArticleImageSelect(event) {
         `;
         
         previewContainer.style.display = 'block';
-        document.getElementById('article-cover-image').value = preview.url;
+        const coverImageElement = document.getElementById('article-cover-image');
+        if (coverImageElement) {
+            coverImageElement.value = preview.url;
+        }
         
     } catch (error) {
         Utils.showNotification('图片预览失败', false);
@@ -618,7 +657,10 @@ async function handleArticleImageSelect(event) {
 function removeArticleImage() {
     document.getElementById('article-image-preview').style.display = 'none';
     document.getElementById('article-image-file').value = '';
-    document.getElementById('article-cover-image').value = '';
+    const coverImageElement = document.getElementById('article-cover-image');
+    if (coverImageElement) {
+        coverImageElement.value = '';
+    }
 }
 
 // 保存文章
@@ -626,11 +668,14 @@ async function saveArticle() {
     const form = document.getElementById('article-form');
     const formData = new FormData(form);
     
+    const coverImageElement = document.getElementById('article-cover-image');
+    const coverImageValue = coverImageElement ? coverImageElement.value : '';
+    
     const articleData = {
         title: formData.get('title'),
         content: quillEditor.root.innerHTML,
         category: formData.get('category'),
-        coverImage: document.getElementById('article-cover-image').value
+        coverImage: coverImageValue || null
     };
     
     if (!articleData.title || !articleData.content) {
@@ -639,6 +684,10 @@ async function saveArticle() {
     }
     
     try {
+        // 禁用保存按钮防止重复提交
+        const saveButton = document.getElementById('save-article-btn');
+        if (saveButton) saveButton.disabled = true;
+        
         if (editingItem) {
             await articleManager.update(editingItem, articleData);
             Utils.showNotification('文章更新成功');
@@ -653,6 +702,9 @@ async function saveArticle() {
         
     } catch (error) {
         Utils.showNotification('保存失败: ' + error.message, false);
+        // 重新启用保存按钮
+        const saveButton = document.getElementById('save-article-btn');
+        if (saveButton) saveButton.disabled = false;
     }
 }
 
@@ -674,6 +726,10 @@ async function saveImages() {
     }
     
     try {
+        // 禁用保存按钮防止重复提交
+        const saveButton = document.getElementById('save-images-btn');
+        if (saveButton) saveButton.disabled = true;
+        
         if (editingItem) {
             await albumManager.update(editingItem, albumData);
             Utils.showNotification('相册更新成功');
@@ -688,6 +744,9 @@ async function saveImages() {
         
     } catch (error) {
         Utils.showNotification('保存失败: ' + error.message, false);
+        // 重新启用保存按钮
+        const saveButton = document.getElementById('save-images-btn');
+        if (saveButton) saveButton.disabled = false;
     }
 }
 
@@ -711,7 +770,10 @@ async function editArticle(id) {
     quillEditor.root.innerHTML = article.content;
     
     if (article.coverImage) {
-        document.getElementById('article-cover-image').value = article.coverImage;
+        const coverImageElement = document.getElementById('article-cover-image');
+        if (coverImageElement) {
+            coverImageElement.value = article.coverImage;
+        }
         // 显示封面图片预览
     }
     
@@ -738,6 +800,12 @@ async function editAlbum(id) {
     
     selectedFiles = album.images || [];
     displaySelectedFiles();
+    
+    // 更新保存按钮状态
+    const saveButton = document.getElementById('save-images-btn');
+    if (saveButton) {
+        saveButton.disabled = selectedFiles.length === 0;
+    }
     
     openModal('image');
 }
@@ -787,5 +855,10 @@ window.editAlbum = editAlbum;
 window.deleteArticle = deleteArticle;
 window.deleteAlbum = deleteAlbum;
 window.removeArticleImage = removeArticleImage;
+window.removeSelectedFile = removeSelectedFile;
+window.handleMultipleFileSelect = handleMultipleFileSelect;
+window.handleDragOver = handleDragOver;
+window.handleDragLeave = handleDragLeave;
+window.handleDrop = handleDrop;
 window.scrollToTop = Utils.scrollToTop;
 window.toggleTheme = Utils.toggleTheme;
