@@ -73,16 +73,28 @@ export async function handleAuth(request, env) {
     });
 }
 
-// 验证用户凭证
+// 验证用户凭证 - 从Secrets读取用户数据
 async function verifyCredentials(username, password, env) {
     try {
-        const userData = await env.AUTH_KV.get(`user:${username}`, "json");
-        if (!userData) {
+        // 从Secrets获取用户名和密码哈希
+        const adminUsername = env.SECRET_ADMIN_USERNAME;
+        const adminPasswordHash = env.SECRET_ADMIN_PASSWORD_HASH;
+        const pepper = env.SECRET_PEPPER;
+        
+        if (!adminUsername || !adminPasswordHash || !pepper) {
+            console.error('[认证] Secrets配置不完整');
+            return false;
+        }
+
+        // 检查用户名
+        if (username !== adminUsername) {
             console.warn(`[认证] 用户不存在: ${username}`);
             return false;
         }
 
-        const isValid = await bcrypt.compare(password, userData.password);
+        // 使用pepper验证密码
+        const passwordWithPepper = password + pepper;
+        const isValid = await bcrypt.compare(passwordWithPepper, adminPasswordHash);
         console.log(`[认证] 密码验证结果: ${isValid}`);
         return isValid;
     } catch (error) {
