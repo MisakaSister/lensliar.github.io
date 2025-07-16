@@ -1136,4 +1136,28 @@ footer p {
     color: #666;
     font-size: 14px;
     line-height: 1.4;
+}
+
+/* 富文本编辑器拖拽样式 */
+.quill-editor.drag-over {
+    border: 2px dashed #667eea !important;
+    background-color: rgba(102, 126, 234, 0.05) !important;
+    transition: all 0.3s ease;
+}
+
+.quill-editor.drag-over .ql-editor {
+    background-color: transparent !important;
+}
+
+/* 图片上传提示 */
+.quill-editor .ql-editor img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.quill-editor .ql-editor img:hover {
+    transform: scale(1.02);
 } 
