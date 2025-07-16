@@ -120,15 +120,13 @@ async function loadAllContent() {
         
         // 并行加载文章、相册和分类数据
         const [articlesResult, imagesResult, articleCategoriesResult, albumCategoriesResult] = await Promise.all([
-            articleManager.getAll(),
-            albumManager.getAll(),
+            articleManager.loadAll(),
+            albumManager.loadAll(),
             loadArticleCategories(),
             loadAlbumCategories()
         ]);
         
         // 更新全局数据
-        articleManager.setData(articlesResult.articles || []);
-        albumManager.setData(imagesResult.images || []);
         articleCategories = articleCategoriesResult.categories || [];
         albumCategories = albumCategoriesResult.categories || [];
         
@@ -197,11 +195,17 @@ function updateStats() {
     const imagesStatsEl = document.getElementById('images-stats');
     
     if (articlesStatsEl) {
-        articlesStatsEl.textContent = `共 ${articleStats.totalItems} 篇文章`;
+        articlesStatsEl.innerHTML = `
+            <i class="fas fa-newspaper"></i>
+            <span>共 ${articleStats.totalItems} 篇文章</span>
+        `;
     }
     
     if (imagesStatsEl) {
-        imagesStatsEl.textContent = `共 ${albumStats.totalItems} 个相册`;
+        imagesStatsEl.innerHTML = `
+            <i class="fas fa-images"></i>
+            <span>共 ${albumStats.totalItems} 个相册</span>
+        `;
     }
 }
 
@@ -232,7 +236,7 @@ function renderCurrentTab() {
 // 渲染文章列表
 function renderArticles() {
     const container = document.getElementById('articles-container');
-    const articles = articleManager.getData();
+    const articles = articleManager.getAll();
     
     if (articles.length === 0) {
         container.innerHTML = `
@@ -284,7 +288,7 @@ function renderArticles() {
 // 渲染相册列表
 function renderImages() {
     const container = document.getElementById('images-container');
-    const albums = albumManager.getData();
+    const albums = albumManager.getAll();
     
     if (albums.length === 0) {
         container.innerHTML = `
