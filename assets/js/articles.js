@@ -140,6 +140,8 @@ function setupEventListeners() {
 
 // 加载文章数据
 async function loadArticles() {
+    console.log('开始加载文章数据...');
+    
     try {
         const response = await fetch(`${API_BASE}/api/content`, {
             method: 'GET',
@@ -149,17 +151,25 @@ async function loadArticles() {
             credentials: 'include'
         });
 
+        console.log('API响应状态:', response.status);
+
         if (response.ok) {
             const content = await response.json();
             allArticles = content.articles || [];
+            
+            console.log('加载到的文章数据:', allArticles);
+            console.log('文章数量:', allArticles.length);
+            
             renderArticles();
             loadAndPopulateCategories();
         } else {
+            console.error('API请求失败:', response.status, response.statusText);
             allArticles = [];
             renderArticles();
             showNotification('加载文章失败，请稍后重试', false);
         }
     } catch (error) {
+        console.error('网络错误:', error);
         allArticles = [];
         renderArticles();
         showNotification('网络错误，请检查网络连接', false);
@@ -328,16 +338,34 @@ function createArticleCard(article, index) {
                 </span>
             </div>
             <div class="card-actions">
-                <button class="btn btn-primary" onclick="viewArticleDetail('${article.id}')">
+                <button class="btn btn-primary" onclick="viewArticleDetail('${article.id}'); event.stopPropagation();">
                     <i class="fas fa-eye"></i>
                     阅读全文
                 </button>
-                <button class="btn btn-secondary" onclick="shareArticle('${article.id}', '${article.title}')">
+                <button class="btn btn-secondary" onclick="shareArticle('${article.id}', '${article.title}'); event.stopPropagation();">
                     <i class="fas fa-share"></i>
                 </button>
             </div>
         </div>
     `;
+    
+    // 添加点击事件，使整个卡片可点击
+    articleElement.addEventListener('click', function(e) {
+        console.log('文章卡片被点击:', article.title, article.id);
+        console.log('点击的目标:', e.target);
+        console.log('是否点击了按钮区域:', e.target.closest('.card-actions'));
+        
+        // 如果点击的是按钮，不进行页面跳转
+        if (!e.target.closest('.card-actions')) {
+            console.log('执行页面跳转...');
+            viewArticleDetail(article.id);
+        } else {
+            console.log('点击了按钮，不跳转页面');
+        }
+    });
+    
+    // 添加鼠标悬停效果
+    articleElement.style.cursor = 'pointer';
     
     return articleElement;
 }
@@ -361,6 +389,18 @@ function loadMoreArticles() {
 
 // 查看文章详情
 function viewArticleDetail(id) {
+    console.log('点击文章详情，ID:', id);
+    console.log('当前文章列表:', allArticles);
+    
+    // 检查文章是否存在
+    const article = allArticles.find(a => a.id === id);
+    if (!article) {
+        console.error('未找到文章:', id);
+        showNotification('文章不存在', false);
+        return;
+    }
+    
+    console.log('找到文章:', article);
     window.location.href = `article-detail.html?id=${id}`;
 }
 

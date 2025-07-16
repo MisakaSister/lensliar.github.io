@@ -591,252 +591,31 @@
     }
 }
 
+/* 文章卡片样式 */
 .card {
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
     border-radius: var(--border-radius);
     overflow: hidden;
     box-shadow: var(--shadow-light);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    position: relative;
-    transform-style: preserve-3d;
-    animation: cardFadeIn 0.6s ease-out both;
+    transition: var(--transition);
     cursor: pointer;
-}
-
-@keyframes cardFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    position: relative;
 }
 
 .card:hover {
-    transform: translateY(-15px) rotateX(5deg) scale(1.02);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-heavy);
 }
 
-.card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
-    opacity: 0;
-    transition: var(--transition);
-    z-index: 1;
-}
-
-.card:hover::before {
-    opacity: 1;
-    animation: cardShimmer 1s ease-in-out;
-}
-
-@keyframes cardShimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-}
-
-/* 交互式相册卡片 */
-.album-card {
-    perspective: 1000px;
-    height: 400px;
-}
-
-.album-card-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    text-align: center;
-    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-style: preserve-3d;
-}
-
-.album-card:hover .album-card-inner {
-    transform: rotateY(180deg);
-}
-
-.album-card-front,
-.album-card-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    background: white;
-    box-shadow: var(--shadow-light);
-}
-
-.album-card-back {
-    transform: rotateY(180deg);
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 30px;
-}
-
-.album-preview-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 20px;
-}
-
-.album-preview-item {
-    width: 80px;
-    height: 60px;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.album-preview-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.album-stats {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-.album-stat {
-    text-align: center;
-}
-
-.album-stat-number {
-    font-size: 1.5rem;
-    font-weight: 700;
-    display: block;
-}
-
-.album-stat-label {
-    font-size: 0.9rem;
-    opacity: 0.8;
-}
-
-.album-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.album-action-btn {
-    padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 20px;
-    color: white;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
-}
-
-.album-action-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
+.card:active {
     transform: translateY(-2px);
-}
-
-/* 图片轮播效果 */
-.card-image-carousel {
-    position: relative;
-    overflow: hidden;
-}
-
-.carousel-images {
-    display: flex;
-    transition: transform 0.5s ease;
-}
-
-.carousel-image {
-    flex: 0 0 100%;
-    height: 220px;
-    object-fit: cover;
-}
-
-.carousel-indicators {
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 5px;
-    z-index: 2;
-}
-
-.carousel-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.carousel-indicator.active {
-    background: white;
-    transform: scale(1.2);
-}
-
-.carousel-nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 4px;
-    opacity: 0;
-    transition: all 0.3s ease;
-    z-index: 2;
-}
-
-.card:hover .carousel-nav {
-    opacity: 1;
-}
-
-.carousel-nav:hover {
-    background: rgba(0, 0, 0, 0.7);
-}
-
-.carousel-nav.prev {
-    left: 10px;
-}
-
-.carousel-nav.next {
-    right: 10px;
-}
-
-/* 脉冲效果 */
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-.card.clicked {
-    animation: pulse 0.3s ease;
 }
 
 .card-img {
     width: 100%;
-    height: 220px;
+    height: 200px;
     object-fit: cover;
     transition: var(--transition);
-    cursor: pointer;
 }
 
 .card:hover .card-img {
@@ -844,48 +623,66 @@
 }
 
 .card-body {
-    padding: 25px;
-    position: relative;
+    padding: 20px;
 }
 
 .card-title {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     font-weight: 700;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     color: var(--text-primary);
-    line-height: 1.4;
-    transition: var(--transition);
-}
-
-.card:hover .card-title {
-    color: var(--primary-color);
+    line-height: 1.3;
 }
 
 .card-text {
     color: var(--text-secondary);
     line-height: 1.6;
-    margin-bottom: 20px;
-    font-size: 0.95rem;
+    margin-bottom: 15px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .card-meta {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    gap: 15px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.card-date, .card-category {
+    display: flex;
+    align-items: center;
+    gap: 5px;
     font-size: 0.9rem;
     color: var(--text-secondary);
 }
 
-.card-meta span {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+.card-date i, .card-category i {
+    color: var(--primary-color);
+    font-size: 0.8rem;
 }
 
-.card-meta i {
-    color: var(--primary-color);
+.card-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.card-actions .btn {
+    flex: 1;
+    padding: 8px 16px;
     font-size: 0.9rem;
+}
+
+.card-actions .btn-secondary {
+    flex: 0 0 auto;
+    width: 40px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn {

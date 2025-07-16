@@ -71,6 +71,8 @@ async function loadArticleDetail() {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
     
+    console.log('文章详情页 - URL参数ID:', id);
+    
     if (!id) {
         showError('文章ID不存在');
         return;
@@ -90,17 +92,24 @@ async function loadArticleDetail() {
             const content = await response.json();
             allArticles = content.articles || [];
             
+            console.log('加载到的所有文章:', allArticles);
+            console.log('查找文章ID:', id);
+            
             // 查找指定文章
             currentArticle = allArticles.find(article => article.id === id);
+            
+            console.log('找到的文章:', currentArticle);
             
             if (currentArticle) {
                 renderArticleDetail(currentArticle);
                 loadRelatedArticles(currentArticle);
                 updateNavigationButtons();
             } else {
+                console.error('未找到文章:', id);
                 showError('文章不存在或已被删除');
             }
         } else {
+            console.error('API响应错误:', response.status);
             showError('加载文章失败');
         }
     } catch (error) {
