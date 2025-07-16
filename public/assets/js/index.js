@@ -44,6 +44,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 绑定排序功能
     setupSortFunctionality();
 
+    // 绑定分类筛选功能
+    setupFilterFunctionality();
+
     // 绑定分页功能
     setupPagination();
 
@@ -238,10 +241,20 @@ function setupViewToggle() {
 
 // 更新内容视图
 function updateContentView() {
-    const containers = document.querySelectorAll('.content-grid');
-    containers.forEach(container => {
-        container.className = `content-grid view-${currentView}`;
-    });
+    // 只更新当前显示的内容区域
+    let currentContainer;
+    if (currentSection === 'articles') {
+        currentContainer = document.getElementById('articles-container');
+    } else if (currentSection === 'albums') {
+        currentContainer = document.getElementById('images-container');
+    }
+    
+    if (currentContainer) {
+        // 移除所有视图类
+        currentContainer.classList.remove('view-grid', 'view-list', 'view-masonry');
+        // 添加当前视图类
+        currentContainer.classList.add(`view-${currentView}`);
+    }
 }
 
 // 设置排序功能
@@ -257,6 +270,85 @@ function setupSortFunctionality() {
             }
         });
     });
+}
+
+// 设置分类筛选功能
+function setupFilterFunctionality() {
+    const filterSelects = document.querySelectorAll('.filter-select');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            const selectedCategory = this.value;
+            if (currentSection === 'articles') {
+                filterAndRenderArticles(selectedCategory);
+            } else if (currentSection === 'albums') {
+                filterAndRenderAlbums(selectedCategory);
+            }
+        });
+    });
+}
+
+// 筛选并渲染文章
+function filterAndRenderArticles(category) {
+    const container = document.getElementById('articles-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    let filteredArticles = allContent.articles || [];
+    
+    if (category) {
+        filteredArticles = filteredArticles.filter(article => 
+            article.category === category
+        );
+    }
+    
+    // 排序
+    filteredArticles = sortData(filteredArticles, currentSort);
+    
+    if (filteredArticles.length > 0) {
+        filteredArticles.forEach((article, index) => {
+            const articleElement = createArticleCard(article, index);
+            container.appendChild(articleElement);
+        });
+    } else {
+        container.innerHTML = `<div class="empty-state">
+            <div class="empty-icon">🔍</div>
+            <h3>未找到相关文章</h3>
+            <p>${category ? `没有找到分类为"${category}"的文章` : '没有找到相关文章'}</p>
+        </div>`;
+    }
+}
+
+// 筛选并渲染相册
+function filterAndRenderAlbums(category) {
+    const container = document.getElementById('images-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    let filteredAlbums = allContent.images || [];
+    
+    if (category) {
+        filteredAlbums = filteredAlbums.filter(album => 
+            album.category === category
+        );
+    }
+    
+    // 排序
+    filteredAlbums = sortData(filteredAlbums, currentSort);
+    
+    if (filteredAlbums.length > 0) {
+        filteredAlbums.forEach((album, index) => {
+            const albumElement = createAlbumCard(album, index);
+            container.appendChild(albumElement);
+        });
+    } else {
+        container.innerHTML = `<div class="empty-state">
+            <div class="empty-icon">🔍</div>
+            <h3>未找到相关相册</h3>
+            <p>${category ? `没有找到分类为"${category}"的相册` : '没有找到相关相册'}</p>
+        </div>`;
+    }
 }
 
 // 设置分页功能
@@ -476,7 +568,7 @@ function createAlbumCard(album, index) {
     ).join('');
     
     const carouselIndicators = images.slice(0, 5).map((_, i) => 
-        `<span class="carousel-indicator ${i === 0 ? 'active' : ''}" onclick="changeCarouselImage(this, ${i})"></span>`
+        `<span class="carousel-indicator ${i === 0 ? 'active' : ''}" onclick="changeCarouselImage(this, ${i}, event)"></span>`
     ).join('');
     
     // 创建预览图片网格
@@ -495,10 +587,10 @@ function createAlbumCard(album, index) {
                         ${carouselImages.length > 0 ? carouselImages : `<img src="${decodeHtmlEntities(imageUrl)}" alt="${album.title}" class="carousel-image" loading="lazy">`}
                     </div>
                     ${images.length > 1 ? `
-                        <button class="carousel-nav prev" onclick="changeCarouselImage(this, -1)">
+                        <button class="carousel-nav prev" onclick="changeCarouselImage(this, -1, event)">
                             <i class="fas fa-chevron-left"></i>
                         </button>
-                        <button class="carousel-nav next" onclick="changeCarouselImage(this, 1)">
+                        <button class="carousel-nav next" onclick="changeCarouselImage(this, 1, event)">
                             <i class="fas fa-chevron-right"></i>
                         </button>
                         <div class="carousel-indicators">
@@ -603,6 +695,9 @@ async function loadContent() {
             renderContent(content);
             updateStats(content);
             updateNavigationBadges(content);
+            
+            // 加载并填充分类数据
+            await loadAndPopulateCategories();
         } else {
             allContent = { articles: [], images: [] };
             renderContent(allContent);
@@ -616,6 +711,41 @@ async function loadContent() {
         updateStats(allContent);
         updateNavigationBadges(allContent);
         showNotification('网络错误，请检查网络连接', false);
+    }
+}
+
+// 加载并填充分类数据
+async function loadAndPopulateCategories() {
+    try {
+        // 从内容中提取分类
+        const articleCategories = [...new Set(allContent.articles?.map(article => article.category).filter(Boolean) || [])];
+        const albumCategories = [...new Set(allContent.images?.map(album => album.category).filter(Boolean) || [])];
+        
+        // 填充文章分类下拉框
+        const articlesFilter = document.getElementById('articles-filter');
+        if (articlesFilter) {
+            articlesFilter.innerHTML = '<option value="">所有分类</option>';
+            articleCategories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                articlesFilter.appendChild(option);
+            });
+        }
+        
+        // 填充相册分类下拉框
+        const imagesFilter = document.getElementById('images-filter');
+        if (imagesFilter) {
+            imagesFilter.innerHTML = '<option value="">所有分类</option>';
+            albumCategories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                imagesFilter.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('加载分类数据失败:', error);
     }
 }
 
@@ -902,7 +1032,26 @@ function downloadImage() {
 function shareImage() {
     const image = currentImages[currentImageIndex];
     if (image) {
-        shareContent('album', image.id, image.title);
+        // 如果图片属于相册，分享相册
+        if (image.albumId) {
+            shareContent('album', image.albumId, image.title || '相册图片');
+        } else {
+            // 否则分享图片URL
+            const imageUrl = image.url || document.getElementById('viewer-image').src;
+            if (navigator.share) {
+                navigator.share({
+                    title: image.title || '图片分享',
+                    url: imageUrl
+                });
+            } else {
+                // 复制到剪贴板
+                navigator.clipboard.writeText(imageUrl).then(() => {
+                    showNotification('图片链接已复制到剪贴板');
+                });
+            }
+        }
+    } else {
+        showNotification('无法分享图片', false);
     }
 }
 
@@ -983,7 +1132,7 @@ window.addEventListener('scroll', function() {
 });
 
 // 图片轮播控制函数
-function changeCarouselImage(element, direction) {
+function changeCarouselImage(element, direction, event) {
     const card = element.closest('.album-card');
     const carousel = card.querySelector('.carousel-images');
     const indicators = card.querySelectorAll('.carousel-indicator');
@@ -1012,7 +1161,9 @@ function changeCarouselImage(element, direction) {
     });
     
     // 阻止事件冒泡
-    event.stopPropagation();
+    if (event) {
+        event.stopPropagation();
+    }
 }
 
 // 自动轮播
@@ -1028,7 +1179,7 @@ function startAutoCarousel() {
                 if (!card.matches(':hover')) {
                     const nextBtn = card.querySelector('.carousel-nav.next');
                     if (nextBtn) {
-                        changeCarouselImage(nextBtn, 1);
+                        changeCarouselImage(nextBtn, 1, null);
                     }
                 }
             }, 4000);
@@ -1051,10 +1202,10 @@ function initAlbumInteractions() {
             if (images && images.length > 1) {
                 if (e.key === 'ArrowLeft') {
                     const prevBtn = focusedCard.querySelector('.carousel-nav.prev');
-                    if (prevBtn) changeCarouselImage(prevBtn, -1);
+                    if (prevBtn) changeCarouselImage(prevBtn, -1, null);
                 } else if (e.key === 'ArrowRight') {
                     const nextBtn = focusedCard.querySelector('.carousel-nav.next');
-                    if (nextBtn) changeCarouselImage(nextBtn, 1);
+                    if (nextBtn) changeCarouselImage(nextBtn, 1, null);
                 }
             }
         }
@@ -1092,11 +1243,11 @@ function addTouchSupport() {
                     if (endX > startX) {
                         // 向右滑动 - 上一张
                         const prevBtn = card.querySelector('.carousel-nav.prev');
-                        if (prevBtn) changeCarouselImage(prevBtn, -1);
+                        if (prevBtn) changeCarouselImage(prevBtn, -1, null);
                     } else {
                         // 向左滑动 - 下一张
                         const nextBtn = card.querySelector('.carousel-nav.next');
-                        if (nextBtn) changeCarouselImage(nextBtn, 1);
+                        if (nextBtn) changeCarouselImage(nextBtn, 1, null);
                     }
                 }
             }
