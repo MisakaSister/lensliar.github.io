@@ -66,13 +66,158 @@ function initQuillEditor() {
     
     quillEditor = new Quill('#article-content-editor', {
         theme: 'snow',
-        modules: { toolbar: toolbarOptions },
+        modules: { 
+            toolbar: {
+                container: toolbarOptions,
+                handlers: {
+                    image: imageHandler
+                }
+            }
+        },
         placeholder: '请输入文章内容...'
     });
     
     quillEditor.on('text-change', function() {
         document.getElementById('article-content').value = quillEditor.root.innerHTML;
     });
+    
+    // 处理粘贴事件
+    quillEditor.on('paste', async function(e) {
+        const clipboardData = e.clipboardData;
+        if (!clipboardData) return;
+        
+        const items = clipboardData.items;
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (item.type.indexOf('image') !== -1) {
+                e.preventDefault();
+                
+                const file = item.getAsFile();
+                if (!file) continue;
+                
+                // 验证文件
+                const validation = Utils.validateFile(file);
+                if (!validation.valid) {
+                    Utils.showNotification(validation.error, false);
+                    continue;
+                }
+                
+                try {
+                    Utils.showNotification('正在上传粘贴的图片...', true);
+                    
+                    // 上传图片到R2
+                    const uploadedFile = await uploadFile(file);
+                    
+                    // 获取当前光标位置
+                    const range = quillEditor.getSelection();
+                    
+                    // 插入图片到编辑器
+                    quillEditor.insertEmbed(range.index, 'image', uploadedFile.url);
+                    
+                    // 移动光标到图片后面
+                    quillEditor.setSelection(range.index + 1);
+                    
+                    Utils.showNotification('图片上传成功');
+                    
+                } catch (error) {
+                    Utils.showNotification('图片上传失败: ' + error.message, false);
+                }
+            }
+        }
+    });
+    
+    // 处理拖拽事件
+    const editorElement = document.getElementById('article-content-editor');
+    editorElement.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.currentTarget.classList.add('drag-over');
+    });
+    
+    editorElement.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+    });
+    
+    editorElement.addEventListener('drop', async function(e) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+        
+        const files = Array.from(e.dataTransfer.files);
+        const imageFiles = files.filter(file => file.type.startsWith('image/'));
+        
+        if (imageFiles.length === 0) return;
+        
+        for (const file of imageFiles) {
+            // 验证文件
+            const validation = Utils.validateFile(file);
+            if (!validation.valid) {
+                Utils.showNotification(validation.error, false);
+                continue;
+            }
+            
+            try {
+                Utils.showNotification('正在上传拖拽的图片...', true);
+                
+                // 上传图片到R2
+                const uploadedFile = await uploadFile(file);
+                
+                // 获取当前光标位置
+                const range = quillEditor.getSelection();
+                
+                // 插入图片到编辑器
+                quillEditor.insertEmbed(range.index, 'image', uploadedFile.url);
+                
+                // 移动光标到图片后面
+                quillEditor.setSelection(range.index + 1);
+                
+                Utils.showNotification('图片上传成功');
+                
+            } catch (error) {
+                Utils.showNotification('图片上传失败: ' + error.message, false);
+            }
+        }
+    });
+}
+
+// 图片处理器
+async function imageHandler() {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+    
+    input.onchange = async () => {
+        const file = input.files[0];
+        if (!file) return;
+        
+        // 验证文件
+        const validation = Utils.validateFile(file);
+        if (!validation.valid) {
+            Utils.showNotification(validation.error, false);
+            return;
+        }
+        
+        try {
+            Utils.showNotification('正在上传图片...', true);
+            
+            // 上传图片到R2
+            const uploadedFile = await uploadFile(file);
+            
+            // 获取当前光标位置
+            const range = quillEditor.getSelection();
+            
+            // 插入图片到编辑器
+            quillEditor.insertEmbed(range.index, 'image', uploadedFile.url);
+            
+            // 移动光标到图片后面
+            quillEditor.setSelection(range.index + 1);
+            
+            Utils.showNotification('图片上传成功');
+            
+        } catch (error) {
+            Utils.showNotification('图片上传失败: ' + error.message, false);
+        }
+    };
 }
 
 // 设置事件监听器
@@ -685,9 +830,16 @@ async function saveArticle() {
     };
     
     console.log('文章数据:', articleData);
+    console.log('内容长度:', articleData.content.length);
     
     if (!articleData.title || !articleData.content) {
         Utils.showNotification('请填写标题和内容', false);
+        return;
+    }
+    
+    // 检查内容长度限制（D1单字段最大约1MB）
+    if (articleData.content.length > 500000) {
+        Utils.showNotification('内容过大，无法保存（请减少图片数量或压缩图片）', false);
         return;
     }
     

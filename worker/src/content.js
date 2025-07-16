@@ -134,6 +134,21 @@ async function getArticle(id, env) {
 // 创建文章
 async function createArticle(articleData, env) {
     try {
+        console.log('开始创建文章，数据:', JSON.stringify(articleData, null, 2));
+        console.log('内容长度:', articleData.content.length);
+        
+        // 检查内容长度限制
+        if (articleData.content.length > 500000) {
+            return new Response(JSON.stringify({
+                error: '内容过大，无法保存（请减少图片数量或压缩图片）'
+            }), {
+                status: 400,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+        
         if (!articleData.title || !articleData.content) {
             return new Response(JSON.stringify({
                 error: 'Article title and content are required'
