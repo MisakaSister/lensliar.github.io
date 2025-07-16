@@ -1,35 +1,28 @@
-// worker/src/public.js - 公开内容API
-
+// 公开API模块
 export async function handlePublicAPI(request, env) {
+    const url = new URL(request.url);
+    const pathname = url.pathname;
+
     try {
-        const url = new URL(request.url);
-        const pathParts = url.pathname.split('/').filter(part => part);
-
-        // 移除 'api' 前缀
-        if (pathParts[0] === 'api') {
-            pathParts.shift();
-        }
-
-        // 只允许 GET 请求
-        if (request.method !== 'GET') {
-            return new Response(JSON.stringify({
-                error: "Method not allowed"
-            }), {
-                status: 405,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Allow': 'GET'
-                }
-            });
-        }
-
-        // 路由处理
-        if (pathParts.length === 0 || pathParts[0] === 'content') {
+        // 公开内容API
+        if (pathname === '/api/content' || pathname === '/') {
             return await getPublicContent(request, env);
         }
 
+        // 获取单篇文章详情
+        if (pathname.startsWith('/api/article/')) {
+            const articleId = pathname.split('/')[3];
+            return await getPublicArticle(articleId, env);
+        }
+
+        // 获取单个相册详情
+        if (pathname.startsWith('/api/album/')) {
+            const albumId = pathname.split('/')[3];
+            return await getPublicAlbum(albumId, env);
+        }
+
         return new Response(JSON.stringify({
-            error: "Endpoint not found"
+            error: 'Not Found'
         }), {
             status: 404,
             headers: {
@@ -40,7 +33,7 @@ export async function handlePublicAPI(request, env) {
     } catch (error) {
         console.error('Public API error:', error);
         return new Response(JSON.stringify({
-            error: "Internal server error"
+            error: 'Internal server error'
         }), {
             status: 500,
             headers: {
@@ -57,77 +50,40 @@ async function getPublicContent(request, env) {
         const page = parseInt(url.searchParams.get('page')) || 1;
         const limit = Math.min(parseInt(url.searchParams.get('limit')) || 10, 10); // 限制为10
 
-        // 获取文章 - 分步处理以避免资源超限
+        // 获取文章
         let articles = [];
-        let images = [];
-        
         try {
-            // 步骤1: 获取文章索引，限制数量
-            const articleIndex = (await env.CONTENT_KV.get("articles:index", "json") || []).slice(0, 20);
+            const { results } = await env.d1_sql.prepare(`
+                SELECT * FROM articles 
+                WHERE status = 'published' AND visibility = 'public'
+                ORDER BY created_at DESC 
+                LIMIT ? OFFSET ?
+            `).bind(limit, (page - 1) * limit).all();
             
-            // 步骤2: 只获取当前页需要的文章
-            const startIndex = (page - 1) * limit;
-            const endIndex = startIndex + limit;
-            const articleIdsToFetch = articleIndex.slice(startIndex, endIndex);
-            
-            // 步骤3: 一次只获取5个文章
-            const fetchedArticles = [];
-            for (let i = 0; i < articleIdsToFetch.length; i += 5) {
-                const batch = articleIdsToFetch.slice(i, i + 5);
-                const batchPromises = batch.map(id => 
-                    env.CONTENT_KV.get(`article:${id}`, "json").catch(() => null)
-                );
-                const batchResults = await Promise.all(batchPromises);
-                fetchedArticles.push(...batchResults);
-            }
-            
-            // 步骤4: 过滤和格式化文章
-            articles = fetchedArticles
-                .filter(article => article && article.status === 'published' && article.visibility === 'public')
-                .map(article => ({
-                    id: article.id,
-                    title: article.title,
-                    summary: article.summary,
-                    content: article.content,
-                    category: article.category,
-                    tags: article.tags || [],
-                    coverImage: article.coverImage,
-                    images: article.images || [],
-                    author: article.author,
-                    publishedAt: article.publishedAt,
-                    createdAt: article.createdAt,
-                    stats: article.stats || { views: 0, likes: 0 }
-                }));
+            articles = results || [];
         } catch (error) {
             console.error('Error fetching articles:', error);
             articles = [];
         }
 
+        // 获取相册
+        let images = [];
         try {
-            // 步骤5: 获取相册 - 限制数量
-            const albumKeys = await env.IMAGES_KV.list({
-                prefix: 'album_',
-                limit: 10
-            });
+            const { results } = await env.d1_sql.prepare(`
+                SELECT * FROM albums 
+                ORDER BY created_at DESC 
+                LIMIT 5
+            `).all();
             
-            // 步骤6: 获取相册数据
-            const albumPromises = albumKeys.keys.slice(0, 5).map(key => 
-                env.IMAGES_KV.get(key.name, 'json').catch(() => null)
-            );
-            const albums = await Promise.all(albumPromises);
-            
-            // 步骤7: 过滤和格式化相册
-            images = albums
-                .filter(album => album && album.images && album.images.length > 0)
-                .map(album => ({
-                    id: album.id,
-                    title: album.title,
-                    description: album.description,
-                    imageCount: album.imageCount,
-                    createdAt: album.createdAt,
-                    coverImage: album.coverImage,
-                    images: album.images || [] // 确保返回完整的images字段
-                }));
+            images = (results || []).map(album => ({
+                id: album.id,
+                title: album.title,
+                description: album.description,
+                imageCount: album.image_count,
+                createdAt: album.created_at,
+                coverImage: JSON.parse(album.cover_image || 'null'),
+                images: JSON.parse(album.images || '[]')
+            }));
         } catch (error) {
             console.error('Error fetching albums:', error);
             images = [];
@@ -154,9 +110,138 @@ async function getPublicContent(request, env) {
         });
 
     } catch (error) {
-        console.error('getPublicContent error:', error);
+        console.error('Error in getPublicContent:', error);
         return new Response(JSON.stringify({
-            error: "Failed to get content"
+            error: 'Failed to get public content'
+        }), {
+            status: 500,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+}
+
+// 获取公开文章详情
+async function getPublicArticle(articleId, env) {
+    try {
+        const { results } = await env.d1_sql.prepare(`
+            SELECT * FROM articles 
+            WHERE id = ? AND status = 'published' AND visibility = 'public'
+        `).bind(articleId).all();
+        
+        if (!results || results.length === 0) {
+            return new Response(JSON.stringify({
+                error: 'Article not found'
+            }), {
+                status: 404,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+
+        const article = results[0];
+        
+        // 格式化文章数据
+        const formattedArticle = {
+            id: article.id,
+            title: article.title,
+            content: article.content,
+            summary: article.summary,
+            category: article.category,
+            tags: JSON.parse(article.tags || '[]'),
+            coverImage: JSON.parse(article.cover_image || 'null'),
+            images: JSON.parse(article.images || '[]'),
+            attachments: JSON.parse(article.attachments || '[]'),
+            author: article.author,
+            status: article.status,
+            visibility: article.visibility,
+            createdAt: article.created_at,
+            updatedAt: article.updated_at,
+            publishedAt: article.published_at,
+            seo: {
+                metaTitle: article.seo_meta_title,
+                metaDescription: article.seo_meta_description,
+                keywords: JSON.parse(article.seo_keywords || '[]'),
+                slug: article.seo_slug
+            },
+            stats: {
+                views: article.views || 0,
+                likes: article.likes || 0,
+                comments: article.comments || 0,
+                shares: article.shares || 0
+            }
+        };
+
+        return new Response(JSON.stringify(formattedArticle), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'public, max-age=300'
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching article:', error);
+        return new Response(JSON.stringify({
+            error: 'Failed to get article'
+        }), {
+            status: 500,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+}
+
+// 获取公开相册详情
+async function getPublicAlbum(albumId, env) {
+    try {
+        const { results } = await env.d1_sql.prepare(`
+            SELECT * FROM albums WHERE id = ?
+        `).bind(albumId).all();
+        
+        if (!results || results.length === 0) {
+            return new Response(JSON.stringify({
+                error: 'Album not found'
+            }), {
+                status: 404,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+
+        const album = results[0];
+        
+        // 格式化相册数据
+        const formattedAlbum = {
+            id: album.id,
+            title: album.title,
+            description: album.description,
+            category: album.category,
+            tags: JSON.parse(album.tags || '[]'),
+            images: JSON.parse(album.images || '[]'),
+            imageCount: album.image_count,
+            coverImage: JSON.parse(album.cover_image || 'null'),
+            uploadedBy: album.uploaded_by,
+            createdAt: album.created_at,
+            updatedAt: album.updated_at
+        };
+
+        return new Response(JSON.stringify(formattedAlbum), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'public, max-age=300'
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching album:', error);
+        return new Response(JSON.stringify({
+            error: 'Failed to get album'
         }), {
             status: 500,
             headers: {

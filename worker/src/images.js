@@ -1,7 +1,5 @@
 // worker/src/images.js - 相册管理模块
 import { verifyAuth } from './content.js';
-import { handleError } from './error-handler.js';
-import { checkRateLimit } from './rate-limiter.js';
 
 export async function handleImages(request, env) {
     const url = new URL(request.url);
@@ -9,8 +7,6 @@ export async function handleImages(request, env) {
     const method = request.method;
 
     try {
-        // 图片管理API速率限制
-        await checkRateLimit(request, env, 'content');
         // 验证认证
         const authResult = await verifyAuth(request, env);
         if (!authResult.success) {
@@ -43,8 +39,6 @@ export async function handleImages(request, env) {
             return await updateImageAlbum(imageId, request, env);
         }
 
-
-
         return new Response(JSON.stringify({
             error: 'Not Found'
         }), {
@@ -55,7 +49,15 @@ export async function handleImages(request, env) {
         });
 
     } catch (error) {
-        return handleError(error, request);
+        console.error('Images handler error:', error);
+        return new Response(JSON.stringify({
+            error: 'Internal server error'
+        }), {
+            status: 500,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
     }
 }
 
@@ -68,67 +70,75 @@ async function getImages(request, env) {
         const search = url.searchParams.get('search') || '';
         const category = url.searchParams.get('category') || '';
 
-        // 获取所有图片KV键
-        const listResult = await env.IMAGES_KV.list({
-            prefix: 'album_'
-        });
-
-        const images = [];
-        
-        // 批量获取图片数据
-        for (const key of listResult.keys) {
-            try {
-                const imageData = await env.IMAGES_KV.get(key.name, 'json');
-                if (imageData) {
-                    images.push(imageData);
-                }
-            } catch (error) {
-                // Silently skip failed keys
-            }
-        }
-
-        // 按创建时间排序（最新的在前）
-        images.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-        let filteredImages = images;
-
-        // 分类过滤
-        if (category) {
-            filteredImages = filteredImages.filter(image => 
-                image.category === category
-            );
-        }
+        let query = 'SELECT * FROM albums';
+        let params = [];
+        let conditions = [];
 
         // 搜索过滤
         if (search) {
-            const searchLower = search.toLowerCase();
-            filteredImages = filteredImages.filter(image => 
-                image.title?.toLowerCase().includes(searchLower) ||
-                image.description?.toLowerCase().includes(searchLower) ||
-                image.category?.toLowerCase().includes(searchLower) ||
-                image.tags?.some(tag => tag.toLowerCase().includes(searchLower))
-            );
+            conditions.push('(title LIKE ? OR description LIKE ? OR category LIKE ?)');
+            const searchTerm = `%${search}%`;
+            params.push(searchTerm, searchTerm, searchTerm);
         }
 
+        // 分类过滤
+        if (category) {
+            conditions.push('category = ?');
+            params.push(category);
+        }
+
+        if (conditions.length > 0) {
+            query += ' WHERE ' + conditions.join(' AND ');
+        }
+
+        query += ' ORDER BY created_at DESC';
+
         // 分页
-        const total = filteredImages.length;
         const offset = (page - 1) * limit;
-        const paginatedImages = filteredImages.slice(offset, offset + limit);
+        query += ' LIMIT ? OFFSET ?';
+        params.push(limit, offset);
+
+        const { results } = await env.d1_sql.prepare(query).bind(...params).all();
+        
+        // 获取总数
+        let countQuery = 'SELECT COUNT(*) as total FROM albums';
+        if (conditions.length > 0) {
+            countQuery += ' WHERE ' + conditions.join(' AND ');
+        }
+        const { results: countResults } = await env.d1_sql.prepare(countQuery).bind(...params.slice(0, -2)).all();
+        const total = countResults[0]?.total || 0;
 
         // 获取所有分类
-        const categories = [...new Set(images.map(img => img.category).filter(Boolean))];
+        const { results: categories } = await env.d1_sql.prepare(`
+            SELECT DISTINCT category FROM albums WHERE category IS NOT NULL AND category != ''
+        `).all();
+
+        // 格式化返回数据
+        const albums = (results || []).map(album => ({
+            id: album.id,
+            title: album.title,
+            description: album.description,
+            category: album.category,
+            tags: JSON.parse(album.tags || '[]'),
+            images: JSON.parse(album.images || '[]'),
+            imageCount: album.image_count,
+            coverImage: JSON.parse(album.cover_image || 'null'),
+            uploadedBy: album.uploaded_by,
+            createdAt: album.created_at,
+            updatedAt: album.updated_at
+        }));
 
         return new Response(JSON.stringify({
             success: true,
-            images: paginatedImages,
+            images: albums,
             pagination: {
                 page,
                 limit,
                 total,
                 totalPages: Math.ceil(total / limit)
             },
-            categories: categories,
-            totalImages: images.length
+            categories: categories?.map(c => c.category) || [],
+            totalImages: total
         }), {
             status: 200,
             headers: {
@@ -137,6 +147,7 @@ async function getImages(request, env) {
         });
 
     } catch (error) {
+        console.error('Error fetching albums:', error);
         return new Response(JSON.stringify({
             error: 'Failed to get images'
         }), {
@@ -202,19 +213,28 @@ async function saveImageAlbum(request, env) {
             updatedAt: currentTime
         };
 
-        // 保存到IMAGES_KV
-        const kvKey = `album_${albumId}`;
-        
-        try {
-            await env.IMAGES_KV.put(kvKey, JSON.stringify(album));
-            
-            // 验证保存是否成功
-            const savedAlbum = await env.IMAGES_KV.get(kvKey, 'json');
-            if (!savedAlbum) {
-                throw new Error('Album verification failed');
-            }
-        } catch (kvError) {
-            throw new Error('Failed to save album to KV storage');
+        // 保存到D1数据库
+        const { success } = await env.d1_sql.prepare(`
+            INSERT INTO albums (
+                id, title, description, category, tags, images, image_count, 
+                cover_image, uploaded_by, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+            album.id,
+            album.title,
+            album.description,
+            album.category,
+            JSON.stringify(album.tags),
+            JSON.stringify(album.images),
+            album.imageCount,
+            JSON.stringify(album.coverImage),
+            album.uploadedBy,
+            album.createdAt,
+            album.updatedAt
+        ).run();
+
+        if (!success) {
+            throw new Error('Failed to save album to database');
         }
 
         return new Response(JSON.stringify({
@@ -228,7 +248,7 @@ async function saveImageAlbum(request, env) {
         });
 
     } catch (error) {
-
+        console.error('Error saving album:', error);
         return new Response(JSON.stringify({
             error: 'Failed to save image album'
         }), {
@@ -244,8 +264,11 @@ async function saveImageAlbum(request, env) {
 async function deleteImageAlbum(albumId, env) {
     try {
         // 获取相册数据
-        const album = await env.IMAGES_KV.get(`album_${albumId}`, 'json');
-        if (!album) {
+        const { results } = await env.d1_sql.prepare(`
+            SELECT * FROM albums WHERE id = ?
+        `).bind(albumId).all();
+        
+        if (!results || results.length === 0) {
             return new Response(JSON.stringify({
                 error: 'Album not found'
             }), {
@@ -256,11 +279,14 @@ async function deleteImageAlbum(albumId, env) {
             });
         }
 
+        const album = results[0];
+        const images = JSON.parse(album.images || '[]');
+
         // 检查图片是否被文章使用
-        const imageUsageCheck = await checkImageUsageInArticles(album.images, env);
+        const imageUsageCheck = await checkImageUsageInArticles(images, env);
         
         // 只删除没有被文章使用的图片
-        const deletePromises = album.images.map(async (image) => {
+        const deletePromises = images.map(async (image) => {
             const isUsedInArticles = imageUsageCheck.some(usage => 
                 usage.fileName === image.fileName && usage.isUsed
             );
@@ -276,11 +302,17 @@ async function deleteImageAlbum(albumId, env) {
 
         await Promise.allSettled(deletePromises);
 
-        // 从IMAGES_KV删除相册记录
-        await env.IMAGES_KV.delete(`album_${albumId}`);
+        // 从数据库删除相册记录
+        const { success } = await env.d1_sql.prepare(`
+            DELETE FROM albums WHERE id = ?
+        `).bind(albumId).run();
+
+        if (!success) {
+            throw new Error('Failed to delete album from database');
+        }
 
         const usedImagesCount = imageUsageCheck.filter(usage => usage.isUsed).length;
-        const deletedImagesCount = album.imageCount - usedImagesCount;
+        const deletedImagesCount = album.image_count - usedImagesCount;
 
         return new Response(JSON.stringify({
             success: true,
@@ -293,7 +325,7 @@ async function deleteImageAlbum(albumId, env) {
         });
 
     } catch (error) {
-
+        console.error('Error deleting album:', error);
         return new Response(JSON.stringify({
             error: 'Failed to delete album'
         }), {
@@ -308,10 +340,10 @@ async function deleteImageAlbum(albumId, env) {
 // 检查图片是否被文章使用
 async function checkImageUsageInArticles(images, env) {
     try {
-        // 获取所有文章的键
-        const articleKeys = await env.CONTENT_KV.list({
-            prefix: 'article:'
-        });
+        // 获取所有文章
+        const { results: articles } = await env.d1_sql.prepare(`
+            SELECT cover_image, images FROM articles
+        `).all();
 
         const imageUsage = images.map(img => ({
             fileName: img.fileName,
@@ -320,24 +352,27 @@ async function checkImageUsageInArticles(images, env) {
         }));
 
         // 检查每篇文章
-        for (const key of articleKeys.keys) {
+        for (const article of articles || []) {
             try {
-                const article = await env.CONTENT_KV.get(key.name, 'json');
-                if (article) {
-                    // 检查封面图片
-                    if (article.coverImage) {
+                // 检查封面图片
+                if (article.cover_image) {
+                    const coverImage = JSON.parse(article.cover_image);
+                    if (coverImage) {
                         const coverImageUsage = imageUsage.find(usage => 
-                            usage.url === article.coverImage.url || 
-                            usage.fileName === article.coverImage.fileName
+                            usage.url === coverImage.url || 
+                            usage.fileName === coverImage.fileName
                         );
                         if (coverImageUsage) {
                             coverImageUsage.isUsed = true;
                         }
                     }
+                }
 
-                    // 检查文章中的图片
-                    if (article.images && Array.isArray(article.images)) {
-                        article.images.forEach(articleImg => {
+                // 检查文章中的图片
+                if (article.images) {
+                    const articleImages = JSON.parse(article.images);
+                    if (Array.isArray(articleImages)) {
+                        articleImages.forEach(articleImg => {
                             const imageUsageItem = imageUsage.find(usage => 
                                 usage.url === articleImg.url || 
                                 usage.fileName === articleImg.fileName
@@ -349,18 +384,17 @@ async function checkImageUsageInArticles(images, env) {
                     }
                 }
             } catch (error) {
-
+                // Silently skip failed articles
             }
         }
 
         return imageUsage;
     } catch (error) {
-
-        // 如果检查失败，为了安全起见，假设所有图片都被使用
+        console.error('Error checking image usage:', error);
         return images.map(img => ({
             fileName: img.fileName,
             url: img.url,
-            isUsed: true
+            isUsed: false
         }));
     }
 }
@@ -371,8 +405,11 @@ async function updateImageAlbum(albumId, request, env) {
         const updateData = await request.json();
         
         // 获取现有相册数据
-        const existingAlbum = await env.IMAGES_KV.get(`album_${albumId}`, 'json');
-        if (!existingAlbum) {
+        const { results } = await env.d1_sql.prepare(`
+            SELECT * FROM albums WHERE id = ?
+        `).bind(albumId).all();
+        
+        if (!results || results.length === 0) {
             return new Response(JSON.stringify({
                 error: 'Album not found'
             }), {
@@ -383,18 +420,35 @@ async function updateImageAlbum(albumId, request, env) {
             });
         }
 
+        const existingAlbum = results[0];
+        const currentTime = new Date().toISOString();
+
         // 更新相册数据
+        const { success } = await env.d1_sql.prepare(`
+            UPDATE albums SET 
+                title = ?, description = ?, category = ?, tags = ?, updated_at = ?
+            WHERE id = ?
+        `).bind(
+            updateData.title || existingAlbum.title,
+            updateData.description || existingAlbum.description,
+            updateData.category || existingAlbum.category,
+            JSON.stringify(updateData.tags || JSON.parse(existingAlbum.tags || '[]')),
+            currentTime,
+            albumId
+        ).run();
+
+        if (!success) {
+            throw new Error('Failed to update album in database');
+        }
+
         const updatedAlbum = {
             ...existingAlbum,
             title: updateData.title || existingAlbum.title,
             description: updateData.description || existingAlbum.description,
             category: updateData.category || existingAlbum.category,
-            tags: updateData.tags || existingAlbum.tags,
-            updatedAt: new Date().toISOString()
+            tags: updateData.tags || JSON.parse(existingAlbum.tags || '[]'),
+            updatedAt: currentTime
         };
-
-        // 保存更新后的相册
-        await env.IMAGES_KV.put(`album_${albumId}`, JSON.stringify(updatedAlbum));
 
         return new Response(JSON.stringify({
             success: true,
@@ -407,7 +461,7 @@ async function updateImageAlbum(albumId, request, env) {
         });
 
     } catch (error) {
-
+        console.error('Error updating album:', error);
         return new Response(JSON.stringify({
             error: 'Failed to update album'
         }), {
@@ -419,9 +473,7 @@ async function updateImageAlbum(albumId, request, env) {
     }
 }
 
-
-
 // 生成相册ID
 function generateAlbumId() {
-    return Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return `album_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 } 

@@ -50,7 +50,7 @@ export async function handleContent(request, env) {
         }
 
         return new Response(JSON.stringify({
-            error: "Invalid endpoint"
+            error: "Not Found"
         }), {
             status: 404,
             headers: {
@@ -59,10 +59,9 @@ export async function handleContent(request, env) {
         });
 
     } catch (error) {
-        console.error('[Content API] Error:', error);
+        console.error('Content handler error:', error);
         return new Response(JSON.stringify({
-            error: "Internal server error",
-            message: error.message
+            error: 'Internal server error'
         }), {
             status: 500,
             headers: {
@@ -75,19 +74,15 @@ export async function handleContent(request, env) {
 // 获取所有文章
 async function getAllArticles(env) {
     try {
-        const articleIndex = await env.CONTENT_KV.get("articles:index", "json") || [];
-        const articles = [];
+        const { results } = await env.d1_sql.prepare(`
+            SELECT * FROM articles 
+            ORDER BY created_at DESC 
+            LIMIT 100
+        `).all();
         
-        for (const id of articleIndex.slice(0, 100)) {
-            const article = await env.CONTENT_KV.get(`article:${id}`, "json");
-            if (article) articles.push(article);
-        }
-        
-        articles.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
         return new Response(JSON.stringify({
-            articles: articles,
-            total: articles.length
+            articles: results || [],
+            total: results?.length || 0
         }), {
             status: 200,
             headers: {
@@ -102,8 +97,11 @@ async function getAllArticles(env) {
 // 获取单篇文章
 async function getArticle(id, env) {
     try {
-        const article = await env.CONTENT_KV.get(`article:${id}`, "json");
-        if (!article) {
+        const { results } = await env.d1_sql.prepare(`
+            SELECT * FROM articles WHERE id = ?
+        `).bind(id).all();
+        
+        if (!results || results.length === 0) {
             return new Response(JSON.stringify({
                 error: "Article not found"
             }), {
@@ -114,7 +112,7 @@ async function getArticle(id, env) {
             });
         }
 
-        return new Response(JSON.stringify(article), {
+        return new Response(JSON.stringify(results[0]), {
             status: 200,
             headers: {
                 'Content-Type': 'application/json'
@@ -140,7 +138,41 @@ async function createArticle(articleData, env) {
         }
 
         const articleId = articleData.id || `article_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const currentTime = new Date().toISOString();
         
+        const { success } = await env.d1_sql.prepare(`
+            INSERT INTO articles (
+                id, title, content, summary, category, tags, cover_image, 
+                images, attachments, author, status, visibility, 
+                created_at, updated_at, published_at, seo_meta_title, 
+                seo_meta_description, seo_keywords, seo_slug, views, likes, comments, shares
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0)
+        `).bind(
+            articleId,
+            articleData.title,
+            articleData.content,
+            articleData.summary || articleData.content.substring(0, 200),
+            articleData.category || '',
+            JSON.stringify(Array.isArray(articleData.tags) ? articleData.tags : []),
+            JSON.stringify(articleData.coverImage || null),
+            JSON.stringify(Array.isArray(articleData.images) ? articleData.images : []),
+            JSON.stringify(Array.isArray(articleData.attachments) ? articleData.attachments : []),
+            articleData.author || 'Admin',
+            articleData.status || 'published',
+            articleData.visibility || 'public',
+            currentTime,
+            currentTime,
+            articleData.status === 'published' ? currentTime : null,
+            articleData.seo?.metaTitle || articleData.title,
+            articleData.seo?.metaDescription || articleData.summary || '',
+            JSON.stringify(Array.isArray(articleData.seo?.keywords) ? articleData.seo.keywords : []),
+            articleData.seo?.slug || generateSlug(articleData.title)
+        ).run();
+
+        if (!success) {
+            throw new Error('Failed to insert article');
+        }
+
         const article = {
             id: articleId,
             title: articleData.title,
@@ -154,9 +186,9 @@ async function createArticle(articleData, env) {
             author: articleData.author || 'Admin',
             status: articleData.status || 'published',
             visibility: articleData.visibility || 'public',
-            createdAt: articleData.createdAt || new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            publishedAt: articleData.status === 'published' ? (articleData.publishedAt || new Date().toISOString()) : null,
+            createdAt: currentTime,
+            updatedAt: currentTime,
+            publishedAt: articleData.status === 'published' ? currentTime : null,
             seo: {
                 metaTitle: articleData.seo?.metaTitle || articleData.title,
                 metaDescription: articleData.seo?.metaDescription || articleData.summary || '',
@@ -170,9 +202,6 @@ async function createArticle(articleData, env) {
                 shares: 0
             }
         };
-
-        await env.CONTENT_KV.put(`article:${articleId}`, JSON.stringify(article));
-        await updateArticleIndex(articleId, env);
 
         return new Response(JSON.stringify({
             success: true,
@@ -191,8 +220,11 @@ async function createArticle(articleData, env) {
 // 更新文章
 async function updateArticle(id, articleData, env) {
     try {
-        const existingArticle = await env.CONTENT_KV.get(`article:${id}`, "json");
-        if (!existingArticle) {
+        const { results } = await env.d1_sql.prepare(`
+            SELECT * FROM articles WHERE id = ?
+        `).bind(id).all();
+        
+        if (!results || results.length === 0) {
             return new Response(JSON.stringify({
                 error: "Article not found"
             }), {
@@ -203,14 +235,46 @@ async function updateArticle(id, articleData, env) {
             });
         }
 
-        const updatedArticle = {
-            ...existingArticle,
-            ...articleData,
-            id: id, // 保持原有ID
-            updatedAt: new Date().toISOString()
-        };
+        const currentTime = new Date().toISOString();
+        
+        const { success } = await env.d1_sql.prepare(`
+            UPDATE articles SET 
+                title = ?, content = ?, summary = ?, category = ?, tags = ?, 
+                cover_image = ?, images = ?, attachments = ?, author = ?, 
+                status = ?, visibility = ?, updated_at = ?, published_at = ?,
+                seo_meta_title = ?, seo_meta_description = ?, seo_keywords = ?, seo_slug = ?
+            WHERE id = ?
+        `).bind(
+            articleData.title || results[0].title,
+            articleData.content || results[0].content,
+            articleData.summary || results[0].summary,
+            articleData.category || results[0].category,
+            JSON.stringify(Array.isArray(articleData.tags) ? articleData.tags : results[0].tags || []),
+            JSON.stringify(articleData.coverImage || results[0].cover_image),
+            JSON.stringify(Array.isArray(articleData.images) ? articleData.images : results[0].images || []),
+            JSON.stringify(Array.isArray(articleData.attachments) ? articleData.attachments : results[0].attachments || []),
+            articleData.author || results[0].author,
+            articleData.status || results[0].status,
+            articleData.visibility || results[0].visibility,
+            currentTime,
+            articleData.status === 'published' ? currentTime : results[0].published_at,
+            articleData.seo?.metaTitle || results[0].seo_meta_title,
+            articleData.seo?.metaDescription || results[0].seo_meta_description,
+            JSON.stringify(Array.isArray(articleData.seo?.keywords) ? articleData.seo.keywords : results[0].seo_keywords || []),
+            articleData.seo?.slug || results[0].seo_slug,
+            id
+        ).run();
 
-        await env.CONTENT_KV.put(`article:${id}`, JSON.stringify(updatedArticle));
+        if (!success) {
+            throw new Error('Failed to update article');
+        }
+
+        const updatedArticle = {
+            ...results[0],
+            ...articleData,
+            id: id,
+            updatedAt: currentTime
+        };
 
         return new Response(JSON.stringify({
             success: true,
@@ -229,8 +293,11 @@ async function updateArticle(id, articleData, env) {
 // 删除文章
 async function deleteArticle(id, env) {
     try {
-        const article = await env.CONTENT_KV.get(`article:${id}`, "json");
-        if (!article) {
+        const { results } = await env.d1_sql.prepare(`
+            SELECT * FROM articles WHERE id = ?
+        `).bind(id).all();
+        
+        if (!results || results.length === 0) {
             return new Response(JSON.stringify({
                 error: "Article not found"
             }), {
@@ -241,8 +308,13 @@ async function deleteArticle(id, env) {
             });
         }
 
-        await env.CONTENT_KV.delete(`article:${id}`);
-        await removeFromArticleIndex(id, env);
+        const { success } = await env.d1_sql.prepare(`
+            DELETE FROM articles WHERE id = ?
+        `).bind(id).run();
+
+        if (!success) {
+            throw new Error('Failed to delete article');
+        }
 
         return new Response(JSON.stringify({
             success: true
@@ -257,31 +329,7 @@ async function deleteArticle(id, env) {
     }
 }
 
-// 更新文章索引
-async function updateArticleIndex(id, env) {
-    try {
-        const index = await env.CONTENT_KV.get("articles:index", "json") || [];
-        if (!index.includes(id)) {
-            index.unshift(id);
-            await env.CONTENT_KV.put("articles:index", JSON.stringify(index));
-        }
-    } catch (error) {
-        console.error('Failed to update article index:', error);
-    }
-}
-
-// 从索引中移除文章
-async function removeFromArticleIndex(id, env) {
-    try {
-        const index = await env.CONTENT_KV.get("articles:index", "json") || [];
-        const newIndex = index.filter(articleId => articleId !== id);
-        await env.CONTENT_KV.put("articles:index", JSON.stringify(newIndex));
-    } catch (error) {
-        console.error('Failed to remove from article index:', error);
-    }
-}
-
-// 生成 slug
+// 生成URL友好的slug
 function generateSlug(title) {
     return title
         .toLowerCase()
