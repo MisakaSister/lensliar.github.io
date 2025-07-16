@@ -929,8 +929,11 @@ function formatDate(dateString) {
 
 // 查看详情
 function viewDetail(type, id) {
-    localStorage.setItem('targetSection', type === 'article' ? 'articles' : 'albums');
-    window.location.href = `detail.html?type=${type}&id=${id}`;
+    if (type === 'article') {
+        window.location.href = `article-detail.html?id=${id}`;
+    } else if (type === 'album') {
+        window.location.href = `album-detail.html?id=${id}`;
+    }
 }
 
 // 图片查看器功能
