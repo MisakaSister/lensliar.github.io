@@ -24,6 +24,9 @@ export async function handleImages(request, env) {
         if (pathname === '/images' && method === 'GET') {
             return await getImages(request, env);
         }
+        if (pathname === '/images/categories' && method === 'GET') {
+            return await getAlbumCategories(env);
+        }
         
         if (pathname === '/images' && method === 'POST') {
             return await saveImageAlbum(request, env);
@@ -478,6 +481,34 @@ async function updateImageAlbum(albumId, request, env) {
         console.error('Error updating album:', error);
         return new Response(JSON.stringify({
             error: 'Failed to update album'
+        }), {
+            status: 500,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+}
+
+// 获取所有相册分类
+async function getAlbumCategories(env) {
+    try {
+        const { results } = await env.d1_sql.prepare(`
+            SELECT id, name, description, color, sort_order FROM album_categories ORDER BY sort_order ASC, created_at ASC
+        `).all();
+        return new Response(JSON.stringify({
+            categories: results || []
+        }), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    } catch (error) {
+        console.error('[分类] 获取相册分类出错:', error);
+        return new Response(JSON.stringify({
+            error: 'Failed to get album categories',
+            details: error.message
         }), {
             status: 500,
             headers: {

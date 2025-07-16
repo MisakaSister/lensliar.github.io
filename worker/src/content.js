@@ -34,6 +34,8 @@ export async function handleContent(request, env) {
                 return await getAllArticles(env);
             } else if (pathParts.length === 2) {
                 return await getArticle(pathParts[1], env);
+            } else if (pathParts.length === 2 && pathParts[1] === 'categories') {
+                return await getArticleCategories(env);
             }
         } else if (request.method === 'POST') {
             const articleData = await request.json();
@@ -343,6 +345,34 @@ function generateSlug(title) {
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-')
         .trim('-');
+}
+
+// 获取所有文章分类
+async function getArticleCategories(env) {
+    try {
+        const { results } = await env.d1_sql.prepare(`
+            SELECT id, name, description, color, sort_order FROM article_categories ORDER BY sort_order ASC, created_at ASC
+        `).all();
+        return new Response(JSON.stringify({
+            categories: results || []
+        }), {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    } catch (error) {
+        console.error('[分类] 获取文章分类出错:', error);
+        return new Response(JSON.stringify({
+            error: 'Failed to get article categories',
+            details: error.message
+        }), {
+            status: 500,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
 }
 
 // 验证认证token

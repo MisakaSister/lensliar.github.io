@@ -42,9 +42,33 @@ CREATE TABLE IF NOT EXISTS albums (
     updated_at TEXT NOT NULL
 );
 
+-- 文章分类表
+CREATE TABLE IF NOT EXISTS article_categories (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT DEFAULT '',
+    color TEXT DEFAULT '#007bff',
+    sort_order INTEGER DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+-- 相册分类表
+CREATE TABLE IF NOT EXISTS album_categories (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT DEFAULT '',
+    color TEXT DEFAULT '#28a745',
+    sort_order INTEGER DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
 -- 创建索引
 CREATE INDEX IF NOT EXISTS idx_articles_status_visibility ON articles(status, visibility);
 CREATE INDEX IF NOT EXISTS idx_articles_created_at ON articles(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category);
 CREATE INDEX IF NOT EXISTS idx_albums_created_at ON albums(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_albums_category ON albums(category); 
+CREATE INDEX IF NOT EXISTS idx_albums_category ON albums(category);
+CREATE INDEX IF NOT EXISTS idx_article_categories_sort ON article_categories(sort_order);
+CREATE INDEX IF NOT EXISTS idx_album_categories_sort ON album_categories(sort_order); 
