@@ -7,6 +7,10 @@ let editingItem = null;
 let selectedFiles = [];
 const pageSize = 10;
 
+// 全局变量
+let articleCategories = [];
+let albumCategories = [];
+
 // 初始化
 document.addEventListener('DOMContentLoaded', async function() {
     // 检查登录状态
@@ -111,20 +115,71 @@ function setupEventListeners() {
 
 // 加载所有内容
 async function loadAllContent() {
-    const [articles, albums] = await Promise.allSettled([
-        articleManager.loadAll(),
-        albumManager.loadAll()
-    ]);
-    
-    if (articles.status === 'rejected') {
-        Utils.showNotification('加载文章失败: ' + articles.reason.message, false);
+    try {
+        Utils.showNotification('正在加载数据...', true);
+        
+        // 并行加载文章、相册和分类数据
+        const [articlesResult, imagesResult, articleCategoriesResult, albumCategoriesResult] = await Promise.all([
+            articleManager.getAll(),
+            albumManager.getAll(),
+            loadArticleCategories(),
+            loadAlbumCategories()
+        ]);
+        
+        // 更新全局数据
+        articleManager.setData(articlesResult.articles || []);
+        albumManager.setData(imagesResult.images || []);
+        articleCategories = articleCategoriesResult.categories || [];
+        albumCategories = albumCategoriesResult.categories || [];
+        
+        updateStats();
+        renderCurrentTab();
+        Utils.showNotification('数据加载完成');
+        
+    } catch (error) {
+        console.error('加载数据失败:', error);
+        Utils.showNotification('加载数据失败: ' + error.message, false);
     }
-    
-    if (albums.status === 'rejected') {
-        Utils.showNotification('加载相册失败: ' + albums.reason.message, false);
+}
+
+// 加载文章分类
+async function loadArticleCategories() {
+    try {
+        const response = await fetch(`${API_BASE}/content/categories`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('获取文章分类失败');
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('加载文章分类失败:', error);
+        return { categories: [] };
     }
-    
-    updateStats();
+}
+
+// 加载相册分类
+async function loadAlbumCategories() {
+    try {
+        const response = await fetch(`${API_BASE}/images/categories`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('获取相册分类失败');
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('加载相册分类失败:', error);
+        return { categories: [] };
+    }
 }
 
 // 更新统计信息
@@ -177,103 +232,115 @@ function renderCurrentTab() {
 // 渲染文章列表
 function renderArticles() {
     const container = document.getElementById('articles-container');
-    const articles = articleManager.search(searchQuery.articles);
+    const articles = articleManager.getData();
     
-    const startIndex = (currentPage.articles - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const pageArticles = articles.slice(startIndex, endIndex);
-    
-    if (pageArticles.length === 0) {
-        container.innerHTML = '<div class="empty-state">暂无文章</div>';
-        document.getElementById('articles-pagination').innerHTML = '';
+    if (articles.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-newspaper"></i>
+                <h3>暂无文章</h3>
+                <p>点击"新建文章"开始创作</p>
+            </div>
+        `;
         return;
     }
     
-    container.innerHTML = pageArticles.map(article => `
-        <div class="content-card" data-id="${article.id}">
-            <div class="card-header">
-                <h3 class="card-title">${Utils.escapeHtml(article.title)}</h3>
-                <div class="card-meta">
-                    <span class="meta-item">
-                        <i class="fas fa-calendar"></i>
-                        ${Utils.formatDate(article.createdAt)}
-                    </span>
-                    ${article.category ? `
-                        <span class="meta-item">
-                            <i class="fas fa-tag"></i>
-                            ${Utils.escapeHtml(article.category)}
-                        </span>
-                    ` : ''}
+    container.innerHTML = articles.map(article => {
+        const category = articleCategories.find(cat => cat.id === article.category);
+        const categoryName = category ? category.name : article.category || '未分类';
+        const categoryColor = category ? category.color : '#6c757d';
+        
+        return `
+            <div class="content-card" data-id="${article.id}">
+                <div class="card-header">
+                    <div class="card-title">
+                        <h3>${article.title}</h3>
+                        <span class="category-badge" style="background-color: ${categoryColor}">${categoryName}</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-icon" onclick="editArticle('${article.id}')" title="编辑">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon" onclick="deleteArticle('${article.id}')" title="删除">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <p>${article.summary || article.content.substring(0, 100)}...</p>
+                </div>
+                <div class="card-footer">
+                    <div class="card-meta">
+                        <span><i class="fas fa-user"></i> ${article.author}</span>
+                        <span><i class="fas fa-calendar"></i> ${new Date(article.createdAt).toLocaleDateString()}</span>
+                        <span><i class="fas fa-eye"></i> ${article.stats?.views || 0}</span>
+                    </div>
                 </div>
             </div>
-            <div class="card-content">
-                <p class="card-summary">${Utils.truncateText(article.summary || article.content, 150)}</p>
-            </div>
-            <div class="card-actions">
-                <button class="btn-modern btn-primary" onclick="editArticle('${article.id}')">
-                    <i class="fas fa-edit"></i> 编辑
-                </button>
-                <button class="btn-modern btn-danger" onclick="deleteArticle('${article.id}')">
-                    <i class="fas fa-trash"></i> 删除
-                </button>
-            </div>
-        </div>
-    `).join('');
-    
-    renderPagination('articles', Math.ceil(articles.length / pageSize));
+        `;
+    }).join('');
 }
 
 // 渲染相册列表
 function renderImages() {
     const container = document.getElementById('images-container');
-    const albums = albumManager.search(searchQuery.images);
+    const albums = albumManager.getData();
     
-    const startIndex = (currentPage.images - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const pageAlbums = albums.slice(startIndex, endIndex);
-    
-    if (pageAlbums.length === 0) {
-        container.innerHTML = '<div class="empty-state">暂无相册</div>';
-        document.getElementById('images-pagination').innerHTML = '';
+    if (albums.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-images"></i>
+                <h3>暂无相册</h3>
+                <p>点击"创建相册"开始上传图片</p>
+            </div>
+        `;
         return;
     }
     
-    container.innerHTML = pageAlbums.map(album => `
-        <div class="content-card" data-id="${album.id}">
-            <div class="card-header">
-                <h3 class="card-title">${Utils.escapeHtml(album.title)}</h3>
-                <div class="card-meta">
-                    <span class="meta-item">
-                        <i class="fas fa-calendar"></i>
-                        ${Utils.formatDate(album.createdAt)}
-                    </span>
-                    ${album.category ? `
-                        <span class="meta-item">
-                            <i class="fas fa-tag"></i>
-                            ${Utils.escapeHtml(album.category)}
-                        </span>
-                    ` : ''}
-                    <span class="meta-item">
-                        <i class="fas fa-images"></i>
-                        ${album.images?.length || 0} 张图片
-                    </span>
+    container.innerHTML = albums.map(album => {
+        const category = albumCategories.find(cat => cat.id === album.category);
+        const categoryName = category ? category.name : album.category || '未分类';
+        const categoryColor = category ? category.color : '#6c757d';
+        
+        return `
+            <div class="content-card" data-id="${album.id}">
+                <div class="card-header">
+                    <div class="card-title">
+                        <h3>${album.title}</h3>
+                        <span class="category-badge" style="background-color: ${categoryColor}">${categoryName}</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-icon" onclick="editAlbum('${album.id}')" title="编辑">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon" onclick="deleteAlbum('${album.id}')" title="删除">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="album-preview">
+                        ${album.coverImage ? `
+                            <img src="${album.coverImage.url}" alt="${album.title}" class="album-cover">
+                        ` : `
+                            <div class="no-cover">
+                                <i class="fas fa-images"></i>
+                                <span>无封面图片</span>
+                            </div>
+                        `}
+                    </div>
+                    <p class="album-description">${album.description || '暂无描述'}</p>
+                </div>
+                <div class="card-footer">
+                    <div class="card-meta">
+                        <span><i class="fas fa-images"></i> ${album.imageCount} 张图片</span>
+                        <span><i class="fas fa-calendar"></i> ${new Date(album.createdAt).toLocaleDateString()}</span>
+                        <span><i class="fas fa-user"></i> ${album.uploadedBy}</span>
+                    </div>
                 </div>
             </div>
-            <div class="card-content">
-                <p class="card-summary">${Utils.truncateText(album.description, 150)}</p>
-            </div>
-            <div class="card-actions">
-                <button class="btn-modern btn-primary" onclick="editAlbum('${album.id}')">
-                    <i class="fas fa-edit"></i> 编辑
-                </button>
-                <button class="btn-modern btn-danger" onclick="deleteAlbum('${album.id}')">
-                    <i class="fas fa-trash"></i> 删除
-                </button>
-            </div>
-        </div>
-    `).join('');
-    
-    renderPagination('images', Math.ceil(albums.length / pageSize));
+        `;
+    }).join('');
 }
 
 // 渲染分页
@@ -310,9 +377,47 @@ function changePage(type, page) {
 
 // 打开模态框
 function openModal(type) {
-    editingItem = null;
-    resetForm(type);
-    document.getElementById(`${type}-modal`).style.display = 'flex';
+    if (type === 'article') {
+        document.getElementById('article-modal').style.display = 'flex';
+        renderArticleCategorySelect();
+    } else if (type === 'image') {
+        document.getElementById('image-modal').style.display = 'flex';
+        renderAlbumCategorySelect();
+    }
+}
+
+// 渲染文章分类下拉框
+function renderArticleCategorySelect() {
+    const select = document.getElementById('article-category');
+    if (!select) return;
+    
+    // 清空现有选项
+    select.innerHTML = '<option value="">请选择分类</option>';
+    
+    // 添加分类选项
+    articleCategories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.id;
+        option.textContent = category.name;
+        select.appendChild(option);
+    });
+}
+
+// 渲染相册分类下拉框
+function renderAlbumCategorySelect() {
+    const select = document.getElementById('image-category');
+    if (!select) return;
+    
+    // 清空现有选项
+    select.innerHTML = '<option value="">请选择分类</option>';
+    
+    // 添加分类选项
+    albumCategories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.id;
+        option.textContent = category.name;
+        select.appendChild(option);
+    });
 }
 
 // 关闭模态框
@@ -593,6 +698,9 @@ async function editArticle(id) {
     editingItem = id;
     document.getElementById('article-modal-title').innerHTML = '<i class="fas fa-edit"></i> 编辑文章';
     
+    // 渲染分类下拉框
+    renderArticleCategorySelect();
+    
     // 填充表单
     document.getElementById('article-title').value = article.title;
     document.getElementById('article-category').value = article.category || '';
@@ -615,6 +723,9 @@ async function editAlbum(id) {
     }
     
     editingItem = id;
+    
+    // 渲染分类下拉框
+    renderAlbumCategorySelect();
     
     // 填充表单
     document.getElementById('image-title').value = album.title;
