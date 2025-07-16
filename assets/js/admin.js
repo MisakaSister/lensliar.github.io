@@ -665,18 +665,18 @@ function removeArticleImage() {
 
 // 保存文章
 async function saveArticle() {
-    const form = document.getElementById('article-form');
-    const formData = new FormData(form);
-    
+    const titleElement = document.getElementById('article-title');
+    const categoryElement = document.getElementById('article-category');
     const coverImageElement = document.getElementById('article-cover-image');
-    const coverImageValue = coverImageElement ? coverImageElement.value : '';
     
     const articleData = {
-        title: formData.get('title'),
+        title: titleElement ? titleElement.value.trim() : '',
         content: quillEditor.root.innerHTML,
-        category: formData.get('category'),
-        coverImage: coverImageValue || null
+        category: categoryElement ? categoryElement.value : '',
+        coverImage: coverImageElement ? coverImageElement.value : null
     };
+    
+    console.log('文章数据:', articleData);
     
     if (!articleData.title || !articleData.content) {
         Utils.showNotification('请填写标题和内容', false);
@@ -710,15 +710,19 @@ async function saveArticle() {
 
 // 保存相册
 async function saveImages() {
-    const form = document.getElementById('image-form');
-    const formData = new FormData(form);
+    const titleElement = document.getElementById('image-title');
+    const descriptionElement = document.getElementById('image-description');
+    const categoryElement = document.getElementById('image-category');
     
     const albumData = {
-        title: formData.get('title'),
-        description: formData.get('description'),
-        category: formData.get('category'),
+        title: titleElement ? titleElement.value.trim() : '',
+        description: descriptionElement ? descriptionElement.value.trim() : '',
+        category: categoryElement ? categoryElement.value : '',
         images: selectedFiles
     };
+    
+    console.log('相册数据:', albumData);
+    console.log('选中的文件数量:', selectedFiles.length);
     
     if (!albumData.title || selectedFiles.length === 0) {
         Utils.showNotification('请填写标题并选择图片', false);

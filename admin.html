@@ -150,14 +150,14 @@
                     <i class="fas fa-heading"></i>
                     文章标题 *
                 </label>
-                <input type="text" class="form-input" id="article-title" placeholder="请输入文章标题" required>
+                <input type="text" class="form-input" id="article-title" name="title" placeholder="请输入文章标题" required>
             </div>
             <div class="form-group">
                 <label class="form-label" for="article-category">
                     <i class="fas fa-tag"></i>
                     分类
                 </label>
-                <select class="form-input" id="article-category">
+                <select class="form-input" id="article-category" name="category">
                     <option value="">请选择分类</option>
                 </select>
             </div>
@@ -215,14 +215,14 @@
                     <i class="fas fa-heading"></i>
                     相册标题
                 </label>
-                <input type="text" class="form-input" id="image-title" placeholder="请输入相册标题">
+                <input type="text" class="form-input" id="image-title" name="title" placeholder="请输入相册标题">
             </div>
             <div class="form-group">
                 <label class="form-label" for="image-category">
                     <i class="fas fa-tag"></i>
                     相册分类
                 </label>
-                <select class="form-input" id="image-category">
+                <select class="form-input" id="image-category" name="category">
                     <option value="">请选择分类</option>
                 </select>
             </div>
@@ -245,7 +245,7 @@
                     <i class="fas fa-align-left"></i>
                     相册描述
                 </label>
-                <textarea class="form-input form-textarea" id="image-description" placeholder="请输入相册描述（可选）"></textarea>
+                <textarea class="form-input form-textarea" id="image-description" name="description" placeholder="请输入相册描述（可选）"></textarea>
             </div>
             <div id="upload-progress" style="display: none; margin-top: 20px;">
                 <div class="upload-progress-title">
