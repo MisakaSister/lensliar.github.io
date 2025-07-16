@@ -74,11 +74,15 @@ export async function handleContent(request, env) {
 // 获取所有文章
 async function getAllArticles(env) {
     try {
+        console.log('[文章] 开始获取所有文章');
+        
         const { results } = await env.d1_sql.prepare(`
             SELECT * FROM articles 
             ORDER BY created_at DESC 
             LIMIT 100
         `).all();
+        
+        console.log(`[文章] 查询结果数量: ${results?.length || 0}`);
         
         return new Response(JSON.stringify({
             articles: results || [],
@@ -90,6 +94,8 @@ async function getAllArticles(env) {
             }
         });
     } catch (error) {
+        console.error('[文章] 获取文章列表时出错:', error);
+        console.error('[文章] 错误堆栈:', error.stack);
         throw new Error(`Failed to get articles: ${error.message}`);
     }
 }

@@ -64,11 +64,15 @@ export async function handleImages(request, env) {
 // 获取相册图片列表
 async function getImages(request, env) {
     try {
+        console.log('[相册] 开始获取相册列表');
+        
         const url = new URL(request.url);
         const page = parseInt(url.searchParams.get('page') || '1');
         const limit = parseInt(url.searchParams.get('limit') || '20');
         const search = url.searchParams.get('search') || '';
         const category = url.searchParams.get('category') || '';
+
+        console.log(`[相册] 查询参数: page=${page}, limit=${limit}, search=${search}, category=${category}`);
 
         let query = 'SELECT * FROM albums';
         let params = [];
@@ -98,7 +102,11 @@ async function getImages(request, env) {
         query += ' LIMIT ? OFFSET ?';
         params.push(limit, offset);
 
+        console.log(`[相册] 执行查询: ${query}`);
+        console.log(`[相册] 查询参数:`, params);
+
         const { results } = await env.d1_sql.prepare(query).bind(...params).all();
+        console.log(`[相册] 查询结果数量: ${results?.length || 0}`);
         
         // 获取总数
         let countQuery = 'SELECT COUNT(*) as total FROM albums';
@@ -107,11 +115,13 @@ async function getImages(request, env) {
         }
         const { results: countResults } = await env.d1_sql.prepare(countQuery).bind(...params.slice(0, -2)).all();
         const total = countResults[0]?.total || 0;
+        console.log(`[相册] 总数: ${total}`);
 
         // 获取所有分类
         const { results: categories } = await env.d1_sql.prepare(`
             SELECT DISTINCT category FROM albums WHERE category IS NOT NULL AND category != ''
         `).all();
+        console.log(`[相册] 分类数量: ${categories?.length || 0}`);
 
         // 格式化返回数据
         const albums = (results || []).map(album => ({
@@ -127,6 +137,8 @@ async function getImages(request, env) {
             createdAt: album.created_at,
             updatedAt: album.updated_at
         }));
+
+        console.log(`[相册] 格式化后相册数量: ${albums.length}`);
 
         return new Response(JSON.stringify({
             success: true,
@@ -147,9 +159,11 @@ async function getImages(request, env) {
         });
 
     } catch (error) {
-        console.error('Error fetching albums:', error);
+        console.error('[相册] 获取相册列表时出错:', error);
+        console.error('[相册] 错误堆栈:', error.stack);
         return new Response(JSON.stringify({
-            error: 'Failed to get images'
+            error: 'Failed to get images',
+            details: error.message
         }), {
             status: 500,
             headers: {
