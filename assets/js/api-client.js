@@ -99,7 +99,14 @@ class ContentManager extends ApiClient {
             const data = await this.get(this.endpoint);
             if (!data) return [];
             
-            this.items = data.articles || data.albums || [];
+            // 根据endpoint确定数据字段名
+            if (this.endpoint === '/content') {
+                this.items = data.articles || [];
+            } else if (this.endpoint === '/images') {
+                this.items = data.images || [];
+            } else {
+                this.items = data.articles || data.albums || data.images || [];
+            }
             return this.items;
         } catch (error) {
             console.error(`加载${this.endpoint}失败:`, error);
@@ -113,8 +120,11 @@ class ContentManager extends ApiClient {
             if (!data) return null;
             
             if (data.success) {
-                this.items.push(data.article || data.album);
-                return data.article || data.album;
+                const newItem = data.article || data.album || data.images;
+                if (newItem) {
+                    this.items.push(newItem);
+                }
+                return newItem;
             }
             throw new Error(data.error || '创建失败');
         } catch (error) {
@@ -129,11 +139,12 @@ class ContentManager extends ApiClient {
             if (!data) return null;
             
             if (data.success) {
+                const updatedItem = data.article || data.album || data.images;
                 const index = this.items.findIndex(item => item.id === id);
-                if (index !== -1) {
-                    this.items[index] = data.article || data.album;
+                if (index !== -1 && updatedItem) {
+                    this.items[index] = updatedItem;
                 }
-                return data.article || data.album;
+                return updatedItem;
             }
             throw new Error(data.error || '更新失败');
         } catch (error) {
