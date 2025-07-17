@@ -8,6 +8,22 @@ let isDarkTheme = false;
 let albumsDisplayed = 6;
 const itemsPerPage = 6;
 
+// 分类名称映射
+const categoryNameMap = {
+    'cat_article_1': '技术文章',
+    'cat_article_2': '生活随笔',
+    'cat_article_3': '学习笔记',
+    'cat_album_1': '风景摄影',
+    'cat_album_2': '人物写真',
+    'cat_album_3': '生活记录'
+};
+
+// 获取友好的分类名称
+function getFriendlyCategoryName(category) {
+    if (!category) return '未分类';
+    return categoryNameMap[category] || category;
+}
+
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
     // 检查是否已登录
@@ -182,7 +198,7 @@ async function loadAndPopulateCategories() {
             albumCategories.forEach(category => {
                 const option = document.createElement('option');
                 option.value = category;
-                option.textContent = category;
+                option.textContent = getFriendlyCategoryName(category);
                 albumsFilter.appendChild(option);
             });
         }
@@ -384,7 +400,7 @@ function createAlbumCard(album, index) {
                         <span class="album-stat-label">图片</span>
                     </div>
                     <div class="album-stat">
-                        <span class="album-stat-number">${album.category || '未分类'}</span>
+                        <span class="album-stat-number">${getFriendlyCategoryName(album.category)}</span>
                         <span class="album-stat-label">分类</span>
                     </div>
                 </div>

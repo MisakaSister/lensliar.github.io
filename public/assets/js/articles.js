@@ -8,6 +8,25 @@ let isDarkTheme = false;
 let articlesDisplayed = 6;
 const itemsPerPage = 6;
 
+// 分类名称映射
+const categoryNameMap = {
+    'cat_article_1': '技术分享',
+    'cat_article_2': '生活随笔',
+    'cat_article_3': '学习笔记',
+    'cat_article_4': '项目展示',
+    'cat_album_1': '风景摄影',
+    'cat_album_2': '人像摄影',
+    'cat_album_3': '美食摄影',
+    'cat_album_4': '旅行记录',
+    'cat_album_5': '工作日常',
+};
+
+// 获取友好的分类名称
+function getFriendlyCategoryName(category) {
+    if (!category) return '未分类';
+    return categoryNameMap[category] || category;
+}
+
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
     // 检查是否已登录
@@ -187,7 +206,7 @@ async function loadAndPopulateCategories() {
             articleCategories.forEach(category => {
                 const option = document.createElement('option');
                 option.value = category;
-                option.textContent = category;
+                option.textContent = getFriendlyCategoryName(category);
                 articlesFilter.appendChild(option);
             });
         }
@@ -334,7 +353,7 @@ function createArticleCard(article, index) {
                 </span>
                 <span class="card-category">
                     <i class="fas fa-tag"></i>
-                    ${article.category || '未分类'}
+                    ${getFriendlyCategoryName(article.category)}
                 </span>
             </div>
             <div class="card-actions">

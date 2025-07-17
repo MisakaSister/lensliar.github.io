@@ -79,6 +79,7 @@ async function getPublicContent(request, env) {
                 id: album.id,
                 title: album.title,
                 description: album.description,
+                category: album.category,
                 imageCount: album.image_count,
                 createdAt: album.created_at,
                 coverImage: JSON.parse(album.cover_image || 'null'),
