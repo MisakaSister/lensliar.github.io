@@ -578,22 +578,22 @@ nav {
     box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
 }
 
-/* 图片查看器样式优化 */
+/* 图片查看器 */
 .image-viewer {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.95);
+    background: rgba(0, 0, 0, 0.9);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 2000;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(5px);
     opacity: 0;
     visibility: hidden;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--transition);
 }
 
 .image-viewer.active {
@@ -602,62 +602,46 @@ nav {
 }
 
 .image-viewer-content {
-    width: 95%;
-    height: 95%;
-    max-width: 1400px;
-    max-height: 90vh;
+    max-width: 95%;
+    max-height: 95%;
     display: flex;
     flex-direction: column;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     overflow: hidden;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-    position: relative;
 }
 
 .image-viewer-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 25px;
-    background: rgba(0, 0, 0, 0.6);
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.5);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
 }
 
 .image-title {
     color: white;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 600;
     margin: 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    flex: 1;
-    margin-right: 20px;
 }
 
 .close-btn {
-    background: rgba(255, 255, 255, 0.1);
+    background: none;
     border: none;
     color: white;
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     cursor: pointer;
-    padding: 8px 12px;
+    padding: 5px;
     border-radius: 50%;
-    transition: all 0.3s ease;
-    width: 45px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(10px);
+    transition: var(--transition);
 }
 
 .close-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .image-viewer-body {
@@ -667,161 +651,62 @@ nav {
     align-items: center;
     justify-content: center;
     min-height: 400px;
-    padding: 20px;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%);
 }
 
 .image-container {
-    width: 100%;
-    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
 }
 
 .image-container img {
     max-width: 100%;
-    max-height: 100%;
+    max-height: 70vh;
     object-fit: contain;
-    border-radius: 12px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    transition: transform 0.3s ease;
-    cursor: zoom-in;
-}
-
-.image-container img:hover {
-    transform: scale(1.02);
+    border-radius: var(--border-radius);
 }
 
 .nav-btn {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.5);
     border: none;
     color: white;
-    padding: 18px 15px;
+    padding: 15px 12px;
     cursor: pointer;
     border-radius: 50%;
-    font-size: 1.4rem;
-    transition: all 0.3s ease;
-    z-index: 10;
-    width: 55px;
-    height: 55px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 1.2rem;
+    transition: var(--transition);
+    z-index: 1;
 }
 
 .nav-btn:hover {
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.7);
     transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-}
-
-.nav-btn:active {
-    transform: translateY(-50%) scale(0.95);
 }
 
 .prev-btn {
-    left: 25px;
+    left: 20px;
 }
 
 .next-btn {
-    right: 25px;
+    right: 20px;
 }
 
 .image-viewer-footer {
-    padding: 20px 25px;
-    background: rgba(0, 0, 0, 0.6);
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.5);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
-    backdrop-filter: blur(10px);
 }
 
 .image-counter {
     color: white;
-    font-size: 1rem;
-    opacity: 0.9;
-    font-weight: 500;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-/* 图片加载动画 */
-.image-container::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-top: 3px solid white;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.image-container.loading::before {
-    opacity: 1;
-}
-
-/* 图片缩放提示 */
-.image-zoom-hint {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
     font-size: 0.9rem;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    backdrop-filter: blur(10px);
-}
-
-.image-viewer.active .image-zoom-hint {
-    opacity: 1;
-    animation: fadeInUp 0.5s ease 0.5s both;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
-}
-
-/* 图片缩放状态 */
-.image-container img.zoomed {
-    transform: scale(1.5);
-    cursor: zoom-out !important;
-    transition: transform 0.3s ease;
-}
-
-.image-container img.zoomed:hover {
-    transform: scale(1.5);
-}
-
-/* 缩放时的容器样式 */
-.image-container:has(img.zoomed) {
-    overflow: auto;
-    cursor: grab;
-}
-
-.image-container:has(img.zoomed):active {
-    cursor: grabbing;
+    opacity: 0.8;
 }
 
 /* 加载动画 */
@@ -910,108 +795,34 @@ nav {
 /* 响应式设计 */
 @media (max-width: 768px) {
     .image-viewer-content {
-        width: 100%;
-        height: 100%;
         max-width: 100%;
         max-height: 100%;
         border-radius: 0;
-        margin: 0;
     }
     
     .image-container img {
-        max-height: 70vh;
-        border-radius: 8px;
+        max-height: 60vh;
     }
     
     .nav-btn {
-        padding: 15px 12px;
-        font-size: 1.2rem;
-        width: 50px;
-        height: 50px;
+        padding: 12px 10px;
+        font-size: 1rem;
     }
     
     .prev-btn {
-        left: 15px;
+        left: 10px;
     }
     
     .next-btn {
-        right: 15px;
+        right: 10px;
     }
     
     .image-viewer-header {
-        padding: 15px 20px;
+        padding: 10px 15px;
     }
     
     .image-title {
-        font-size: 1.1rem;
-    }
-    
-    .close-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 1.5rem;
-    }
-    
-    .image-viewer-footer {
-        padding: 15px 20px;
-    }
-    
-    .image-zoom-hint {
-        font-size: 0.8rem;
-        padding: 6px 12px;
-        bottom: 15px;
-    }
-    
-    /* 移动端显示简化提示 */
-    .image-zoom-hint::before {
-        content: "点击缩放 | 双击重置";
-    }
-    
-    .image-zoom-hint {
-        font-size: 0.8rem;
-        padding: 6px 12px;
-        bottom: 15px;
-    }
-    
-    /* 移动端隐藏完整提示，显示简化提示 */
-    .image-zoom-hint {
-        display: none;
-    }
-    
-    .image-zoom-hint::before {
-        content: "点击缩放 | 双击重置";
-        display: block;
-        position: absolute;
-        bottom: 15px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        backdrop-filter: blur(10px);
-    }
-    
-    /* 移动端图片缩放提示优化 */
-    .image-zoom-hint {
-        display: none;
-    }
-    
-    .image-zoom-hint::after {
-        content: "点击缩放 | 双击重置";
-        display: block;
-        position: absolute;
-        bottom: 15px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        backdrop-filter: blur(10px);
-        white-space: nowrap;
+        font-size: 1rem;
     }
     
     .album-images-grid {
@@ -1034,11 +845,6 @@ nav {
         height: 45px;
         font-size: 1rem;
     }
-    
-    /* 移动端图片缩放优化 */
-    .image-container img.zoomed {
-        transform: scale(1.3);
-    }
 }
 
 @media (max-width: 480px) {
@@ -1059,21 +865,13 @@ nav {
     }
     
     .image-viewer-content {
-        width: 100%;
-        height: 100%;
-        max-width: 100%;
-        max-height: 100%;
-    }
-    
-    .image-container img {
-        max-height: 60vh;
+        max-width: 95%;
+        max-height: 95%;
     }
     
     .nav-btn {
-        padding: 12px 10px;
+        padding: 10px;
         font-size: 1rem;
-        width: 45px;
-        height: 45px;
     }
     
     .prev-btn {
@@ -1082,56 +880,6 @@ nav {
     
     .next-btn {
         right: 10px;
-    }
-    
-    .image-viewer-header {
-        padding: 12px 15px;
-    }
-    
-    .image-title {
-        font-size: 1rem;
-    }
-    
-    .close-btn {
-        width: 35px;
-        height: 35px;
-        font-size: 1.3rem;
-    }
-    
-    .image-viewer-footer {
-        padding: 12px 15px;
-    }
-    
-    .image-zoom-hint {
-        font-size: 0.7rem;
-        padding: 5px 10px;
-        bottom: 10px;
-    }
-    
-    /* 小屏幕图片缩放优化 */
-    .image-container img.zoomed {
-        transform: scale(1.2);
-    }
-    
-    /* 小屏幕图片缩放提示优化 */
-    .image-zoom-hint {
-        display: none;
-    }
-    
-    .image-zoom-hint::after {
-        content: "点击缩放";
-        display: block;
-        position: absolute;
-        bottom: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 4px 8px;
-        border-radius: 15px;
-        font-size: 0.7rem;
-        backdrop-filter: blur(10px);
-        white-space: nowrap;
     }
 }
 
