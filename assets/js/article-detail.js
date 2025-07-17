@@ -5,6 +5,25 @@ let allArticles = [];
 let currentArticle = null;
 let isDarkTheme = false;
 
+// 分类名称映射
+const categoryNameMap = {
+    'cat_article_1': '技术分享',
+    'cat_article_2': '生活随笔',
+    'cat_article_3': '学习笔记',
+    'cat_article_4': '项目展示',
+    'cat_album_1': '风景摄影',
+    'cat_album_2': '人像摄影',
+    'cat_album_3': '美食摄影',
+    'cat_album_4': '旅行记录',
+    'cat_album_5': '工作日常',
+};
+
+// 获取友好的分类名称
+function getFriendlyCategoryName(category) {
+    if (!category) return '未分类';
+    return categoryNameMap[category] || category;
+}
+
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
     // 检查是否已登录
@@ -129,7 +148,7 @@ function renderArticleDetail(article) {
         <div class="detail-header">
             <h1 class="detail-title">${article.title}</h1>
             <div class="detail-meta">
-                <span><i class="fas fa-tag"></i> 分类: ${article.category || '未分类'}</span>
+                <span><i class="fas fa-tag"></i> 分类: ${getFriendlyCategoryName(article.category)}</span>
                 <span><i class="fas fa-calendar"></i> 发布日期: ${formatDate(article.createdAt || article.date) || '未知日期'}</span>
                 <span><i class="fas fa-eye"></i> 阅读时间: ${estimateReadingTime(article.content)} 分钟</span>
             </div>
