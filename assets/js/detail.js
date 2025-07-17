@@ -314,9 +314,30 @@ function updateViewerImage() {
     const viewerImage = document.getElementById('viewer-image');
     const viewerTitle = document.getElementById('viewer-title');
     const imageCounter = document.getElementById('image-counter');
+    const imageContainer = document.querySelector('.image-container');
     
     if (currentImages.length > 0 && currentImageIndex >= 0 && currentImageIndex < currentImages.length) {
         const currentImage = currentImages[currentImageIndex];
+        
+        // 显示加载状态
+        if (imageContainer) {
+            imageContainer.classList.add('loading');
+        }
+        
+        // 图片加载完成后的处理
+        viewerImage.onload = function() {
+            if (imageContainer) {
+                imageContainer.classList.remove('loading');
+            }
+        };
+        
+        viewerImage.onerror = function() {
+            if (imageContainer) {
+                imageContainer.classList.remove('loading');
+            }
+            showNotification('图片加载失败', false);
+        };
+        
         viewerImage.src = decodeHtmlEntities(currentImage.url);
         viewerTitle.textContent = currentImage.title || `图片 ${currentImageIndex + 1}`;
         
@@ -403,7 +424,8 @@ function scrollToTop() {
 
 // 键盘事件处理
 document.addEventListener('keydown', function(e) {
-    if (document.getElementById('image-viewer').style.display === 'block') {
+    const imageViewer = document.getElementById('image-viewer');
+    if (imageViewer && imageViewer.style.display === 'block') {
         switch (e.key) {
             case 'Escape':
                 closeImageViewer();
@@ -413,6 +435,22 @@ document.addEventListener('keydown', function(e) {
                 break;
             case 'ArrowRight':
                 showNextImage();
+                break;
+            case ' ':
+                // 空格键切换缩放
+                e.preventDefault();
+                const viewerImage = document.getElementById('viewer-image');
+                if (viewerImage) {
+                    toggleImageZoom(viewerImage);
+                }
+                break;
+            case 'r':
+            case 'R':
+                // R键重置缩放
+                const imgElement = document.getElementById('viewer-image');
+                if (imgElement) {
+                    resetImageZoom(imgElement);
+                }
                 break;
         }
     }
@@ -446,3 +484,38 @@ window.addEventListener('scroll', function() {
         ticking = true;
     }
 });
+
+// 图片点击缩放功能
+document.addEventListener('DOMContentLoaded', function() {
+    // 为图片查看器中的图片添加点击缩放功能
+    document.addEventListener('click', function(e) {
+        if (e.target.id === 'viewer-image') {
+            toggleImageZoom(e.target);
+        }
+    });
+    
+    // 双击重置缩放
+    document.addEventListener('dblclick', function(e) {
+        if (e.target.id === 'viewer-image') {
+            resetImageZoom(e.target);
+        }
+    });
+});
+
+function toggleImageZoom(imgElement) {
+    if (imgElement.classList.contains('zoomed')) {
+        // 缩小
+        imgElement.classList.remove('zoomed');
+        imgElement.style.cursor = 'zoom-in';
+    } else {
+        // 放大
+        imgElement.classList.add('zoomed');
+        imgElement.style.cursor = 'zoom-out';
+    }
+}
+
+function resetImageZoom(imgElement) {
+    imgElement.classList.remove('zoomed');
+    imgElement.style.cursor = 'zoom-in';
+    imgElement.style.transform = 'scale(1)';
+}
