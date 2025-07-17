@@ -152,6 +152,11 @@ function setupNavigation() {
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         item.addEventListener('click', function(e) {
+            // 如果有 href 属性，允许正常跳转
+            if (this.hasAttribute('href') && this.getAttribute('href') !== '#') {
+                return; // 允许默认的链接跳转行为
+            }
+            
             e.preventDefault();
             const section = this.dataset.section;
             if (section) {
