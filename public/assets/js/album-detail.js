@@ -474,12 +474,27 @@ function decodeHtmlEntities(text) {
 }
 
 function formatDate(dateString) {
-    if (!dateString) return '未知日期';
+    if (!dateString) {
+        console.warn('formatDate: 日期字符串为空');
+        return '未知日期';
+    }
     
-    const date = new Date(dateString);
-    return date.toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    try {
+        const date = new Date(dateString);
+        
+        // 检查日期是否有效
+        if (isNaN(date.getTime())) {
+            console.warn('formatDate: 无效的日期字符串:', dateString);
+            return '未知日期';
+        }
+        
+        return date.toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    } catch (error) {
+        console.error('formatDate: 日期格式化错误:', error, '原始值:', dateString);
+        return '未知日期';
+    }
 } 
