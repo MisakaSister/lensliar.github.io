@@ -585,15 +585,15 @@ nav {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.85);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 2000;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(10px);
     opacity: 0;
     visibility: hidden;
-    transition: var(--transition);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .image-viewer.active {
@@ -602,46 +602,95 @@ nav {
 }
 
 .image-viewer-content {
-    max-width: 95%;
-    max-height: 95%;
+    max-width: 90%;
+    max-height: 90%;
     display: flex;
     flex-direction: column;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: var(--border-radius);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .image-viewer-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 20px;
-    background: rgba(0, 0, 0, 0.5);
+    padding: 20px 25px;
+    background: rgba(0, 0, 0, 0.3);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
 }
 
 .image-title {
     color: white;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: 600;
     margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.viewer-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.action-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .close-btn {
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
     font-size: 1.5rem;
     cursor: pointer;
-    padding: 5px;
-    border-radius: 50%;
-    transition: var(--transition);
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .close-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px) scale(1.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .image-viewer-body {
@@ -651,6 +700,7 @@ nav {
     align-items: center;
     justify-content: center;
     min-height: 400px;
+    padding: 20px;
 }
 
 .image-container {
@@ -659,54 +709,99 @@ nav {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
 .image-container img {
     max-width: 100%;
-    max-height: 70vh;
+    max-height: 75vh;
     object-fit: contain;
-    border-radius: var(--border-radius);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.zoom-controls {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 8px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.zoom-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.zoom-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
 }
 
 .nav-btn {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(0, 0, 0, 0.5);
-    border: none;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
     padding: 15px 12px;
     cursor: pointer;
     border-radius: 50%;
     font-size: 1.2rem;
-    transition: var(--transition);
+    transition: all 0.3s ease;
     z-index: 1;
+    backdrop-filter: blur(10px);
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .nav-btn:hover {
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 255, 255, 0.3);
     transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .prev-btn {
-    left: 20px;
+    left: 25px;
 }
 
 .next-btn {
-    right: 20px;
+    right: 25px;
 }
 
 .image-viewer-footer {
-    padding: 15px 20px;
-    background: rgba(0, 0, 0, 0.5);
+    padding: 20px 25px;
+    background: rgba(0, 0, 0, 0.3);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
+    backdrop-filter: blur(10px);
 }
 
 .image-counter {
     color: white;
-    font-size: 0.9rem;
-    opacity: 0.8;
+    font-size: 1rem;
+    font-weight: 500;
+    opacity: 0.9;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* 加载动画 */
@@ -795,34 +890,60 @@ nav {
 /* 响应式设计 */
 @media (max-width: 768px) {
     .image-viewer-content {
-        max-width: 100%;
-        max-height: 100%;
-        border-radius: 0;
+        max-width: 95%;
+        max-height: 95%;
+        border-radius: 16px;
     }
     
     .image-container img {
         max-height: 60vh;
+        border-radius: 8px;
     }
     
     .nav-btn {
         padding: 12px 10px;
         font-size: 1rem;
+        width: 45px;
+        height: 45px;
     }
     
     .prev-btn {
-        left: 10px;
+        left: 15px;
     }
     
     .next-btn {
-        right: 10px;
+        right: 15px;
     }
     
     .image-viewer-header {
-        padding: 10px 15px;
+        padding: 15px 20px;
     }
     
     .image-title {
-        font-size: 1rem;
+        font-size: 1.1rem;
+    }
+    
+    .action-btn {
+        padding: 6px 10px;
+        font-size: 0.9rem;
+    }
+    
+    .close-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 1.3rem;
+    }
+    
+    .zoom-controls {
+        top: 10px;
+        right: 10px;
+        padding: 6px;
+        gap: 6px;
+    }
+    
+    .zoom-btn {
+        padding: 4px 8px;
+        font-size: 0.8rem;
     }
     
     .album-images-grid {
@@ -865,13 +986,39 @@ nav {
     }
     
     .image-viewer-content {
-        max-width: 95%;
-        max-height: 95%;
+        max-width: 98%;
+        max-height: 98%;
+        border-radius: 12px;
+    }
+    
+    .image-viewer-header {
+        padding: 12px 15px;
+    }
+    
+    .image-title {
+        font-size: 1rem;
+    }
+    
+    .viewer-actions {
+        gap: 6px;
+    }
+    
+    .action-btn {
+        padding: 5px 8px;
+        font-size: 0.8rem;
+    }
+    
+    .close-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 1.2rem;
     }
     
     .nav-btn {
         padding: 10px;
         font-size: 1rem;
+        width: 40px;
+        height: 40px;
     }
     
     .prev-btn {
@@ -880,6 +1027,22 @@ nav {
     
     .next-btn {
         right: 10px;
+    }
+    
+    .image-container img {
+        max-height: 50vh;
+    }
+    
+    .zoom-controls {
+        top: 8px;
+        right: 8px;
+        padding: 4px;
+        gap: 4px;
+    }
+    
+    .zoom-btn {
+        padding: 3px 6px;
+        font-size: 0.7rem;
     }
 }
 
