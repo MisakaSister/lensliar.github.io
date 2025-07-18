@@ -11,11 +11,6 @@ const categoryNameMap = {
     'cat_article_2': '生活随笔',
     'cat_article_3': '学习笔记',
     'cat_article_4': '项目展示',
-    'cat_album_1': '风景摄影',
-    'cat_album_2': '人像摄影',
-    'cat_album_3': '美食摄影',
-    'cat_album_4': '旅行记录',
-    'cat_album_5': '工作日常',
 };
 
 // 获取友好的分类名称

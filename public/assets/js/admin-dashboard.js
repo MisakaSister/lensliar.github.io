@@ -38,7 +38,7 @@ function setupEventListeners() {
 async function loadStats() {
     try {
         // 加载文章统计
-        const articlesResponse = await fetch(`${API_BASE}/api/articles`, {
+        const articlesResponse = await fetch(`${API_BASE}/content`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`
             }
@@ -56,7 +56,7 @@ async function loadStats() {
         }
         
         // 加载相册统计
-        const albumsResponse = await fetch(`${API_BASE}/api/albums`, {
+        const albumsResponse = await fetch(`${API_BASE}/images`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`
             }
@@ -64,8 +64,8 @@ async function loadStats() {
         
         if (albumsResponse.ok) {
             const albumsData = await albumsResponse.json();
-            const totalAlbums = albumsData.albums?.length || 0;
-            const totalImages = albumsData.albums?.reduce((sum, album) => sum + (album.images?.length || 0), 0) || 0;
+            const totalAlbums = albumsData.images?.length || 0; // 后端返回的是 images 字段
+            const totalImages = albumsData.images?.reduce((sum, album) => sum + (album.images?.length || 0), 0) || 0;
             
             document.getElementById('albums-stats').innerHTML = `
                 <span class="stats-number">${totalAlbums}</span> 个相册

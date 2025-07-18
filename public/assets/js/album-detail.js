@@ -9,10 +9,6 @@ let currentImages = [];
 
 // 分类名称映射
 const categoryNameMap = {
-    'cat_article_1': '技术分享',
-    'cat_article_2': '生活随笔',
-    'cat_article_3': '学习笔记',
-    'cat_article_4': '项目展示',
     'cat_album_1': '风景摄影',
     'cat_album_2': '人像摄影',
     'cat_album_3': '美食摄影',
