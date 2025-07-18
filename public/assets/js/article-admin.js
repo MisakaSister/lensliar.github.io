@@ -14,7 +14,7 @@ let articleCategories = [];
 
 // 分类名称映射
 const categoryNameMap = {
-    'cat_article_1': '技术文章',
+    'cat_article_1': '技术分享',
     'cat_article_2': '生活随笔',
     'cat_article_3': '学习笔记',
     'cat_article_4': '项目展示'
@@ -37,6 +37,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 设置事件监听
     setupEventListeners();
     
+    // 显示加载状态
+    const container = document.getElementById('articles-container');
+    container.innerHTML = `
+        <div class="loading">
+            <div class="spinner"></div>
+            <span>正在加载文章列表...</span>
+        </div>
+    `;
+    
     // 加载数据
     try {
         await loadArticles();
@@ -52,6 +61,15 @@ document.addEventListener('DOMContentLoaded', async function() {
             return;
         }
         showNotification('加载数据失败，请稍后重试', false);
+        // 显示错误状态
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">❌</div>
+                <h3>加载失败</h3>
+                <p>无法加载文章数据，请稍后重试</p>
+                <button class="btn-modern btn-primary" onclick="location.reload()">重新加载</button>
+            </div>
+        `;
     }
     
     // 初始化富文本编辑器
@@ -298,6 +316,8 @@ async function loadArticleCategories() {
         const data = await response.json();
         articleCategories = data.categories || [];
         
+        console.log('[文章分类] 加载的分类数据:', articleCategories);
+        
     } catch (error) {
         console.error('加载文章分类失败:', error);
         articleCategories = [];
@@ -478,14 +498,30 @@ function handleSortChange() {
 
 // 渲染分类选择器
 function renderCategorySelect() {
-    const select = document.getElementById('category-filter');
-    select.innerHTML = '<option value="">所有分类</option>';
+    // 渲染列表页面的分类筛选器
+    const filterSelect = document.getElementById('category-filter');
+    filterSelect.innerHTML = '<option value="">所有分类</option>';
+    
+    // 渲染表单中的分类选择器
+    const formSelect = document.getElementById('article-category');
+    formSelect.innerHTML = '<option value="">请选择分类</option>';
+    
+    console.log('[文章分类] 渲染分类选择器，分类数量:', articleCategories.length);
     
     articleCategories.forEach(category => {
-        const option = document.createElement('option');
-        option.value = category.name;
-        option.textContent = getFriendlyCategoryName(category.name);
-        select.appendChild(option);
+        console.log('[文章分类] 处理分类:', category);
+        
+        // 为筛选器添加选项
+        const filterOption = document.createElement('option');
+        filterOption.value = category.name;
+        filterOption.textContent = getFriendlyCategoryName(category.name);
+        filterSelect.appendChild(filterOption);
+        
+        // 为表单选择器添加选项
+        const formOption = document.createElement('option');
+        formOption.value = category.name;
+        formOption.textContent = getFriendlyCategoryName(category.name);
+        formSelect.appendChild(formOption);
     });
 }
 
