@@ -1,4 +1,5 @@
-// 相册管理专用文件
+// 相册管理专用文件 - v2.0 (修复无限递归问题)
+// 修复了sortAlbums函数名冲突导致的无限递归问题
 let currentPage = 1;
 let searchQuery = '';
 let currentCategory = '';

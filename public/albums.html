@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>相册列表 - 创作空间</title>
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/index.css">
+    <link rel="stylesheet" href="assets/css/albums-grid.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -72,26 +72,20 @@
                 </div>
             </div>
             <div class="controls-right">
-                <div class="view-toggle">
-                    <button class="view-btn active" data-view="grid" title="网格视图">
-                        <i class="fas fa-th"></i>
-                    </button>
-                    <button class="view-btn" data-view="masonry" title="瀑布流">
-                        <i class="fas fa-th-large"></i>
-                    </button>
-                </div>
                 <div class="sort-container">
                     <select class="sort-select" id="albums-sort">
                         <option value="date-desc">最新创建</option>
                         <option value="date-asc">最早创建</option>
                         <option value="title-asc">标题A-Z</option>
                         <option value="title-desc">标题Z-A</option>
+                        <option value="count-desc">图片最多</option>
+                        <option value="count-asc">图片最少</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        <div class="content-grid" id="albums-container">
+        <div class="grid--container" id="albums-container">
             <div class="loading">
                 <div class="spinner"></div>
                 <span>正在加载精美相册...</span>
