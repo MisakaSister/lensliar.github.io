@@ -206,6 +206,15 @@ a.tag:not(.post-type):hover,
 	overflow: hidden;
 }
 
+.preview--container .hover--options {
+	display: none;
+}
+
+.grid--item:hover .preview--container .hover--options,
+.grid--item:focus-within .preview--container .hover--options {
+	display: flex;
+}
+
 .preview-image--container {
 	display: block;
 	height: 100%;
@@ -324,71 +333,61 @@ a.tag:not(.post-type):hover,
 
 /* 悬停选项 */
 .hover--options {
-	bottom: var(--hover-offset);
 	display: none;
-	flex-direction: column;
-	gap: 8px;
-	left: var(--content-padding);
 	position: absolute;
-	right: var(--content-padding);
-	z-index: 3;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 10;
+	gap: 15px;
+	align-items: center;
+	justify-content: center;
 }
 
 .hover--options .button {
 	align-items: center;
 	background: color-mix(in oklch, currentColor, transparent 90%);
-	border-radius: 100px;
+	border-radius: 50%;
 	color: inherit;
 	display: flex;
-	font-size: 13px;
+	font-size: 16px;
 	font-weight: 500;
-	gap: 8px;
-	justify-content: space-between;
-	padding: 8px 12px;
+	justify-content: center;
+	padding: 12px;
 	text-decoration: none;
 	transition: all 0.3s ease;
+	width: 48px;
+	height: 48px;
+	backdrop-filter: blur(10px);
+	border: 1px solid color-mix(in oklch, currentColor, transparent 80%);
 }
 
-.hover--options .follow {
-	align-self: flex-end;
-	aspect-ratio: 1;
-	border-radius: 50%;
-	font-size: 14px;
-	justify-content: center;
-	padding: 8px;
-	width: 36px;
-}
-
-.hover--options .follow:hover {
+.hover--options .button:hover {
 	background: color-mix(in oklch, currentColor, transparent 80%);
 	transform: scale(1.1);
+	box-shadow: 0 4px 12px color-mix(in oklch, black, transparent 60%);
 }
 
 .hover--options .series,
 .hover--options .latest {
 	align-items: center;
 	display: flex;
-	gap: 8px;
-	justify-content: space-between;
+	justify-content: center;
 }
 
 .hover--options .series .icon-title,
 .hover--options .latest .icon-title { 
-	align-items: center;
-	display: flex;
-	gap: 6px;
+	display: none;
 }
 
 .hover--options .series [data-icon="books"],
 .hover--options .latest [data-icon="image"] {
-	font-size: 14px;
+	font-size: 18px;
 }
 
 .hover--options .series .new-tab,
 .hover--options .latest .new-tab {
 	display: none;
-	font-size: 12px;
-	opacity: 0.7;
 }
 
 .hover--options .series {
@@ -405,6 +404,14 @@ a.tag:not(.post-type):hover,
 
 .hover--options .latest:hover {
 	background: color-mix(in oklch, #667eea, transparent 80%);
+}
+
+.hover--options .follow {
+	background: color-mix(in oklch, #ff6b6b, transparent 90%);
+}
+
+.hover--options .follow:hover {
+	background: color-mix(in oklch, #ff6b6b, transparent 80%);
 }
 
 /* 非特色项目 */
@@ -465,11 +472,6 @@ a.tag:not(.post-type):hover,
 	opacity: 1;
 }
 
-.grid--item:hover .hover--options,
-.grid--item:focus-within .hover--options { 
-	display: flex; 
-}
-
 .grid--item:hover .preview--container,
 .grid--item:focus-within .preview--container { 
 	background: oklch(var(--primary--darkest)); 
@@ -481,25 +483,9 @@ a.tag:not(.post-type):hover,
 }
 
 /* 响应式设计 */
-@media screen and (min-width: 600px),
-@media screen and (min-width: 600px) {
-	.tags--container { 
-		flex-wrap: nowrap;	
-	}
-}
-
 @media screen and (min-width: 600px) {
 	.grid--item {
 		--preview--h: 280px;
-	}
-	
-	.hover--options {
-		.series,
-		.latest {
-			.new-tab { 
-				display: block; 
-			}
-		}
 	}
 }
 

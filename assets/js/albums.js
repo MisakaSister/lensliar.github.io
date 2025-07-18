@@ -340,6 +340,20 @@ function createAlbumCard(album, index) {
                     <a href="#" class="issue">相册</a>
                     <a href="#" class="page">${imageCount} 张</a>
                 </div>
+                
+                <div class="hover--options">
+                    <a href="#" class="series button" onclick="viewAlbumDetail('${album.id}'); return false;" title="查看相册">
+                        <i class="far fa-image"></i>
+                    </a>
+                    
+                    <a href="#" class="latest button" onclick="shareAlbum('${album.id}', '${album.title}'); return false;" title="分享相册">
+                        <i class="fas fa-share"></i>
+                    </a>
+                    
+                    <a href="#" class="follow button" onclick="viewAlbumDetail('${album.id}'); return false;" title="查看详情">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                </div>
             </div>
             
             <div class="content--container">
@@ -351,22 +365,6 @@ function createAlbumCard(album, index) {
                     <ul class="tags--container">
                         ${tags.join('')}
                     </ul>
-                </div>
-
-                <div class="hover--options">
-                    <a href="#" class="series button" onclick="viewAlbumDetail('${album.id}'); return false;">
-                        <span class="icon-title"><i class="far fa-image"></i> 查看相册</span>
-                        <span class="new-tab"><i class="fas fa-arrow-circle-right"></i></span>
-                    </a>
-                    
-                    <a href="#" class="latest button" onclick="shareAlbum('${album.id}', '${album.title}'); return false;">
-                        <span class="icon-title"><i class="fas fa-share"></i> 分享</span>
-                        <span class="new-tab"><i class="fas fa-arrow-circle-right"></i></span>
-                    </a>
-                    
-                    <a href="#" class="follow button" onclick="viewAlbumDetail('${album.id}'); return false;">
-                        <i class="fas fa-eye"></i>
-                    </a>
                 </div>
             </div>
         </article>
