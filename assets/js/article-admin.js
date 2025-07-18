@@ -507,6 +507,12 @@ function renderCategorySelect() {
     formSelect.innerHTML = '<option value="">请选择分类</option>';
     
     console.log('[文章分类] 渲染分类选择器，分类数量:', articleCategories.length);
+    console.log('[文章分类] 分类数据:', articleCategories);
+    
+    if (articleCategories.length === 0) {
+        console.warn('[文章分类] 警告：分类数据为空，可能还没有加载完成');
+        return;
+    }
     
     articleCategories.forEach(category => {
         console.log('[文章分类] 处理分类:', category);
@@ -530,6 +536,9 @@ function openArticleModal(articleId = null) {
     const modal = document.getElementById('article-modal');
     const title = document.getElementById('article-modal-title');
     const form = document.getElementById('article-form');
+    
+    // 确保分类选择器被正确渲染
+    renderCategorySelect();
     
     if (articleId) {
         // 编辑模式

@@ -328,6 +328,12 @@ function renderCategorySelect() {
     formSelect.innerHTML = '<option value="">请选择分类</option>';
     
     console.log('[相册分类] 渲染分类选择器，分类数量:', albumCategories.length);
+    console.log('[相册分类] 分类数据:', albumCategories);
+    
+    if (albumCategories.length === 0) {
+        console.warn('[相册分类] 警告：分类数据为空，可能还没有加载完成');
+        return;
+    }
     
     albumCategories.forEach(category => {
         console.log('[相册分类] 处理分类:', category);
@@ -351,6 +357,9 @@ function openAlbumModal(albumId = null) {
     const modal = document.getElementById('album-modal');
     const title = document.querySelector('#album-modal .modal-title');
     const form = document.getElementById('album-form');
+    
+    // 确保分类选择器被正确渲染
+    renderCategorySelect();
     
     if (albumId) {
         // 编辑模式
