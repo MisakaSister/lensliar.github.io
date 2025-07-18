@@ -4,6 +4,26 @@
 // 部署时使用
 const API_BASE = "https://worker.wengguodong.com";
 
+// 全局应用配置
+const APP_CONFIG = {
+    API_BASE: 'http://127.0.0.1:8787',
+    UPLOAD_MAX_SIZE: 5 * 1024 * 1024, // 5MB
+    SUPPORTED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+    SUPPORTED_VIDEO_TYPES: ['video/mp4', 'video/webm', 'video/ogg'],
+    SUPPORTED_AUDIO_TYPES: ['audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a']
+};
+
+// 抑制DOMNodeInserted废弃警告
+(function() {
+    const originalWarn = console.warn;
+    console.warn = function(...args) {
+        if (args[0] && typeof args[0] === 'string' && args[0].includes('DOMNodeInserted')) {
+            return; // 忽略DOMNodeInserted警告
+        }
+        originalWarn.apply(console, args);
+    };
+})();
+
 // 通用工具函数库
 
 // 🌟 获取公开内容数据（无需认证）
