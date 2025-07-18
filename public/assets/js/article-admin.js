@@ -469,8 +469,8 @@ function filterArticles() {
     renderArticles();
 }
 
-// 排序文章
-function sortArticles() {
+// 处理排序变化
+function handleSortChange() {
     currentSort = document.getElementById('sort-select').value;
     currentPage = 1;
     renderArticles();
