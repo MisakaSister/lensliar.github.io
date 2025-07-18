@@ -77,7 +77,7 @@ function setupEventListeners() {
 // 加载相册数据
 async function loadAlbums() {
     try {
-        const response = await fetch(`${API_BASE}/api/albums`, {
+        const response = await fetch(`${API_BASE}/images`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`
             }
@@ -88,7 +88,7 @@ async function loadAlbums() {
         }
         
         const data = await response.json();
-        allAlbums = data.albums || [];
+        allAlbums = data.images || []; // 后端返回的是 images 字段
         
     } catch (error) {
         console.error('加载相册失败:', error);
@@ -99,7 +99,7 @@ async function loadAlbums() {
 // 加载相册分类
 async function loadAlbumCategories() {
     try {
-        const response = await fetch(`${API_BASE}/api/album-categories`, {
+        const response = await fetch(`${API_BASE}/images/categories`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`
             }
@@ -393,7 +393,7 @@ async function saveAlbum() {
         let response;
         if (editingAlbum) {
             // 更新相册
-            response = await fetch(`${API_BASE}/api/albums/${editingAlbum.id}`, {
+            response = await fetch(`${API_BASE}/images/${editingAlbum.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -403,7 +403,7 @@ async function saveAlbum() {
             });
         } else {
             // 创建相册
-            response = await fetch(`${API_BASE}/api/albums`, {
+            response = await fetch(`${API_BASE}/images`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -448,7 +448,7 @@ async function deleteAlbum(id) {
     }
     
     try {
-        const response = await fetch(`${API_BASE}/api/albums/${id}`, {
+        const response = await fetch(`${API_BASE}/images/${id}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`
@@ -633,7 +633,7 @@ async function uploadFile(file) {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await fetch(`${API_BASE}/api/upload`, {
+    const response = await fetch(`${API_BASE}/upload`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`

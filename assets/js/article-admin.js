@@ -263,7 +263,7 @@ function setupEventListeners() {
 // 加载文章数据
 async function loadArticles() {
     try {
-        const response = await fetch(`${API_BASE}/api/articles`, {
+        const response = await fetch(`${API_BASE}/content`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`
             }
@@ -285,7 +285,7 @@ async function loadArticles() {
 // 加载文章分类
 async function loadArticleCategories() {
     try {
-        const response = await fetch(`${API_BASE}/api/article-categories`, {
+        const response = await fetch(`${API_BASE}/content/categories`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`
             }
@@ -573,7 +573,7 @@ async function saveArticle() {
         let response;
         if (editingArticle) {
             // 更新文章
-            response = await fetch(`${API_BASE}/api/articles/${editingArticle.id}`, {
+            response = await fetch(`${API_BASE}/content/${editingArticle.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -583,7 +583,7 @@ async function saveArticle() {
             });
         } else {
             // 创建文章
-            response = await fetch(`${API_BASE}/api/articles`, {
+            response = await fetch(`${API_BASE}/content`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -628,7 +628,7 @@ async function deleteArticle(id) {
     }
     
     try {
-        const response = await fetch(`${API_BASE}/api/articles/${id}`, {
+        const response = await fetch(`${API_BASE}/content/${id}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`
@@ -714,7 +714,7 @@ async function uploadFile(file) {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await fetch(`${API_BASE}/api/upload`, {
+    const response = await fetch(`${API_BASE}/upload`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`
