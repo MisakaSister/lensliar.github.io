@@ -15,8 +15,8 @@ let albumCategories = [];
 // 分类名称映射
 const categoryNameMap = {
     'cat_album_1': '风景摄影',
-    'cat_album_2': '人物写真',
-    'cat_album_3': '生活记录',
+    'cat_album_2': '人像摄影',
+    'cat_album_3': '美食摄影',
     'cat_album_4': '旅行记录',
     'cat_album_5': '工作日常'
 };
@@ -38,6 +38,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 设置事件监听
     setupEventListeners();
     
+    // 显示加载状态
+    const container = document.getElementById('albums-container');
+    container.innerHTML = `
+        <div class="loading">
+            <div class="spinner"></div>
+            <span>正在加载相册列表...</span>
+        </div>
+    `;
+    
     // 加载数据
     try {
         await loadAlbums();
@@ -53,6 +62,15 @@ document.addEventListener('DOMContentLoaded', async function() {
             return;
         }
         showNotification('加载数据失败，请稍后重试', false);
+        // 显示错误状态
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">❌</div>
+                <h3>加载失败</h3>
+                <p>无法加载相册数据，请稍后重试</p>
+                <button class="btn-modern btn-primary" onclick="location.reload()">重新加载</button>
+            </div>
+        `;
     }
     
     Utils.showLoading(false);
@@ -112,6 +130,8 @@ async function loadAlbumCategories() {
         
         const data = await response.json();
         albumCategories = data.categories || [];
+        
+        console.log('[相册分类] 加载的分类数据:', albumCategories);
         
     } catch (error) {
         console.error('加载相册分类失败:', error);
@@ -299,14 +319,30 @@ function handleSortChange() {
 
 // 渲染分类选择器
 function renderCategorySelect() {
-    const select = document.getElementById('category-filter');
-    select.innerHTML = '<option value="">所有分类</option>';
+    // 渲染列表页面的分类筛选器
+    const filterSelect = document.getElementById('category-filter');
+    filterSelect.innerHTML = '<option value="">所有分类</option>';
+    
+    // 渲染表单中的分类选择器
+    const formSelect = document.getElementById('album-category');
+    formSelect.innerHTML = '<option value="">请选择分类</option>';
+    
+    console.log('[相册分类] 渲染分类选择器，分类数量:', albumCategories.length);
     
     albumCategories.forEach(category => {
-        const option = document.createElement('option');
-        option.value = category.name;
-        option.textContent = getFriendlyCategoryName(category.name);
-        select.appendChild(option);
+        console.log('[相册分类] 处理分类:', category);
+        
+        // 为筛选器添加选项
+        const filterOption = document.createElement('option');
+        filterOption.value = category.name;
+        filterOption.textContent = getFriendlyCategoryName(category.name);
+        filterSelect.appendChild(filterOption);
+        
+        // 为表单选择器添加选项
+        const formOption = document.createElement('option');
+        formOption.value = category.name;
+        formOption.textContent = getFriendlyCategoryName(category.name);
+        formSelect.appendChild(formOption);
     });
 }
 
