@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>相册管理 - 创作空间</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="admin-page">
+<!-- 页面加载动画 -->
+<div class="page-loading" id="page-loading">
+    <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">正在加载相册管理...</div>
+    </div>
+</div>
+
+<header>
+    <nav>
+        <div class="logo">
+            <i class="fas fa-images"></i>
+            <span class="logo-text">创作空间</span>
+            <span class="admin-badge">相册管理</span>
+        </div>
+        <div class="nav-links">
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>返回首页</span>
+            </a>
+            <a href="admin.html" class="nav-item">
+                <i class="fas fa-cogs"></i>
+                <span>管理后台</span>
+            </a>
+            <a href="#" id="logout-link" class="nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>退出</span>
+            </a>
+        </div>
+    </nav>
+</header>
+
+<div class="admin-container">
+    <!-- 背景装饰元素 -->
+    <div class="admin-background">
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+        </div>
+    </div>
+
+    <div class="admin-header">
+        <div class="header-content">
+            <h1 class="admin-title">
+                <i class="fas fa-images"></i>
+                <span>相册管理中心</span>
+            </h1>
+            <p class="admin-subtitle">管理您的相册内容，让图片讲述故事</p>
+        </div>
+        <div class="admin-actions">
+            <button class="btn-modern btn-success" onclick="openAlbumModal()">
+                <i class="fas fa-plus"></i>
+                <span>创建相册</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <div class="content-header">
+            <div class="stats-card">
+                <div class="stats-info" id="albums-stats">
+                    <i class="fas fa-images"></i>
+                    <span>正在加载统计信息...</span>
+                </div>
+            </div>
+            <div class="search-controls">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="search-box" placeholder="搜索相册..." id="albums-search" onkeyup="searchAlbums()">
+                </div>
+                <div class="filter-controls">
+                    <select class="filter-select" id="category-filter" onchange="filterAlbums()">
+                        <option value="">所有分类</option>
+                    </select>
+                    <select class="filter-select" id="sort-select" onchange="sortAlbums()">
+                        <option value="date-desc">最新创建</option>
+                        <option value="date-asc">最早创建</option>
+                        <option value="title-asc">标题 A-Z</option>
+                        <option value="title-desc">标题 Z-A</option>
+                        <option value="count-desc">图片最多</option>
+                        <option value="count-asc">图片最少</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div id="albums-container" class="content-grid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <span>正在加载相册列表...</span>
+            </div>
+        </div>
+        <div id="albums-pagination" class="pagination"></div>
+    </div>
+</div>
+
+<!-- 相册模态框 -->
+<div id="album-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fas fa-images"></i>
+                创建相册
+            </h3>
+            <button class="close-btn" onclick="closeAlbumModal()">&times;</button>
+        </div>
+        <form id="album-form">
+            <div class="form-group">
+                <label class="form-label" for="album-title">
+                    <i class="fas fa-heading"></i>
+                    相册标题 *
+                </label>
+                <input type="text" class="form-input" id="album-title" name="title" placeholder="请输入相册标题" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="album-category">
+                    <i class="fas fa-tag"></i>
+                    相册分类
+                </label>
+                <select class="form-input" id="album-category" name="category">
+                    <option value="">请选择分类</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-upload"></i>
+                    选择图片文件 *
+                </label>
+                <div class="file-upload-area" onclick="document.getElementById('album-files').click()" 
+                     ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                    <div class="upload-icon">🖼️</div>
+                    <div class="upload-text">点击选择图片或拖拽到此处</div>
+                    <div class="upload-hint">支持多文件选择 | JPG、PNG、GIF、WebP | 单文件最大 5MB</div>
+                </div>
+                <input type="file" id="album-files" accept="image/*" multiple style="display: none;" onchange="handleMultipleFileSelect(event)">
+                <div id="albums-preview-container" class="preview-grid" style="display: none; margin-top: 15px;"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="album-description">
+                    <i class="fas fa-align-left"></i>
+                    相册描述
+                </label>
+                <textarea class="form-input form-textarea" id="album-description" name="description" placeholder="请输入相册描述（可选）"></textarea>
+            </div>
+            <div id="upload-progress" style="display: none; margin-top: 20px;">
+                <div class="upload-progress-title">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    上传进度
+                </div>
+                <div id="upload-progress-list"></div>
+                <div id="upload-summary" class="upload-summary"></div>
+            </div>
+        </form>
+        <div class="modal-footer">
+            <button type="button" class="btn-modern btn-secondary" onclick="closeAlbumModal()">
+                <i class="fas fa-times"></i>
+                取消
+            </button>
+            <button type="button" class="btn-modern btn-success" onclick="saveAlbum()" id="save-album-btn" disabled>
+                <i class="fas fa-save"></i>
+                创建相册
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 快捷功能面板 -->
+<div class="quick-actions">
+    <button class="quick-btn" onclick="scrollToTop()" title="返回顶部">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    <button class="quick-btn" onclick="toggleTheme()" title="切换主题">
+        <i class="fas fa-moon"></i>
+    </button>
+</div>
+
+<div id="notification" class="notification"></div>
+
+<script src="assets/js/app.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/api-client.js"></script>
+<script src="assets/js/album-admin.js"></script>
+</body>
+</html> 

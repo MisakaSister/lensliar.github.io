@@ -7,8 +7,6 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Quill.js 富文本编辑器 -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 </head>
 <body class="admin-page">
 <!-- 页面加载动画 -->
@@ -58,213 +56,64 @@
             </h1>
             <p class="admin-subtitle">管理您的创作内容，让创意绽放光彩</p>
         </div>
-        <div class="admin-actions">
-            <button class="btn-modern btn-primary" onclick="openModal('article')">
-                <i class="fas fa-plus"></i>
-                <span>新建文章</span>
-            </button>
-            <button class="btn-modern btn-success" onclick="openModal('image')">
-                <i class="fas fa-images"></i>
-                <span>创建相册</span>
-            </button>
-        </div>
     </div>
 
-    <div class="content-tabs">
-        <div class="tab-buttons">
-            <button class="tab-btn active" onclick="switchTab('articles')" id="articles-tab-btn">
+    <div class="management-grid">
+        <div class="management-card" onclick="window.location.href='article-admin.html'">
+            <div class="card-icon">
                 <i class="fas fa-newspaper"></i>
-                <span>文章管理</span>
-                <span class="tab-count">(<span id="articles-count">0</span>)</span>
-            </button>
-            <button class="tab-btn" onclick="switchTab('images')" id="images-tab-btn">
+            </div>
+            <div class="card-content">
+                <h3>文章管理</h3>
+                <p>创建、编辑和管理您的文章内容</p>
+                <div class="card-features">
+                    <span class="feature"><i class="fas fa-edit"></i> 富文本编辑</span>
+                    <span class="feature"><i class="fas fa-tag"></i> 分类管理</span>
+                    <span class="feature"><i class="fas fa-image"></i> 封面设置</span>
+                </div>
+            </div>
+            <div class="card-arrow">
+                <i class="fas fa-arrow-right"></i>
+            </div>
+        </div>
+
+        <div class="management-card" onclick="window.location.href='album-admin.html'">
+            <div class="card-icon">
                 <i class="fas fa-images"></i>
-                <span>相册管理</span>
-                <span class="tab-count">(<span id="images-count">0</span>)</span>
-            </button>
-        </div>
-
-        <div id="articles-tab" class="tab-content active">
-            <div class="content-header">
-                <div class="stats-card">
-                    <div class="stats-info" id="articles-stats">
-                        <i class="fas fa-newspaper"></i>
-                        <span>正在加载统计信息...</span>
-                    </div>
-                </div>
-                <div class="search-controls">
-                    <div class="search-container">
-                        <i class="fas fa-search"></i>
-                        <input type="text" class="search-box" placeholder="搜索文章..." id="articles-search" onkeyup="searchContent('articles')">
-                    </div>
+            </div>
+            <div class="card-content">
+                <h3>相册管理</h3>
+                <p>创建、编辑和管理您的相册内容</p>
+                <div class="card-features">
+                    <span class="feature"><i class="fas fa-upload"></i> 批量上传</span>
+                    <span class="feature"><i class="fas fa-tag"></i> 分类管理</span>
+                    <span class="feature"><i class="fas fa-eye"></i> 预览功能</span>
                 </div>
             </div>
-            <div id="articles-container" class="content-grid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <span>正在加载文章列表...</span>
-                </div>
+            <div class="card-arrow">
+                <i class="fas fa-arrow-right"></i>
             </div>
-            <div id="articles-pagination" class="pagination"></div>
-        </div>
-
-        <div id="images-tab" class="tab-content">
-            <div class="content-header">
-                <div class="stats-card">
-                    <div class="stats-info" id="images-stats">
-                        <i class="fas fa-images"></i>
-                        <span>正在加载统计信息...</span>
-                    </div>
-                </div>
-                <div class="search-controls">
-                    <div class="search-container">
-                        <i class="fas fa-search"></i>
-                        <input type="text" class="search-box" placeholder="搜索相册..." id="images-search" onkeyup="searchContent('images')">
-                    </div>
-                </div>
-            </div>
-            <div id="images-container" class="content-grid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <span>正在加载相册列表...</span>
-                </div>
-            </div>
-            <div id="images-pagination" class="pagination"></div>
         </div>
     </div>
-</div>
 
-<!-- 文章模态框 -->
-<div id="article-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title" id="article-modal-title">
-                <i class="fas fa-edit"></i>
-                新建文章
-            </h3>
-            <button class="close-btn" onclick="closeModal('article')">&times;</button>
+    <div class="quick-stats">
+        <div class="stats-card">
+            <div class="stats-icon">
+                <i class="fas fa-newspaper"></i>
+            </div>
+            <div class="stats-info">
+                <h4>文章统计</h4>
+                <p id="articles-stats">加载中...</p>
+            </div>
         </div>
-        <form id="article-form">
-            <div class="form-group">
-                <label class="form-label" for="article-title">
-                    <i class="fas fa-heading"></i>
-                    文章标题 *
-                </label>
-                <input type="text" class="form-input" id="article-title" name="title" placeholder="请输入文章标题" required>
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="article-category">
-                    <i class="fas fa-tag"></i>
-                    分类
-                </label>
-                <select class="form-input" id="article-category" name="category">
-                    <option value="">请选择分类</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="form-label">
-                    <i class="fas fa-align-left"></i>
-                    文章内容 *
-                </label>
-                <div id="article-content-editor" class="quill-editor">
-                    <p>请输入文章内容...</p>
-                </div>
-                <textarea id="article-content" style="display: none;"></textarea>
-            </div>
-            <div class="form-group">
-                <label class="form-label">
-                    <i class="fas fa-image"></i>
-                    封面图片
-                </label>
-                <div class="file-upload-area" onclick="document.getElementById('article-image-file').click()">
-                    <div class="upload-icon">📷</div>
-                    <div class="upload-text">点击选择封面图片</div>
-                    <div class="upload-hint">支持 JPG、PNG、GIF、WebP 格式，最大 5MB</div>
-                </div>
-                <input type="file" id="article-image-file" accept="image/*" style="display: none;" onchange="handleArticleImageSelect(event)">
-                <input type="hidden" id="article-cover-image" name="cover-image">
-                <div id="article-image-preview" class="preview-grid" style="display: none; margin-top: 15px;"></div>
-            </div>
-        </form>
-        <div class="modal-footer">
-            <button type="button" class="btn-modern btn-secondary" onclick="closeModal('article')">
-                <i class="fas fa-times"></i>
-                取消
-            </button>
-            <button type="button" class="btn-modern btn-success" onclick="saveArticle()" id="save-article-btn">
-                <i class="fas fa-save"></i>
-                保存文章
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- 相册模态框 -->
-<div id="image-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title">
+        <div class="stats-card">
+            <div class="stats-icon">
                 <i class="fas fa-images"></i>
-                创建相册
-            </h3>
-            <button class="close-btn" onclick="closeModal('image')">&times;</button>
-        </div>
-        <form id="image-form">
-            <div class="form-group">
-                <label class="form-label" for="image-title">
-                    <i class="fas fa-heading"></i>
-                    相册标题
-                </label>
-                <input type="text" class="form-input" id="image-title" name="title" placeholder="请输入相册标题">
             </div>
-            <div class="form-group">
-                <label class="form-label" for="image-category">
-                    <i class="fas fa-tag"></i>
-                    相册分类
-                </label>
-                <select class="form-input" id="image-category" name="category">
-                    <option value="">请选择分类</option>
-                </select>
+            <div class="stats-info">
+                <h4>相册统计</h4>
+                <p id="albums-stats">加载中...</p>
             </div>
-            <div class="form-group">
-                <label class="form-label">
-                    <i class="fas fa-upload"></i>
-                    选择图片文件 *
-                </label>
-                <div class="file-upload-area" onclick="document.getElementById('image-files').click()" 
-                     ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-                    <div class="upload-icon">🖼️</div>
-                    <div class="upload-text">点击选择图片或拖拽到此处</div>
-                    <div class="upload-hint">支持多文件选择 | JPG、PNG、GIF、WebP | 单文件最大 5MB</div>
-                </div>
-                <input type="file" id="image-files" accept="image/*" multiple style="display: none;" onchange="handleMultipleFileSelect(event)">
-                <div id="images-preview-container" class="preview-grid" style="display: none; margin-top: 15px;"></div>
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="image-description">
-                    <i class="fas fa-align-left"></i>
-                    相册描述
-                </label>
-                <textarea class="form-input form-textarea" id="image-description" name="description" placeholder="请输入相册描述（可选）"></textarea>
-            </div>
-            <div id="upload-progress" style="display: none; margin-top: 20px;">
-                <div class="upload-progress-title">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    上传进度
-                </div>
-                <div id="upload-progress-list"></div>
-                <div id="upload-summary" class="upload-summary"></div>
-            </div>
-        </form>
-        <div class="modal-footer">
-            <button type="button" class="btn-modern btn-secondary" onclick="closeModal('image')">
-                <i class="fas fa-times"></i>
-                取消
-            </button>
-            <button type="button" class="btn-modern btn-success" onclick="saveImages()" id="save-images-btn" disabled>
-                <i class="fas fa-save"></i>
-                创建相册
-            </button>
         </div>
     </div>
 </div>
@@ -277,16 +126,13 @@
     <button class="quick-btn" onclick="toggleTheme()" title="切换主题">
         <i class="fas fa-moon"></i>
     </button>
-
 </div>
 
 <div id="notification" class="notification"></div>
 
-<!-- Quill.js 富文本编辑器 -->
-<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 <script src="assets/js/app.js"></script>
 <script src="assets/js/utils.js"></script>
 <script src="assets/js/api-client.js"></script>
-<script src="assets/js/admin.js"></script>
+<script src="assets/js/admin-dashboard.js"></script>
 </body>
 </html>
