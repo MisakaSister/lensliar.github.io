@@ -289,8 +289,8 @@ function filterAlbums() {
     renderAlbums();
 }
 
-// 排序相册
-function sortAlbums() {
+// 处理排序变化
+function handleSortChange() {
     currentSort = document.getElementById('sort-select').value;
     currentPage = 1;
     renderAlbums();
