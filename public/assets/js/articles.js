@@ -121,23 +121,6 @@ function setupEventListeners() {
         });
     }
 
-    // 视图切换
-    const viewBtns = document.querySelectorAll('.view-btn');
-    viewBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const view = this.dataset.view;
-            if (view === currentView) return;
-            
-            // 更新按钮状态
-            viewBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            // 更新视图
-            currentView = view;
-            updateContentView();
-        });
-    });
-
     // 加载更多
     const loadMoreBtn = document.getElementById('load-more-articles');
     if (loadMoreBtn) {
@@ -336,68 +319,71 @@ function filterAndRenderArticles(category) {
 // 创建文章卡片
 function createArticleCard(article, index) {
     const articleElement = document.createElement('div');
-    articleElement.className = 'card';
+    articleElement.className = 'grid--cell';
     articleElement.style.animationDelay = `${index * 0.1}s`;
     
     const imageUrl = article.coverImage?.url ? decodeHtmlEntities(article.coverImage.url) : 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg';
     
+    // 获取文章摘要
+    const contentText = decodeContentImages(article.content).replace(/<[^>]*>/g, '').trim();
+    const excerpt = contentText.length > 120 ? contentText.substring(0, 120) + '...' : contentText;
+    
+    // 创建标签列表
+    const tags = [];
+    if (article.category) {
+        tags.push(`<li><a href="#" class="tag">${getFriendlyCategoryName(article.category)}</a></li>`);
+    }
+    tags.push(`<li><a href="#" class="tag">${formatDate(article.date || article.createdAt)}</a></li>`);
+    
     articleElement.innerHTML = `
-        <img src="${imageUrl}" alt="${article.title}" class="card-img" loading="lazy">
-        <div class="card-body">
-            <h3 class="card-title">${article.title}</h3>
-            <p class="card-text">${decodeContentImages(article.content).substring(0, 150)}...</p>
-            <div class="card-meta">
-                <span class="card-date">
-                    <i class="fas fa-calendar"></i>
-                    ${formatDate(article.date || article.createdAt)}
-                </span>
-                <span class="card-category">
-                    <i class="fas fa-tag"></i>
-                    ${getFriendlyCategoryName(article.category)}
-                </span>
+        <article class="grid--item">
+            <div class="preview--container">
+                <a href="#" class="preview-image--container" onclick="viewArticleDetail('${article.id}'); return false;">
+                    <div class="preview-image" style="background-image: url('${imageUrl}')"></div>
+                </a>
+                <div class="meta--container">
+                    <a href="#" class="issue">文章</a>
+                    <a href="#" class="page">${getFriendlyCategoryName(article.category)}</a>
+                </div>
+                
+                <div class="hover--options">
+                    <a href="#" class="series button" onclick="viewArticleDetail('${article.id}'); return false;" title="阅读全文">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    
+                    <a href="#" class="latest button" onclick="shareArticle('${article.id}', '${article.title}'); return false;" title="分享文章">
+                        <i class="fas fa-share"></i>
+                    </a>
+                    
+                    <a href="#" class="follow button" onclick="viewArticleDetail('${article.id}'); return false;" title="查看文章">
+                        <i class="fas fa-newspaper"></i>
+                    </a>
+                </div>
             </div>
-            <div class="card-actions">
-                <button class="btn btn-primary" onclick="viewArticleDetail('${article.id}'); event.stopPropagation();">
-                    <i class="fas fa-eye"></i>
-                    阅读全文
-                </button>
-                <button class="btn btn-secondary" onclick="shareArticle('${article.id}', '${article.title}'); event.stopPropagation();">
-                    <i class="fas fa-share"></i>
-                </button>
+            
+            <div class="content--container">
+                <div class="title--container">
+                    <a class="title--text" href="#" onclick="viewArticleDetail('${article.id}'); return false;">${article.title}</a>
+                </div>
+                
+                <div class="article-excerpt">${excerpt}</div>
+                
+                <div class="tags--overflow-container">
+                    <ul class="tags--container">
+                        ${tags.join('')}
+                    </ul>
+                </div>
             </div>
-        </div>
+        </article>
     `;
-    
-    // 添加点击事件，使整个卡片可点击
-    articleElement.addEventListener('click', function(e) {
-        console.log('文章卡片被点击:', article.title, article.id);
-        console.log('点击的目标:', e.target);
-        console.log('是否点击了按钮区域:', e.target.closest('.card-actions'));
-        
-        // 如果点击的是按钮，不进行页面跳转
-        if (!e.target.closest('.card-actions')) {
-            console.log('执行页面跳转...');
-            viewArticleDetail(article.id);
-        } else {
-            console.log('点击了按钮，不跳转页面');
-        }
-    });
-    
-    // 添加鼠标悬停效果
-    articleElement.style.cursor = 'pointer';
     
     return articleElement;
 }
 
 // 更新内容视图
 function updateContentView() {
-    const container = document.getElementById('articles-container');
-    if (container) {
-        // 移除所有视图类
-        container.classList.remove('view-grid', 'view-list');
-        // 添加当前视图类
-        container.classList.add(`view-${currentView}`);
-    }
+    // 文章页面使用固定网格布局，不需要视图切换
+    return;
 }
 
 // 加载更多文章

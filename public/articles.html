@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>文章列表 - 创作空间</title>
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/index.css">
+    <link rel="stylesheet" href="assets/css/articles-grid.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -72,14 +72,6 @@
                 </div>
             </div>
             <div class="controls-right">
-                <div class="view-toggle">
-                    <button class="view-btn active" data-view="grid" title="网格视图">
-                        <i class="fas fa-th"></i>
-                    </button>
-                    <button class="view-btn" data-view="list" title="列表视图">
-                        <i class="fas fa-list"></i>
-                    </button>
-                </div>
                 <div class="sort-container">
                     <select class="sort-select" id="articles-sort">
                         <option value="date-desc">最新发布</option>
@@ -91,7 +83,7 @@
             </div>
         </div>
 
-        <div class="content-grid" id="articles-container">
+        <div class="grid--container" id="articles-container">
             <div class="loading">
                 <div class="spinner"></div>
                 <span>正在加载精彩内容...</span>
