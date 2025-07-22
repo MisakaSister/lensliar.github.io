@@ -2,17 +2,21 @@
 
 /* 根变量 */
 :root {
-    --primary-gradient: #fff;
-    --secondary-gradient: #fff;
-    --accent-gradient: #fff;
-    --glass-bg: #fff;
-    --glass-border: #fff;
-    --shadow-light: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --shadow-medium: 0 15px 35px rgba(0, 0, 0, 0.1);
-    --shadow-heavy: 0 20px 40px rgba(0, 0, 0, 0.15);
+    --primary-gradient: #3a7afe;
+    --secondary-gradient: #34c9ad;
+    --accent-gradient: #ffb300;
+    --glass-bg: #f5f7fa;
+    --glass-border: #e9ecef;
+    --shadow-light: 0 8px 32px rgba(58, 122, 254, 0.08);
+    --shadow-medium: 0 15px 35px rgba(58, 122, 254, 0.12);
+    --shadow-heavy: 0 20px 40px rgba(58, 122, 254, 0.15);
     --border-radius: 16px;
     --border-radius-large: 24px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --primary-color: #3a7afe;
+    --text-primary: #222;
+    --text-secondary: #6c7a89;
+    --border-color: #e9ecef;
 }
 
 /* 页面加载动画 */
@@ -60,7 +64,7 @@
 /* 欢迎区域样式 */
 .welcome-section {
     background: #fff;
-    color: #2c3e50;
+    color: var(--primary-color);
     padding: 100px 0;
     text-align: center;
     margin-bottom: 60px;
@@ -214,7 +218,7 @@
 .stat-number {
     font-size: 2.8rem;
     font-weight: 800;
-    color: #fff;
+    color: var(--primary-color);
     line-height: 1;
     margin-bottom: 5px;
 }
@@ -225,6 +229,7 @@
     text-transform: uppercase;
     letter-spacing: 2px;
     font-weight: 500;
+    color: var(--text-secondary);
 }
 
 .welcome-actions {
@@ -251,20 +256,20 @@
 }
 
 .btn-explore {
-    background: var(--secondary-gradient);
-    color: white;
-    box-shadow: 0 8px 25px rgba(240, 147, 251, 0.4);
+    background: var(--primary-gradient);
+    color: #fff;
+    box-shadow: 0 8px 25px rgba(58, 122, 254, 0.12);
 }
 
 .btn-gallery {
-    background: var(--accent-gradient);
-    color: white;
-    box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+    background: var(--secondary-gradient);
+    color: #fff;
+    box-shadow: 0 8px 25px rgba(52, 201, 173, 0.12);
 }
 
 .btn-explore:hover, .btn-gallery:hover {
     transform: translateY(-3px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 15px 35px rgba(58, 122, 254, 0.18);
 }
 
 /* 导航样式优化 */
@@ -297,7 +302,7 @@
 
 .nav-item.active {
     background: var(--primary-color);
-    color: white;
+    color: #fff;
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
@@ -311,8 +316,8 @@
 }
 
 .nav-badge {
-    background: #ff4757;
-    color: white;
+    background: var(--accent-gradient);
+    color: #fff;
     font-size: 0.75rem;
     padding: 2px 6px;
     border-radius: 10px;
@@ -356,7 +361,7 @@
 
 .page-main-title {
     font-size: 3rem;
-    color: var(--text-primary);
+    color: var(--primary-color);
     margin-bottom: 15px;
     font-weight: 800;
     position: relative;
@@ -893,13 +898,13 @@
 
 .btn-primary {
     background: var(--primary-gradient);
-    color: white;
+    color: #fff;
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 10px 30px rgba(58, 122, 254, 0.18);
 }
 
 .btn-secondary {
@@ -913,7 +918,7 @@
 
 .btn-secondary:hover {
     background: var(--text-secondary);
-    color: white;
+    color: #fff;
     border-color: var(--text-secondary);
 }
 
@@ -926,15 +931,15 @@
 
 .btn-load-more {
     background: var(--accent-gradient);
-    color: white;
-    box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+    color: #fff;
+    box-shadow: 0 8px 25px rgba(255, 179, 0, 0.12);
     padding: 16px 32px;
     font-size: 1.1rem;
 }
 
 .btn-load-more:hover {
     transform: translateY(-3px);
-    box-shadow: 0 15px 35px rgba(79, 172, 254, 0.4);
+    box-shadow: 0 15px 35px rgba(255, 179, 0, 0.18);
 }
 
 .load-more-section {
@@ -1151,7 +1156,7 @@
     height: 50px;
     border-radius: 50%;
     background: var(--primary-gradient);
-    color: white;
+    color: #fff;
     border: none;
     cursor: pointer;
     transition: var(--transition);

@@ -1,28 +1,28 @@
 /* 公共样式 - style.css */
 :root {
-    --primary: #2c3e50;
-    --secondary: #667eea;
-    --accent: #ff6b6b;
-    --success: #4ecdc4;
-    --warning: #f39c12;
-    --light: #ecf0f1;
-    --dark: #2c3e50;
-    --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.15);
+    --primary: #3a7afe;
+    --secondary: #34c9ad;
+    --accent: #ffb300;
+    --success: #34c9ad;
+    --warning: #ffb300;
+    --light: #f5f7fa;
+    --dark: #222;
+    --shadow: 0 8px 32px rgba(58, 122, 254, 0.08);
+    --shadow-hover: 0 12px 40px rgba(58, 122, 254, 0.12);
     --transition: all 0.3s ease;
     --border-radius: 16px;
-    --gradient-primary: #fff;
-    --gradient-secondary: #fff;
-    --gradient-accent: #fff;
+    --gradient-primary: #3a7afe;
+    --gradient-secondary: #34c9ad;
+    --gradient-accent: #ffb300;
     --backdrop-blur: blur(10px);
     
     /* 新增博客主题变量 */
-    --primary-color: #667eea;
-    --text-primary: #2c3e50;
-    --text-secondary: #6c757d;
-    --hover-bg: #fff;
+    --primary-color: #3a7afe;
+    --text-primary: #222;
+    --text-secondary: #6c7a89;
+    --hover-bg: #f0f4fa;
     --border-color: #e9ecef;
-    --bg-light: #fff;
+    --bg-light: #f5f7fa;
 }
 
 * {
@@ -116,8 +116,8 @@ nav {
 
 .btn {
     display: inline-block;
-    background: var(--gradient-secondary);
-    color: white;
+    background: var(--primary);
+    color: #fff;
     padding: 12px 24px;
     border: none;
     border-radius: 12px;
@@ -131,7 +131,7 @@ nav {
 
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+    box-shadow: 0 8px 25px rgba(58, 122, 254, 0.15);
 }
 
 .btn-block {
@@ -140,36 +140,36 @@ nav {
 }
 
 .btn-danger {
-    background: var(--gradient-accent);
+    background: var(--accent);
 }
 
 .btn-danger:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+    box-shadow: 0 8px 25px rgba(255, 179, 0, 0.15);
 }
 
 .btn-success {
-    background: var(--gradient-secondary);
+    background: var(--secondary);
 }
 
 .btn-success:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+    box-shadow: 0 8px 25px rgba(52, 201, 173, 0.15);
 }
 
 .btn-primary {
-    background: var(--gradient-primary);
+    background: var(--primary);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 25px rgba(58, 122, 254, 0.18);
 }
 
 .page-title {
     text-align: center;
     margin: 20px 0 40px 0;
-    color: white;
+    color: var(--primary);
     font-size: 2.5rem;
     font-weight: 700;
     text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -217,7 +217,7 @@ nav {
 }
 
 .card-text {
-    color: #495057;
+    color: var(--text-secondary);
     margin-bottom: 16px;
     line-height: 1.6;
     display: -webkit-box;
@@ -227,13 +227,13 @@ nav {
 }
 
 .card-date {
-    color: #6c757d;
+    color: var(--text-secondary);
     font-size: 0.85rem;
     font-weight: 500;
 }
 
 .card-meta {
-    color: #6c757d;
+    color: var(--text-secondary);
     font-size: 0.85rem;
     margin-bottom: 12px;
     display: flex;
@@ -413,22 +413,22 @@ textarea {
     border-radius: 8px;
     cursor: pointer;
     transition: var(--transition);
-    color: #6c757d;
-}
-
-.action-icon:hover {
-    background: rgba(102, 126, 234, 0.1);
     color: var(--secondary);
 }
 
+.action-icon:hover {
+    background: var(--hover-bg);
+    color: var(--primary);
+}
+
 .action-icon.delete:hover {
-    background: rgba(255, 107, 107, 0.1);
+    background: rgba(255, 179, 0, 0.1);
     color: var(--accent);
 }
 
 footer {
     background-color: var(--primary);
-    color: white;
+    color: #fff;
     padding: 40px 0 20px;
     margin-top: auto;
 }
@@ -488,11 +488,11 @@ footer {
 }
 
 .notification.success {
-    background: var(--gradient-secondary);
+    background: var(--secondary);
 }
 
 .notification.error {
-    background: var(--gradient-accent);
+    background: var(--accent);
 }
 
 .detail-container {
@@ -521,7 +521,7 @@ footer {
     display: flex;
     justify-content: center;
     gap: 20px;
-    color: #6c757d;
+    color: var(--text-secondary);
     font-size: 0.9rem;
 }
 
@@ -537,7 +537,7 @@ footer {
 .detail-content {
     font-size: 1.1rem;
     line-height: 1.8;
-    color: #495057;
+    color: var(--text-secondary);
 }
 
 .detail-content p {

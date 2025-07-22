@@ -2,17 +2,21 @@
 
 /* 根变量继承自index.css */
 :root {
-    --primary-gradient: #fff;
-    --secondary-gradient: #fff;
-    --accent-gradient: #fff;
-    --glass-bg: #fff;
-    --glass-border: #fff;
-    --shadow-light: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --shadow-medium: 0 15px 35px rgba(0, 0, 0, 0.1);
-    --shadow-heavy: 0 20px 40px rgba(0, 0, 0, 0.15);
+    --primary-gradient: #3a7afe;
+    --secondary-gradient: #34c9ad;
+    --accent-gradient: #ffb300;
+    --glass-bg: #f5f7fa;
+    --glass-border: #e9ecef;
+    --shadow-light: 0 8px 32px rgba(58, 122, 254, 0.08);
+    --shadow-medium: 0 15px 35px rgba(58, 122, 254, 0.12);
+    --shadow-heavy: 0 20px 40px rgba(58, 122, 254, 0.15);
     --border-radius: 16px;
     --border-radius-large: 24px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --primary-color: #3a7afe;
+    --text-primary: #222;
+    --text-secondary: #6c7a89;
+    --border-color: #e9ecef;
 }
 
 /* 页面加载动画 */

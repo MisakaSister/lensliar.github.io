@@ -1,17 +1,21 @@
 /* 文章网格布局样式 - 简约大方版本 */
 
 :root {
-    --primary-gradient: #fff;
-    --secondary-gradient: #fff;
-    --accent-gradient: #fff;
-    --glass-bg: #fff;
-    --glass-border: #fff;
-    --shadow-light: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --shadow-medium: 0 15px 35px rgba(0, 0, 0, 0.1);
-    --shadow-heavy: 0 20px 40px rgba(0, 0, 0, 0.15);
+    --primary-gradient: #3a7afe;
+    --secondary-gradient: #34c9ad;
+    --accent-gradient: #ffb300;
+    --glass-bg: #f5f7fa;
+    --glass-border: #e9ecef;
+    --shadow-light: 0 8px 32px rgba(58, 122, 254, 0.08);
+    --shadow-medium: 0 15px 35px rgba(58, 122, 254, 0.12);
+    --shadow-heavy: 0 20px 40px rgba(58, 122, 254, 0.15);
     --border-radius: 16px;
     --border-radius-large: 24px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --primary-color: #3a7afe;
+    --text-primary: #222;
+    --text-secondary: #6c7a89;
+    --border-color: #e9ecef;
 }
 
 /* 基础重置 */
@@ -184,10 +188,10 @@ a:any-link {
 /* 标签样式 */
 a.tag,
 .tag {
-    background: rgba(102, 126, 234, 0.1);
-    border: 1px solid rgba(102, 126, 234, 0.2);
+    background: rgba(58, 122, 254, 0.08);
+    border: 1px solid rgba(58, 122, 254, 0.18);
     border-radius: 20px;
-    color: #667eea;
+    color: #3a7afe;
     display: inline-block;
     font-size: 12px;
     font-weight: 500;
@@ -197,8 +201,8 @@ a.tag,
 
 a.tag:hover,
 .tag:hover {
-    background: rgba(102, 126, 234, 0.2);
-    border-color: rgba(102, 126, 234, 0.3);
+    background: rgba(58, 122, 254, 0.18);
+    border-color: rgba(58, 122, 254, 0.28);
     transform: translateY(-1px);
 }
 
