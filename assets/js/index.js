@@ -862,7 +862,7 @@ function animateCounter(element, targetValue) {
     requestAnimationFrame(updateCounter);
 }
 
-// 渲染文章
+    // 渲染文章
 function renderArticles() {
     const container = document.getElementById('articles-container');
     if (!container) return;
@@ -883,7 +883,7 @@ function renderArticles() {
         articlesToShow.forEach((article, index) => {
             const articleElement = createArticleCard(article, index);
             container.appendChild(articleElement);
-        });
+    });
     } else {
         container.innerHTML = `<div class="empty-state">
             <div class="empty-icon">📝</div>
@@ -897,9 +897,9 @@ function renderArticles() {
     if (loadMoreBtn) {
         loadMoreBtn.style.display = displayCount < articles.length ? 'block' : 'none';
     }
-}
+    }
 
-// 渲染相册
+    // 渲染相册
 function renderAlbums() {
     const container = document.getElementById('images-container');
     if (!container) return;
@@ -949,7 +949,7 @@ function formatDate(dateString) {
     }
     
     try {
-        const date = new Date(dateString);
+    const date = new Date(dateString);
         
         // 检查日期是否有效
         if (isNaN(date.getTime())) {
@@ -984,10 +984,10 @@ let currentImages = [];
 function openImageViewer(imageId) {
     const viewer = document.getElementById('image-viewer');
     const image = imagesData.find(img => img.id === imageId);
-    
+
     if (image) {
-        currentImages = imagesData;
-        currentImageIndex = currentImages.findIndex(img => img.id === imageId);
+    currentImages = imagesData;
+    currentImageIndex = currentImages.findIndex(img => img.id === imageId);
         updateViewerImage();
         viewer.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -996,7 +996,7 @@ function openImageViewer(imageId) {
 
 function closeImageViewer() {
     const viewer = document.getElementById('image-viewer');
-    viewer.classList.remove('active');
+        viewer.classList.remove('active');
     document.body.style.overflow = 'auto';
     resetZoom();
 }
@@ -1028,7 +1028,7 @@ function updateViewerImage() {
     document.querySelector('.prev-btn').style.opacity = currentImageIndex === 0 ? '0.5' : '1';
     document.querySelector('.next-btn').style.opacity = currentImageIndex === currentImages.length - 1 ? '0.5' : '1';
     
-    resetZoom();
+        resetZoom();
 }
 
 // 缩放功能

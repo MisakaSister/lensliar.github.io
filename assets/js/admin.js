@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // 加载数据
     try {
-        await loadAllContent();
-        switchTab('articles');
+    await loadAllContent();
+    switchTab('articles');
     } catch (error) {
         console.error('初始化失败:', error);
         if (error.message.includes('401')) {
@@ -415,20 +415,20 @@ function renderArticles() {
         
         return `
             <div class="content-card" data-id="${article.id}">
-                <div class="card-header">
+            <div class="card-header">
                     <div class="card-title">
                         <h3>${article.title}</h3>
                         <span class="category-badge" style="background-color: ${categoryColor}">${categoryName}</span>
-                    </div>
-                    <div class="card-actions">
+            </div>
+            <div class="card-actions">
                         <button class="btn-icon" onclick="editArticle('${article.id}')" title="编辑">
                             <i class="fas fa-edit"></i>
-                        </button>
+                </button>
                         <button class="btn-icon" onclick="deleteArticle('${article.id}')" title="删除">
                             <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
+                </button>
+            </div>
+        </div>
                 <div class="card-content">
                     <p>${article.summary || article.content.substring(0, 100)}...</p>
                 </div>
@@ -474,14 +474,14 @@ function renderImages() {
                     <div class="card-title">
                         <h3>${album.title}</h3>
                         <span class="category-badge" style="background-color: ${categoryColor}">${categoryName}</span>
-                    </div>
-                    <div class="card-actions">
+                </div>
+                <div class="card-actions">
                         <button class="btn-icon" onclick="editAlbum('${album.id}')" title="编辑">
                             <i class="fas fa-edit"></i>
-                        </button>
+                    </button>
                         <button class="btn-icon" onclick="deleteAlbum('${album.id}')" title="删除">
                             <i class="fas fa-trash"></i>
-                        </button>
+                    </button>
                     </div>
                 </div>
                 <div class="card-content">
@@ -596,9 +596,9 @@ function renderAlbumCategorySelect() {
 function closeModal(type) {
     document.getElementById(`${type}-modal`).style.display = 'none';
     resetForm(type);
-}
-
-// 重置表单
+    }
+    
+    // 重置表单
 function resetForm(type) {
     editingItem = null;
     if (type === 'article') {
@@ -694,7 +694,7 @@ async function handleFileSelect(event) {
         const validation = Utils.validateFile(file);
         if (!validation.valid) {
             Utils.showNotification(validation.error, false);
-            return;
+        return;
         }
     }
     
@@ -794,14 +794,14 @@ async function handleArticleImageSelect(event) {
         const previewContainer = document.getElementById('article-image-preview');
         
         previewContainer.innerHTML = `
-            <div class="preview-item">
+        <div class="preview-item">
                 <img src="${preview.url}" alt="${preview.name}">
-                <div class="preview-info">
+            <div class="preview-info">
                     <span>${preview.name}</span>
                     <span>${Utils.formatFileSize(preview.size)}</span>
-                </div>
-                <button type="button" class="remove-btn" onclick="removeArticleImage()">&times;</button>
             </div>
+                <button type="button" class="remove-btn" onclick="removeArticleImage()">&times;</button>
+        </div>
         `;
         
         previewContainer.style.display = 'block';
@@ -911,9 +911,9 @@ async function saveImages() {
             Utils.showNotification('相册创建成功');
         }
         
-        closeModal('image');
+            closeModal('image');
         await loadAllContent();
-        renderCurrentTab();
+            renderCurrentTab();
         
     } catch (error) {
         Utils.showNotification('保存失败: ' + error.message, false);
@@ -947,7 +947,7 @@ async function editArticle(id) {
         if (coverImageElement) {
             coverImageElement.value = article.coverImage;
         }
-        // 显示封面图片预览
+    // 显示封面图片预览
     }
     
     openModal('article');
@@ -991,8 +991,8 @@ async function deleteArticle(id) {
         await articleManager.delete(id);
         Utils.showNotification('文章删除成功');
         await loadAllContent();
-        renderCurrentTab();
-    } catch (error) {
+            renderCurrentTab();
+        } catch (error) {
         Utils.showNotification('删除失败: ' + error.message, false);
     }
 }
@@ -1014,7 +1014,7 @@ async function deleteAlbum(id) {
 // 退出登录
 function logout() {
     localStorage.removeItem('authToken');
-    window.location.href = 'login.html';
+        window.location.href = 'login.html';
 }
 
 // 全局函数

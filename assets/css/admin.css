@@ -11,7 +11,7 @@
 
 /* 覆盖body样式仅在管理页面 */
 body.admin-page {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    background: #fff !important;
     min-height: 100vh;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -63,6 +63,7 @@ nav {
     max-width: 1400px;
     margin: 0 auto;
     padding: 30px 20px;
+    background: #fff;
 }
 
 .admin-header {
