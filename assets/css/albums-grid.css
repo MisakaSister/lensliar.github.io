@@ -1,18 +1,18 @@
 /* 相册网格布局样式 - 简约大方版本 */
 
 :root {
-    --primary-gradient: #3a7afe;
-    --secondary-gradient: #34c9ad;
-    --accent-gradient: #ffb300;
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+    --accent-gradient: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
     --glass-bg: #f5f7fa;
     --glass-border: #e9ecef;
-    --shadow-light: 0 8px 32px rgba(58, 122, 254, 0.08);
-    --shadow-medium: 0 15px 35px rgba(58, 122, 254, 0.12);
-    --shadow-heavy: 0 20px 40px rgba(58, 122, 254, 0.15);
+    --shadow-light: 0 8px 32px rgba(102, 126, 234, 0.08);
+    --shadow-medium: 0 15px 35px rgba(102, 126, 234, 0.12);
+    --shadow-heavy: 0 20px 40px rgba(102, 126, 234, 0.15);
     --border-radius: 16px;
     --border-radius-large: 24px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --primary-color: #3a7afe;
+    --primary-color: #667eea;
     --text-primary: #222;
     --text-secondary: #6c7a89;
     --border-color: #e9ecef;
@@ -176,10 +176,10 @@ a:any-link {
 /* 标签样式 */
 a.tag,
 .tag {
-    background: rgba(58, 122, 254, 0.08);
-    border: 1px solid rgba(58, 122, 254, 0.18);
+    background: rgba(102, 126, 234, 0.08);
+    border: 1px solid rgba(102, 126, 234, 0.18);
     border-radius: 20px;
-    color: #3a7afe;
+    color: #667eea;
     display: inline-block;
     font-size: 12px;
     font-weight: 500;
@@ -189,8 +189,8 @@ a.tag,
 
 a.tag:hover,
 .tag:hover {
-    background: rgba(58, 122, 254, 0.18);
-    border-color: rgba(58, 122, 254, 0.28);
+    background: rgba(102, 126, 234, 0.18);
+    border-color: rgba(102, 126, 234, 0.28);
     transform: translateY(-1px);
 }
 

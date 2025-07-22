@@ -1,12 +1,12 @@
 /* login.css - 登录页面样式 */
 
 :root {
-    --primary: #3a7afe;
-    --secondary: #34c9ad;
+    --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
     --light: #f5f7fa;
     --dark: #222;
-    --success: #34c9ad;
-    --danger: #ffb300;
+    --success: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+    --danger: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
     --text-primary: #222;
     --text-secondary: #6c7a89;
 }
