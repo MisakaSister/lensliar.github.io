@@ -1,15 +1,17 @@
 /* admin.css - 管理页面样式 */
 
 :root {
-    --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --secondary: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
-    --accent: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-    --success: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
-    --warning: linear-gradient(135deg, #ffb300 0%, #ff6b6b 100%);
+    --primary: #4f8cff;
+    --secondary: #43d8c9;
+    --accent: #ffb86b;
+    --success: #43d8c9;
+    --warning: #ffb86b;
     --text-primary: #222;
     --text-secondary: #6c7a89;
     --border-color: #e9ecef;
     --bg-light: #f5f7fa;
+    --gradient-primary: linear-gradient(135deg, #4f8cff 0%, #43d8c9 100%);
+    --gradient-accent: linear-gradient(135deg, #ffb86b 0%, #ff6b6b 100%);
 }
 
 /* 重置基础样式以避免冲突 */
@@ -1288,11 +1290,11 @@ footer p {
 }
 
 .quick-stats .stats-card {
-    background: var(--card-bg);
+    background: var(--gradient-primary);
+    color: #fff;
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -1306,7 +1308,7 @@ footer p {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--primary-bg);
+    background: var(--gradient-accent);
     border-radius: 12px;
 }
 
@@ -1318,7 +1320,7 @@ footer p {
 
 .quick-stats .stats-info p {
     margin: 0;
-    color: #44a08d;
+    color: var(--secondary);
     font-size: 0.9rem;
     line-height: 1.4;
 }
@@ -1834,7 +1836,7 @@ footer p {
 }
 
 .stats-card {
-    background: var(--primary);
+    background: var(--gradient-primary);
     color: #fff;
     padding: 20px 25px;
     border-radius: 16px;
