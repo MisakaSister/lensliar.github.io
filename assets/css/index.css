@@ -2,21 +2,17 @@
 
 /* 根变量 */
 :root {
-    --primary-gradient: linear-gradient(135deg, #4f8cff 0%, #43d8c9 100%);
-    --secondary-gradient: #43d8c9;
-    --accent-gradient: linear-gradient(135deg, #ffb86b 0%, #ff6b6b 100%);
-    --glass-bg: #f5f7fa;
-    --glass-border: #e9ecef;
-    --shadow-light: 0 8px 32px rgba(79, 140, 255, 0.08);
-    --shadow-medium: 0 15px 35px rgba(79, 140, 255, 0.12);
-    --shadow-heavy: 0 20px 40px rgba(79, 140, 255, 0.15);
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --shadow-light: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 15px 35px rgba(0, 0, 0, 0.1);
+    --shadow-heavy: 0 20px 40px rgba(0, 0, 0, 0.15);
     --border-radius: 16px;
     --border-radius-large: 24px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --primary-color: #4f8cff;
-    --text-primary: #222;
-    --text-secondary: #6c7a89;
-    --border-color: #e9ecef;
 }
 
 /* 页面加载动画 */
@@ -26,7 +22,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: #fff;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -64,7 +60,7 @@
 /* 欢迎区域样式 */
 .welcome-section {
     background: var(--primary-gradient);
-    color: #fff;
+    color: white;
     padding: 100px 0;
     text-align: center;
     margin-bottom: 60px;
@@ -218,7 +214,7 @@
 .stat-number {
     font-size: 2.8rem;
     font-weight: 800;
-    color: var(--primary-color);
+    color: #fff;
     line-height: 1;
     margin-bottom: 5px;
 }
@@ -229,7 +225,6 @@
     text-transform: uppercase;
     letter-spacing: 2px;
     font-weight: 500;
-    color: var(--text-secondary);
 }
 
 .welcome-actions {
@@ -256,20 +251,20 @@
 }
 
 .btn-explore {
-    background: var(--primary-color);
-    color: #fff;
-    box-shadow: 0 8px 25px rgba(79, 140, 255, 0.12);
+    background: var(--secondary-gradient);
+    color: white;
+    box-shadow: 0 8px 25px rgba(240, 147, 251, 0.4);
 }
 
 .btn-gallery {
-    background: var(--secondary-gradient);
-    color: #fff;
-    box-shadow: 0 8px 25px rgba(67, 216, 201, 0.12);
+    background: var(--accent-gradient);
+    color: white;
+    box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
 }
 
 .btn-explore:hover, .btn-gallery:hover {
     transform: translateY(-3px);
-    box-shadow: 0 15px 35px rgba(58, 122, 254, 0.18);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
 }
 
 /* 导航样式优化 */
@@ -302,7 +297,7 @@
 
 .nav-item.active {
     background: var(--primary-color);
-    color: #fff;
+    color: white;
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
@@ -316,8 +311,8 @@
 }
 
 .nav-badge {
-    background: var(--accent-gradient);
-    color: #fff;
+    background: #ff4757;
+    color: white;
     font-size: 0.75rem;
     padding: 2px 6px;
     border-radius: 10px;
@@ -336,7 +331,7 @@
     text-align: center;
     margin-bottom: 50px;
     padding: 60px 40px;
-    background: #fff;
+    background: linear-gradient(135deg, #f8f9ff 0%, #e8f4f8 100%);
     border-radius: var(--border-radius-large);
     box-shadow: var(--shadow-light);
     position: relative;
@@ -361,7 +356,7 @@
 
 .page-main-title {
     font-size: 3rem;
-    color: var(--primary-color);
+    color: var(--text-primary);
     margin-bottom: 15px;
     font-weight: 800;
     position: relative;
@@ -898,13 +893,13 @@
 
 .btn-primary {
     background: var(--primary-gradient);
-    color: #fff;
+    color: white;
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(58, 122, 254, 0.18);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
 }
 
 .btn-secondary {
@@ -918,7 +913,7 @@
 
 .btn-secondary:hover {
     background: var(--text-secondary);
-    color: #fff;
+    color: white;
     border-color: var(--text-secondary);
 }
 
@@ -931,15 +926,15 @@
 
 .btn-load-more {
     background: var(--accent-gradient);
-    color: #fff;
-    box-shadow: 0 8px 25px rgba(255, 184, 107, 0.12);
+    color: white;
+    box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
     padding: 16px 32px;
     font-size: 1.1rem;
 }
 
 .btn-load-more:hover {
     transform: translateY(-3px);
-    box-shadow: 0 15px 35px rgba(255, 179, 0, 0.18);
+    box-shadow: 0 15px 35px rgba(79, 172, 254, 0.4);
 }
 
 .load-more-section {
@@ -1156,7 +1151,7 @@
     height: 50px;
     border-radius: 50%;
     background: var(--primary-gradient);
-    color: #fff;
+    color: white;
     border: none;
     cursor: pointer;
     transition: var(--transition);

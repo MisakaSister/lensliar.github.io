@@ -1,20 +1,16 @@
 /* login.css - 登录页面样式 */
 
 :root {
-    --primary: #4f8cff;
-    --secondary: #43d8c9;
-    --light: #f5f7fa;
-    --dark: #222;
-    --success: #43d8c9;
-    --danger: #ffb86b;
-    --text-primary: #222;
-    --text-secondary: #6c7a89;
-    --gradient-primary: linear-gradient(135deg, #4f8cff 0%, #43d8c9 100%);
-    --gradient-accent: linear-gradient(135deg, #ffb86b 0%, #ff6b6b 100%);
+    --primary: #2c3e50;
+    --secondary: #3498db;
+    --light: #ecf0f1;
+    --dark: #2c3e50;
+    --success: #27ae60;
+    --danger: #e74c3c;
 }
 
 body {
-    background: #fff;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -202,13 +198,11 @@ body {
     margin-top: 20px;
     position: relative;
     overflow: hidden;
-    background: var(--primary);
-    color: #fff;
 }
 
 .btn-login:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(58, 122, 254, 0.15);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
 .login-footer {

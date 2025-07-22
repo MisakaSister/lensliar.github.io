@@ -1,21 +1,17 @@
 /* 相册网格布局样式 - 简约大方版本 */
 
 :root {
-    --primary-gradient: linear-gradient(135deg, #4f8cff 0%, #43d8c9 100%);
-    --secondary-gradient: #43d8c9;
-    --accent-gradient: linear-gradient(135deg, #ffb86b 0%, #ff6b6b 100%);
-    --glass-bg: #f5f7fa;
-    --glass-border: #e9ecef;
-    --shadow-light: 0 8px 32px rgba(79, 140, 255, 0.08);
-    --shadow-medium: 0 15px 35px rgba(79, 140, 255, 0.12);
-    --shadow-heavy: 0 20px 40px rgba(79, 140, 255, 0.15);
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --shadow-light: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 15px 35px rgba(0, 0, 0, 0.1);
+    --shadow-heavy: 0 20px 40px rgba(0, 0, 0, 0.15);
     --border-radius: 16px;
     --border-radius-large: 24px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --primary-color: #4f8cff;
-    --text-primary: #222;
-    --text-secondary: #6c7a89;
-    --border-color: #e9ecef;
 }
 
 /* 基础重置 */
@@ -26,7 +22,7 @@
 
 /* 页面背景 */
 html {
-    background: #fff;
+    background: var(--primary-gradient);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
     color: #2c3e50;
@@ -176,10 +172,10 @@ a:any-link {
 /* 标签样式 */
 a.tag,
 .tag {
-    background: rgba(79, 140, 255, 0.08);
-    border: 1px solid rgba(79, 140, 255, 0.18);
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.2);
     border-radius: 20px;
-    color: #4f8cff;
+    color: #667eea;
     display: inline-block;
     font-size: 12px;
     font-weight: 500;
@@ -189,8 +185,8 @@ a.tag,
 
 a.tag:hover,
 .tag:hover {
-    background: rgba(79, 140, 255, 0.18);
-    border-color: rgba(79, 140, 255, 0.28);
+    background: rgba(102, 126, 234, 0.2);
+    border-color: rgba(102, 126, 234, 0.3);
     transform: translateY(-1px);
 }
 
