@@ -115,7 +115,6 @@ function initTinyMCEEditor() {
     tinyMCEEditor = tinymce.init({
         selector: '#article-content-editor',
         height: 400,
-        language: 'zh_CN',
         plugins: [
             'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
             'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
