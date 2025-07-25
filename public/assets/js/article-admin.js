@@ -1,5 +1,5 @@
 // 文章管理专用文件
-let quillEditor;
+let tinyMCEEditor;
 let currentPage = 1;
 let searchQuery = '';
 let currentCategory = '';
@@ -103,193 +103,125 @@ function initPage() {
         </div>
     `;
     
-    // 初始化富文本编辑器
-    initQuillEditor();
     Utils.showLoading(false);
 }
 
-// 初始化富文本编辑器
-function initQuillEditor() {
-    const toolbarOptions = [
-        ['bold', 'italic', 'underline', 'strike'],
-        ['blockquote', 'code-block'],
-        [{ 'header': 1 }, { 'header': 2 }],
-        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-        [{ 'script': 'sub'}, { 'script': 'super' }],
-        [{ 'indent': '-1'}, { 'indent': '+1' }],
-        [{ 'direction': 'rtl' }],
-        [{ 'size': ['small', false, 'large', 'huge'] }],
-        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-        [{ 'color': [] }, { 'background': [] }],
-        [{ 'font': [] }],
-        [{ 'align': [] }],
-        ['link', 'image', 'video'],
-        ['clean']
-    ];
-    
-    quillEditor = new Quill('#article-content-editor', {
-        theme: 'snow',
-        modules: { 
-            toolbar: {
-                container: toolbarOptions,
-                handlers: {
-                    image: imageHandler
-                }
-            }
-        },
-        placeholder: '请输入文章内容...'
-    });
-    
-    quillEditor.on('text-change', function() {
-        document.getElementById('article-content').value = quillEditor.root.innerHTML;
-    });
-    
-    // 处理粘贴事件
-    quillEditor.on('paste', async function(e) {
-        const clipboardData = e.clipboardData;
-        if (!clipboardData) return;
-        
-        const items = clipboardData.items;
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            if (item.type.indexOf('image') !== -1) {
-                e.preventDefault();
-                
-                const file = item.getAsFile();
-                if (!file) continue;
-                
-                // 验证文件
-                const validation = Utils.validateFile(file);
-                if (!validation.valid) {
-                    showNotification(validation.error, false);
-                    continue;
-                }
-                
-                try {
-                    showNotification('正在上传粘贴的图片...', true);
-                    
-                    // 上传图片到R2
-                    const uploadedFile = await uploadFile(file);
-                    
-                    // 获取当前光标位置
-                    const range = quillEditor.getSelection();
-                    
-                    // 如果光标位置为null，插入到文档末尾
-                    const insertIndex = range ? range.index : quillEditor.getLength();
-                    
-                    // 插入图片到编辑器
-                    quillEditor.insertEmbed(insertIndex, 'image', uploadedFile.url);
-                    
-                    // 移动光标到图片后面
-                    quillEditor.setSelection(insertIndex + 1);
-                    
-                    showNotification('图片上传成功');
-                    
-                } catch (error) {
-                    showNotification('图片上传失败: ' + error.message, false);
-                }
-            }
-        }
-    });
-    
-    // 处理拖拽事件
-    const editorElement = document.getElementById('article-content-editor');
-    editorElement.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        e.currentTarget.classList.add('drag-over');
-    });
-    
-    editorElement.addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        e.currentTarget.classList.remove('drag-over');
-    });
-    
-    editorElement.addEventListener('drop', async function(e) {
-        e.preventDefault();
-        e.currentTarget.classList.remove('drag-over');
-        
-        const files = Array.from(e.dataTransfer.files);
-        const imageFiles = files.filter(file => file.type.startsWith('image/'));
-        
-        if (imageFiles.length === 0) return;
-        
-        for (const file of imageFiles) {
-            // 验证文件
-            const validation = Utils.validateFile(file);
-            if (!validation.valid) {
-                showNotification(validation.error, false);
-                continue;
-            }
+// 初始化TinyMCE编辑器
+function initTinyMCEEditor() {
+    if (tinyMCEEditor) {
+        tinyMCEEditor.destroy();
+    }
+
+    tinyMCEEditor = tinymce.init({
+        selector: '#article-content-editor',
+        height: 400,
+        language: 'zh_CN',
+        plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | formatselect | bold italic underline strikethrough | ' +
+                'alignleft aligncenter alignright alignjustify | ' +
+                'bullist numlist outdent indent | link image media table | ' +
+                'removeformat | help',
+        menubar: 'file edit view insert format tools table help',
+        content_style: `
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; }
+            .mce-content-body { padding: 20px; }
+        `,
+        // 图片上传配置
+        images_upload_url: `${API_BASE}/upload`,
+        images_upload_credentials: true,
+        images_upload_handler: function (blobInfo, success, failure) {
+            const formData = new FormData();
+            formData.append('file', blobInfo.blob(), blobInfo.filename());
             
-            try {
-                showNotification('正在上传拖拽的图片...', true);
-                
-                // 上传图片到R2
-                const uploadedFile = await uploadFile(file);
-                
-                // 获取当前光标位置
-                const range = quillEditor.getSelection();
-                
-                // 如果光标位置为null，插入到文档末尾
-                const insertIndex = range ? range.index : quillEditor.getLength();
-                
-                // 插入图片到编辑器
-                quillEditor.insertEmbed(insertIndex, 'image', uploadedFile.url);
-                
-                // 移动光标到图片后面
-                quillEditor.setSelection(insertIndex + 1);
-                
-                showNotification('图片上传成功');
-                
-            } catch (error) {
-                showNotification('图片上传失败: ' + error.message, false);
-            }
+            fetch(`${API_BASE}/upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.url) {
+                    success(result.url);
+                    showNotification('图片上传成功');
+                } else {
+                    failure('图片上传失败');
+                }
+            })
+            .catch(error => {
+                console.error('图片上传错误:', error);
+                failure('图片上传失败: ' + error.message);
+            });
+        },
+        // 自动保存
+        auto_save: true,
+        auto_save_interval: '30s',
+        // 粘贴时自动上传图片
+        paste_data_images: true,
+        // 拖拽上传图片
+        dragdrop_callbacks: true,
+        // 设置
+        branding: false,
+        elementpath: false,
+        statusbar: true,
+        resize: true,
+        // 初始化完成回调
+        setup: function(editor) {
+            editor.on('change', function() {
+                // 内容变化时更新隐藏字段
+                document.getElementById('article-content').value = editor.getContent();
+            });
+            
+            // 拖拽上传
+            editor.on('drop', function(e) {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    e.preventDefault();
+                    handleEditorDrop(files, editor);
+                }
+            });
         }
     });
 }
 
-// 图片处理器
-async function imageHandler() {
-    const input = document.createElement('input');
-    input.setAttribute('type', 'file');
-    input.setAttribute('accept', 'image/*');
-    input.click();
+// 处理编辑器拖拽上传
+async function handleEditorDrop(files, editor) {
+    const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
     
-    input.onchange = async () => {
-        const file = input.files[0];
-        if (!file) return;
-        
-        // 验证文件
-        const validation = Utils.validateFile(file);
-        if (!validation.valid) {
-            showNotification(validation.error, false);
-            return;
-        }
-        
+    if (imageFiles.length === 0) return;
+    
+    for (const file of imageFiles) {
         try {
-            showNotification('正在上传图片...', true);
+            showNotification('正在上传拖拽的图片...', true);
             
-            // 上传图片到R2
-            const uploadedFile = await uploadFile(file);
+            const formData = new FormData();
+            formData.append('file', file);
             
-            // 获取当前光标位置
-            const range = quillEditor.getSelection();
+            const response = await fetch(`${API_BASE}/upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
+                },
+                body: formData
+            });
             
-            // 如果光标位置为null，插入到文档末尾
-            const insertIndex = range ? range.index : quillEditor.getLength();
+            const result = await response.json();
             
-            // 插入图片到编辑器
-            quillEditor.insertEmbed(insertIndex, 'image', uploadedFile.url);
-            
-            // 移动光标到图片后面
-            quillEditor.setSelection(insertIndex + 1);
-            
-            showNotification('图片上传成功');
-            
+            if (result.url) {
+                editor.insertContent(`<img src="${result.url}" alt="${file.name}" style="max-width: 100%; height: auto;">`);
+                showNotification('图片上传成功');
+            } else {
+                showNotification('图片上传失败', false);
+            }
         } catch (error) {
             showNotification('图片上传失败: ' + error.message, false);
         }
-    };
+    }
 }
 
 // 设置事件监听
@@ -566,7 +498,6 @@ function renderCategorySelect() {
 function openArticleModal(articleId = null) {
     const modal = document.getElementById('article-modal');
     const title = document.getElementById('article-modal-title');
-    const form = document.getElementById('article-form');
     
     // 确保分类选择器被正确渲染
     renderCategorySelect();
@@ -586,12 +517,24 @@ function openArticleModal(articleId = null) {
     }
     
     modal.style.display = 'flex';
+    
+    // 初始化编辑器
+    setTimeout(() => {
+        initTinyMCEEditor();
+    }, 100);
 }
 
 // 关闭文章模态框
 function closeArticleModal() {
     const modal = document.getElementById('article-modal');
     modal.style.display = 'none';
+    
+    // 销毁编辑器
+    if (tinyMCEEditor) {
+        tinyMCEEditor.destroy();
+        tinyMCEEditor = null;
+    }
+    
     resetArticleForm();
 }
 
@@ -599,8 +542,13 @@ function closeArticleModal() {
 function fillArticleForm(article) {
     document.getElementById('article-title').value = article.title;
     document.getElementById('article-category').value = article.category;
-    quillEditor.root.innerHTML = article.content;
-    document.getElementById('article-content').value = article.content;
+    
+    // 等待编辑器初始化完成后设置内容
+    setTimeout(() => {
+        if (tinyMCEEditor && tinyMCEEditor.setContent) {
+            tinyMCEEditor.setContent(article.content);
+        }
+    }, 200);
     
     if (article.coverImage?.url) {
         showArticleImagePreview(article.coverImage);
@@ -610,8 +558,11 @@ function fillArticleForm(article) {
 // 重置文章表单
 function resetArticleForm() {
     document.getElementById('article-form').reset();
-    quillEditor.setText('');
-    document.getElementById('article-content').value = '';
+    
+    if (tinyMCEEditor && tinyMCEEditor.setContent) {
+        tinyMCEEditor.setContent('');
+    }
+    
     document.getElementById('article-image-preview').style.display = 'none';
     document.getElementById('article-cover-image').value = '';
     editingArticle = null;
@@ -621,7 +572,7 @@ function resetArticleForm() {
 async function saveArticle() {
     const title = document.getElementById('article-title').value.trim();
     const category = document.getElementById('article-category').value;
-    const content = document.getElementById('article-content').value.trim();
+    const content = tinyMCEEditor ? tinyMCEEditor.getContent() : '';
     const coverImage = document.getElementById('article-cover-image').value;
     
     if (!title) {
