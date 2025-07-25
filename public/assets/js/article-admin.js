@@ -556,9 +556,23 @@ function fillArticleForm(article) {
     document.getElementById('article-category').value = article.category;
     
     // 等待编辑器初始化完成后设置内容
-    setTimeout(() => {
-        if (tinyMCEEditor && tinyMCEEditor.setContent) {
-            tinyMCEEditor.setContent(article.content);
+    setTimeout(async () => {
+        if (tinyMCEEditor) {
+            try {
+                let editor;
+                // 如果tinyMCEEditor是Promise，等待它完成
+                if (tinyMCEEditor.then) {
+                    editor = await tinyMCEEditor;
+                } else {
+                    editor = tinyMCEEditor;
+                }
+                
+                if (editor && editor.setContent) {
+                    editor.setContent(article.content);
+                }
+            } catch (error) {
+                console.error('设置编辑器内容失败:', error);
+            }
         }
     }, 200);
     
@@ -571,8 +585,27 @@ function fillArticleForm(article) {
 function resetArticleForm() {
     document.getElementById('article-form').reset();
     
-    if (tinyMCEEditor && tinyMCEEditor.setContent) {
-        tinyMCEEditor.setContent('');
+    // 重置编辑器内容
+    if (tinyMCEEditor) {
+        try {
+            // 如果tinyMCEEditor是Promise，等待它完成
+            if (tinyMCEEditor.then) {
+                tinyMCEEditor.then(editor => {
+                    if (editor && editor.setContent) {
+                        editor.setContent('');
+                    }
+                }).catch(error => {
+                    console.error('重置编辑器内容失败:', error);
+                });
+            } else {
+                // 如果已经是编辑器实例
+                if (tinyMCEEditor.setContent) {
+                    tinyMCEEditor.setContent('');
+                }
+            }
+        } catch (error) {
+            console.error('重置编辑器内容失败:', error);
+        }
     }
     
     document.getElementById('article-image-preview').style.display = 'none';
@@ -584,7 +617,25 @@ function resetArticleForm() {
 async function saveArticle() {
     const title = document.getElementById('article-title').value.trim();
     const category = document.getElementById('article-category').value;
-    const content = tinyMCEEditor ? tinyMCEEditor.getContent() : '';
+    
+    // 正确获取TinyMCE编辑器实例和内容
+    let content = '';
+    if (tinyMCEEditor) {
+        try {
+            // 如果tinyMCEEditor是Promise，等待它完成
+            if (tinyMCEEditor.then) {
+                const editor = await tinyMCEEditor;
+                content = editor.getContent();
+            } else {
+                // 如果已经是编辑器实例
+                content = tinyMCEEditor.getContent();
+            }
+        } catch (error) {
+            console.error('获取编辑器内容失败:', error);
+            content = '';
+        }
+    }
+    
     const coverImage = document.getElementById('article-cover-image').value;
     
     if (!title) {
