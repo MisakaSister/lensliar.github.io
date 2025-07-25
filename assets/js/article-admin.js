@@ -137,10 +137,45 @@ function initTinyMCEEditor() {
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; }
             .mce-content-body { padding: 20px; }
         `,
-        // 图片上传配置 - 使用简单配置
+        // 图片上传配置 - 使用自定义处理器
         images_upload_url: `${API_BASE}/upload`,
         images_upload_credentials: true,
-        // 移除复杂的upload_handler，使用默认处理
+        images_upload_handler: function (blobInfo, success, failure) {
+            const formData = new FormData();
+            formData.append('file', blobInfo.blob(), blobInfo.filename());
+            
+            const token = sessionStorage.getItem('authToken');
+            if (!token) {
+                failure('未找到认证token');
+                return;
+            }
+            
+            fetch(`${API_BASE}/upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                if (result && result.url) {
+                    success(result.url);
+                    showNotification('图片上传成功');
+                } else {
+                    failure('服务器返回的数据格式错误');
+                }
+            })
+            .catch(error => {
+                console.error('图片上传错误:', error);
+                failure('图片上传失败: ' + error.message);
+            });
+        },
         // 自动保存
         auto_save: true,
         auto_save_interval: '30s',
