@@ -75,13 +75,15 @@ async function checkAuthStatus() {
 
     try {
         // 验证token有效性
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', `${API_BASE}/auth/verify`, false); // 同步请求
-        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send();
+        const response = await fetch(`${API_BASE}/auth/verify`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
 
-        if (xhr.status !== 200) {
+        if (!response.ok) {
             // token无效，清除并跳转到登录页
             sessionStorage.removeItem('authToken');
             window.location.href = 'login.html';
@@ -141,34 +143,33 @@ function initTinyMCEEditor() {
                 return;
             }
             
-            // 使用XMLHttpRequest替代fetch，确保兼容性
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', `${API_BASE}/upload`, true);
-            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-            
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    try {
-                        const result = JSON.parse(xhr.responseText);
-                        if (result && result.url) {
-                            success(result.url);
-                            showNotification('图片上传成功');
-                        } else {
-                            failure('服务器返回的数据格式错误');
-                        }
-                    } catch (e) {
-                        failure('解析响应数据失败');
-                    }
+            // 使用fetch确保认证头正确发送
+            fetch(`${API_BASE}/upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
                 } else {
-                    failure(`上传失败: HTTP ${xhr.status}`);
+                    throw new Error(`HTTP ${response.status}`);
                 }
-            };
-            
-            xhr.onerror = function() {
-                failure('网络错误，上传失败');
-            };
-            
-            xhr.send(formData);
+            })
+            .then(result => {
+                if (result && result.url) {
+                    success(result.url);
+                    showNotification('图片上传成功');
+                } else {
+                    failure('服务器返回的数据格式错误');
+                }
+            })
+            .catch(error => {
+                console.error('图片上传错误:', error);
+                failure(`上传失败: ${error.message}`);
+            });
         },
         // 移除复杂的upload_handler，使用默认处理
         branding: false,
@@ -202,15 +203,18 @@ async function handleEditorDrop(files, editor) {
             
             const token = sessionStorage.getItem('authToken');
             
-            // 使用XMLHttpRequest替代fetch
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', `${API_BASE}/upload`, false); // 同步请求，简化处理
-            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-            xhr.send(formData);
+            // 使用fetch替代XMLHttpRequest
+            const response = await fetch(`${API_BASE}/upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
             
-            if (xhr.status === 200) {
+            if (response.ok) {
                 try {
-                    const result = JSON.parse(xhr.responseText);
+                    const result = await response.json();
                     if (result && result.url) {
                         editor.insertContent(`<img src="${result.url}" alt="${file.name}" style="max-width: 100%; height: auto;">`);
                         showNotification('图片上传成功');
@@ -250,16 +254,18 @@ function setupEventListeners() {
 // 加载文章数据
 async function loadArticles() {
     try {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', `${API_BASE}/content`, false); // 同步请求
-        xhr.setRequestHeader('Authorization', `Bearer ${sessionStorage.getItem('authToken')}`);
-        xhr.send();
+        const response = await fetch(`${API_BASE}/content`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
+            }
+        });
         
-        if (xhr.status !== 200) {
-            throw new Error(`HTTP ${xhr.status}`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
         
-        const data = JSON.parse(xhr.responseText);
+        const data = await response.json();
         allArticles = data.articles || [];
         
     } catch (error) {
@@ -271,16 +277,18 @@ async function loadArticles() {
 // 加载文章分类
 async function loadArticleCategories() {
     try {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', `${API_BASE}/content/categories`, false); // 同步请求
-        xhr.setRequestHeader('Authorization', `Bearer ${sessionStorage.getItem('authToken')}`);
-        xhr.send();
+        const response = await fetch(`${API_BASE}/content/categories`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
+            }
+        });
         
-        if (xhr.status !== 200) {
-            throw new Error(`HTTP ${xhr.status}`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
         
-        const data = JSON.parse(xhr.responseText);
+        const data = await response.json();
         articleCategories = data.categories || [];
         
         console.log('[文章分类] 加载的分类数据:', articleCategories);
@@ -604,30 +612,28 @@ async function saveArticle() {
         let response;
         if (editingArticle) {
             // 更新文章
-            const xhr = new XMLHttpRequest();
-            xhr.open('PUT', `${API_BASE}/content/${editingArticle.id}`, false); // 同步请求
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.setRequestHeader('Authorization', `Bearer ${sessionStorage.getItem('authToken')}`);
-            xhr.send(JSON.stringify(articleData));
-            
-            if (xhr.status !== 200) {
-                throw new Error(`HTTP ${xhr.status}`);
-            }
-            
-            response = { ok: true, json: () => JSON.parse(xhr.responseText) };
+            response = await fetch(`${API_BASE}/content/${editingArticle.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
+                },
+                body: JSON.stringify(articleData)
+            });
         } else {
             // 创建文章
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', `${API_BASE}/content`, false); // 同步请求
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.setRequestHeader('Authorization', `Bearer ${sessionStorage.getItem('authToken')}`);
-            xhr.send(JSON.stringify(articleData));
-            
-            if (xhr.status !== 200) {
-                throw new Error(`HTTP ${xhr.status}`);
-            }
-            
-            response = { ok: true, json: () => JSON.parse(xhr.responseText) };
+            response = await fetch(`${API_BASE}/content`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
+                },
+                body: JSON.stringify(articleData)
+            });
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
         
         const result = await response.json();
@@ -661,13 +667,15 @@ async function deleteArticle(id) {
     }
     
     try {
-        const xhr = new XMLHttpRequest();
-        xhr.open('DELETE', `${API_BASE}/content/${id}`, false); // 同步请求
-        xhr.setRequestHeader('Authorization', `Bearer ${sessionStorage.getItem('authToken')}`);
-        xhr.send();
+        const response = await fetch(`${API_BASE}/content/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
+            }
+        });
         
-        if (xhr.status !== 200) {
-            throw new Error(`HTTP ${xhr.status}`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
         
         showNotification('文章删除成功');
@@ -747,18 +755,20 @@ async function uploadFile(file) {
     
     const token = sessionStorage.getItem('authToken');
     
-    // 使用XMLHttpRequest替代fetch
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${API_BASE}/upload`, false); // 同步请求
-    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-    xhr.send(formData);
+    const response = await fetch(`${API_BASE}/upload`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        body: formData
+    });
     
-    if (xhr.status !== 200) {
-        throw new Error(`上传失败: HTTP ${xhr.status}`);
+    if (!response.ok) {
+        throw new Error(`上传失败: HTTP ${response.status}`);
     }
     
     try {
-        return JSON.parse(xhr.responseText);
+        return await response.json();
     } catch (e) {
         throw new Error('解析响应数据失败');
     }
