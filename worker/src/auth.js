@@ -62,6 +62,76 @@ export async function handleAuth(request, env) {
         }
     }
 
+    if (pathname === '/auth/verify' && request.method === 'GET') {
+        try {
+            console.log('[认证] 开始验证token');
+            
+            const authHeader = request.headers.get('Authorization');
+            if (!authHeader || !authHeader.startsWith('Bearer ')) {
+                return new Response(JSON.stringify({
+                    error: 'Missing or invalid authorization header'
+                }), {
+                    status: 401,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    }
+                });
+            }
+
+            const token = authHeader.substring(7);
+            const tokenData = await env.AUTH_KV.get(token, "json");
+
+            if (!tokenData) {
+                return new Response(JSON.stringify({
+                    error: 'Invalid or expired token'
+                }), {
+                    status: 401,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    }
+                });
+            }
+
+            if (tokenData.expires < Date.now()) {
+                await env.AUTH_KV.delete(token);
+                return new Response(JSON.stringify({
+                    error: 'Token expired'
+                }), {
+                    status: 401,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    }
+                });
+            }
+
+            console.log('[认证] Token验证成功');
+            return new Response(JSON.stringify({
+                success: true,
+                user: tokenData.user
+            }), {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                }
+            });
+        } catch (error) {
+            console.error('[认证] Token验证异常:', error);
+            return new Response(JSON.stringify({
+                error: 'Token verification failed'
+            }), {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                }
+            });
+        }
+    }
+
     return new Response(JSON.stringify({
         error: "Not found"
     }), {
