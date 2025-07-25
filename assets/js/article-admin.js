@@ -26,14 +26,66 @@ function getFriendlyCategoryName(category) {
     return categoryNameMap[category] || category;
 }
 
-// 初始化
+// 文章管理页面
 document.addEventListener('DOMContentLoaded', async function() {
-    // 检查登录状态
-    if (!sessionStorage.getItem('authToken')) {
+    // 检查登录状态并验证token有效性
+    await checkAuthStatus();
+    
+    // 初始化页面
+    initPage();
+    
+    // 加载文章列表
+    await loadArticles();
+    
+    // 加载分类列表
+    await loadCategories();
+    
+    // 隐藏页面加载动画
+    setTimeout(() => {
+        const pageLoading = document.getElementById('page-loading');
+        if (pageLoading) {
+            pageLoading.classList.add('hide');
+            setTimeout(() => {
+                pageLoading.style.display = 'none';
+            }, 500);
+        }
+    }, 800);
+});
+
+// 检查认证状态
+async function checkAuthStatus() {
+    const token = sessionStorage.getItem('authToken');
+    if (!token) {
         window.location.href = 'login.html';
         return;
     }
-    
+
+    try {
+        // 验证token有效性
+        const response = await fetch(`${API_BASE}/auth/verify`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            // token无效，清除并跳转到登录页
+            sessionStorage.removeItem('authToken');
+            window.location.href = 'login.html';
+        }
+    } catch (error) {
+        console.error('验证token失败:', error);
+        // 网络错误时也跳转到登录页
+        sessionStorage.removeItem('authToken');
+        window.location.href = 'login.html';
+    }
+}
+
+// 初始化
+function initPage() {
     // 设置事件监听
     setupEventListeners();
     
@@ -46,36 +98,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         </div>
     `;
     
-    // 加载数据
-    try {
-        await loadArticles();
-        await loadArticleCategories();
-        renderArticles();
-        updateStats();
-        renderCategorySelect();
-    } catch (error) {
-        console.error('初始化失败:', error);
-        if (error.message.includes('401')) {
-            sessionStorage.removeItem('authToken');
-            window.location.href = 'login.html';
-            return;
-        }
-        showNotification('加载数据失败，请稍后重试', false);
-        // 显示错误状态
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">❌</div>
-                <h3>加载失败</h3>
-                <p>无法加载文章数据，请稍后重试</p>
-                <button class="btn-modern btn-primary" onclick="location.reload()">重新加载</button>
-            </div>
-        `;
-    }
-    
     // 初始化富文本编辑器
     initQuillEditor();
     Utils.showLoading(false);
-});
+}
 
 // 初始化富文本编辑器
 function initQuillEditor() {
