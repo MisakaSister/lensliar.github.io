@@ -137,55 +137,10 @@ function initTinyMCEEditor() {
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; }
             .mce-content-body { padding: 20px; }
         `,
-        // 图片上传配置
+        // 图片上传配置 - 使用简单配置
         images_upload_url: `${API_BASE}/upload`,
         images_upload_credentials: true,
-        images_upload_handler: function (blobInfo, success, failure) {
-            // 检查API_BASE是否定义
-            if (typeof API_BASE === 'undefined') {
-                failure('API_BASE 未定义');
-                return;
-            }
-            
-            const formData = new FormData();
-            formData.append('file', blobInfo.blob(), blobInfo.filename());
-            
-            // 获取认证token
-            const token = sessionStorage.getItem('authToken');
-            if (!token) {
-                failure('未找到认证token');
-                return;
-            }
-            
-            // 使用XMLHttpRequest替代fetch，更稳定
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', `${API_BASE}/upload`, true);
-            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-            
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    try {
-                        const result = JSON.parse(xhr.responseText);
-                        if (result && result.url) {
-                            success(result.url);
-                            showNotification('图片上传成功');
-                        } else {
-                            failure('服务器返回的数据格式错误');
-                        }
-                    } catch (e) {
-                        failure('解析响应数据失败');
-                    }
-                } else {
-                    failure(`上传失败: HTTP ${xhr.status}`);
-                }
-            };
-            
-            xhr.onerror = function() {
-                failure('网络错误，上传失败');
-            };
-            
-            xhr.send(formData);
-        },
+        // 移除复杂的upload_handler，使用默认处理
         // 自动保存
         auto_save: true,
         auto_save_interval: '30s',
@@ -201,8 +156,11 @@ function initTinyMCEEditor() {
         // 初始化完成回调
         setup: function(editor) {
             editor.on('change', function() {
-                // 内容变化时更新隐藏字段
-                document.getElementById('article-content').value = editor.getContent();
+                // 内容变化时更新隐藏字段（如果存在）
+                const hiddenField = document.getElementById('article-content');
+                if (hiddenField) {
+                    hiddenField.value = editor.getContent();
+                }
             });
             
             // 拖拽上传
@@ -223,25 +181,6 @@ async function handleEditorDrop(files, editor) {
     
     if (imageFiles.length === 0) return;
     
-    // 检查API_BASE是否定义
-    if (typeof API_BASE === 'undefined') {
-        showNotification('API_BASE 未定义', false);
-        return;
-    }
-    
-    // 检查fetch函数是否可用
-    if (typeof window.fetch === 'undefined') {
-        showNotification('fetch 函数不可用', false);
-        return;
-    }
-    
-    // 检查认证token
-    const token = sessionStorage.getItem('authToken');
-    if (!token) {
-        showNotification('未找到认证token', false);
-        return;
-    }
-    
     for (const file of imageFiles) {
         try {
             showNotification('正在上传拖拽的图片...', true);
@@ -249,6 +188,7 @@ async function handleEditorDrop(files, editor) {
             const formData = new FormData();
             formData.append('file', file);
             
+            const token = sessionStorage.getItem('authToken');
             const response = await window.fetch(`${API_BASE}/upload`, {
                 method: 'POST',
                 headers: {
@@ -257,21 +197,18 @@ async function handleEditorDrop(files, editor) {
                 body: formData
             });
             
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            const result = await response.json();
-            
-            if (result && result.url) {
-                editor.insertContent(`<img src="${result.url}" alt="${file.name}" style="max-width: 100%; height: auto;">`);
-                showNotification('图片上传成功');
+            if (response.ok) {
+                const result = await response.json();
+                if (result && result.url) {
+                    editor.insertContent(`<img src="${result.url}" alt="${file.name}" style="max-width: 100%; height: auto;">`);
+                    showNotification('图片上传成功');
+                }
             } else {
-                showNotification('服务器返回的数据格式错误', false);
+                showNotification('图片上传失败', false);
             }
         } catch (error) {
             console.error('拖拽图片上传错误:', error);
-            showNotification('图片上传失败: ' + error.message, false);
+            showNotification('图片上传失败', false);
         }
     }
 }
