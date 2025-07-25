@@ -77,7 +77,7 @@ async function login(event) {
         showLoading(false);
         showNotification('登录成功！', true);
         setTimeout(() => {
-            window.location.href = 'admin.html';
+            window.location.href = 'index.html';
         }, 1000);
         
     } catch (error) {
@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sessionStorage.getItem('authToken')) {
         showNotification('您已经登录，正在跳转...', true);
         setTimeout(() => {
-            window.location.href = 'admin.html';
+            window.location.href = 'index.html';
         }, 1000);
     }
     
