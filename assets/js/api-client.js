@@ -8,7 +8,7 @@ class ApiClient {
     async handleResponse(response) {
         if (!response.ok) {
             if (response.status === 401) {
-                localStorage.removeItem('authToken');
+                sessionStorage.removeItem('authToken');
                 window.location.href = 'login.html';
                 return null;
             }
@@ -21,7 +21,7 @@ class ApiClient {
     // 获取认证头
     getAuthHeaders() {
         return {
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+            'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
             'Content-Type': 'application/json'
         };
     }
@@ -72,7 +72,7 @@ class ApiClient {
         const response = await fetch(`${this.apiBase}/upload`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
             },
             body: formData
         });

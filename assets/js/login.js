@@ -72,7 +72,7 @@ async function login(event) {
         // 从响应中获取 token 或 session cookie
         const { token } = data;
         if (token) {
-            localStorage.setItem('authToken', token);
+            sessionStorage.setItem('authToken', token);
         }
         showLoading(false);
         showNotification('登录成功！', true);
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 检查是否已经登录
-    if (localStorage.getItem('authToken')) {
+    if (sessionStorage.getItem('authToken')) {
         showNotification('您已经登录，正在跳转...', true);
         setTimeout(() => {
             window.location.href = 'admin.html';

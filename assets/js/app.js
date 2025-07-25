@@ -50,7 +50,7 @@ async function getContentData() {
 
 // 🔒 获取管理员内容数据（需要认证）
 async function getAdminContentData() {
-    const token = localStorage.getItem('authToken');
+    const token = sessionStorage.getItem('authToken');
 
     if (!token) {
 
@@ -82,7 +82,7 @@ async function getAdminContentData() {
             // 如果是401错误，说明token无效，清除并重定向到登录页面
             if (response.status === 401) {
 
-                localStorage.removeItem('authToken');
+                sessionStorage.removeItem('authToken');
                 showNotification('登录已过期，请重新登录', false);
                 setTimeout(() => {
                     window.location.href = 'login.html';

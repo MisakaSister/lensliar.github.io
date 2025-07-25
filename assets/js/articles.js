@@ -29,14 +29,8 @@ function getFriendlyCategoryName(category) {
 
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
-    // 检查是否已登录
-    if (localStorage.getItem('authToken')) {
-        document.getElementById('admin-link').style.display = 'block';
-        document.getElementById('logout-link').style.display = 'block';
-    } else {
-        document.getElementById('admin-link').style.display = 'none';
-        document.getElementById('logout-link').style.display = 'none';
-    }
+    // 检查是否已登录并验证token有效性
+    checkAuthStatus();
 
     // 初始化主题
     initTheme();
@@ -58,6 +52,43 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 800);
 });
+
+// 检查认证状态
+async function checkAuthStatus() {
+    const token = sessionStorage.getItem('authToken');
+    if (!token) {
+        document.getElementById('admin-link').style.display = 'none';
+        document.getElementById('logout-link').style.display = 'none';
+        return;
+    }
+
+    try {
+        // 验证token有效性
+        const response = await fetch(`${API_BASE}/auth/verify`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            document.getElementById('admin-link').style.display = 'block';
+            document.getElementById('logout-link').style.display = 'block';
+        } else {
+            // token无效，清除并隐藏管理按钮
+            sessionStorage.removeItem('authToken');
+            document.getElementById('admin-link').style.display = 'none';
+            document.getElementById('logout-link').style.display = 'none';
+        }
+    } catch (error) {
+        console.error('验证token失败:', error);
+        // 网络错误时也隐藏管理按钮
+        document.getElementById('admin-link').style.display = 'none';
+        document.getElementById('logout-link').style.display = 'none';
+    }
+}
 
 // 初始化主题
 function initTheme() {
@@ -428,8 +459,8 @@ function shareArticle(id, title) {
 
 // 退出登录
 function logout() {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userInfo');
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('userInfo');
     showNotification('已退出登录');
     setTimeout(() => {
         window.location.reload();

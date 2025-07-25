@@ -1,7 +1,7 @@
 // 管理后台仪表板
 document.addEventListener('DOMContentLoaded', async function() {
     // 检查登录状态
-    if (!localStorage.getItem('authToken')) {
+    if (!sessionStorage.getItem('authToken')) {
         window.location.href = 'login.html';
         return;
     }
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     } catch (error) {
         console.error('加载统计数据失败:', error);
         if (error.message.includes('401')) {
-            localStorage.removeItem('authToken');
+            sessionStorage.removeItem('authToken');
             window.location.href = 'login.html';
             return;
         }
@@ -40,7 +40,7 @@ async function loadStats() {
         // 加载文章统计
         const articlesResponse = await fetch(`${API_BASE}/content`, {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
             }
         });
         
@@ -58,7 +58,7 @@ async function loadStats() {
         // 加载相册统计
         const albumsResponse = await fetch(`${API_BASE}/images`, {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
             }
         });
         
@@ -93,8 +93,8 @@ function showNotification(message, isSuccess = true) {
 
 // 退出登录
 function logout() {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userInfo');
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('userInfo');
     showNotification('已退出登录');
     setTimeout(() => {
         window.location.href = 'login.html';
