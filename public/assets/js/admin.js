@@ -13,11 +13,8 @@ let albumCategories = [];
 
 // 初始化
 document.addEventListener('DOMContentLoaded', async function() {
-    // 检查登录状态
-    if (!sessionStorage.getItem('authToken')) {
-        window.location.href = 'login.html';
-        return;
-    }
+    // 检查登录状态并验证token有效性
+    await checkAuthStatus();
     
     // 初始化管理器
     articleManager = new ArticleManager(API_BASE);
@@ -44,6 +41,38 @@ document.addEventListener('DOMContentLoaded', async function() {
     initQuillEditor();
     Utils.showLoading(false);
 });
+
+// 检查认证状态
+async function checkAuthStatus() {
+    const token = sessionStorage.getItem('authToken');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    try {
+        // 验证token有效性
+        const response = await fetch(`${API_BASE}/auth/verify`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            // token无效，清除并跳转到登录页
+            sessionStorage.removeItem('authToken');
+            window.location.href = 'login.html';
+        }
+    } catch (error) {
+        console.error('验证token失败:', error);
+        // 网络错误时也跳转到登录页
+        sessionStorage.removeItem('authToken');
+        window.location.href = 'login.html';
+    }
+}
 
 // 初始化富文本编辑器
 function initQuillEditor() {
