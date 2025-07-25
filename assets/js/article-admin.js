@@ -75,16 +75,13 @@ async function checkAuthStatus() {
 
     try {
         // 验证token有效性
-        const response = await window.fetch(`${API_BASE}/auth/verify`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include'
-        });
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `${API_BASE}/auth/verify`, false); // 同步请求
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send();
 
-        if (!response.ok) {
+        if (xhr.status !== 200) {
             // token无效，清除并跳转到登录页
             sessionStorage.removeItem('authToken');
             window.location.href = 'login.html';
@@ -124,89 +121,27 @@ function initTinyMCEEditor() {
         selector: '#article-content-editor',
         height: 400,
         plugins: [
-            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-            'insertdatetime', 'media', 'table', 'help', 'wordcount'
+            'advlist autolink lists link image charmap print preview anchor',
+            'searchreplace visualblocks code fullscreen',
+            'insertdatetime media table paste code help wordcount'
         ],
-        toolbar: 'undo redo | formatselect | bold italic underline strikethrough | ' +
-                'alignleft aligncenter alignright alignjustify | ' +
-                'bullist numlist outdent indent | link image media table | ' +
-                'removeformat | help',
+        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
         menubar: 'file edit view insert format tools table help',
-        content_style: `
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; }
-            .mce-content-body { padding: 20px; }
-        `,
-        // 图片上传配置 - 使用自定义处理器
+        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; }',
+        // 简化的图片上传配置
         images_upload_url: `${API_BASE}/upload`,
         images_upload_credentials: true,
-        images_upload_handler: function (blobInfo, success, failure) {
-            const formData = new FormData();
-            formData.append('file', blobInfo.blob(), blobInfo.filename());
-            
-            const token = sessionStorage.getItem('authToken');
-            if (!token) {
-                failure('未找到认证token');
-                return;
-            }
-            
-            // 使用XMLHttpRequest替代fetch，确保兼容性
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', `${API_BASE}/upload`, true);
-            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-            
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    try {
-                        const result = JSON.parse(xhr.responseText);
-                        if (result && result.url) {
-                            success(result.url);
-                            showNotification('图片上传成功');
-                        } else {
-                            failure('服务器返回的数据格式错误');
-                        }
-                    } catch (e) {
-                        failure('解析响应数据失败');
-                    }
-                } else {
-                    failure(`上传失败: HTTP ${xhr.status}`);
-                }
-            };
-            
-            xhr.onerror = function() {
-                failure('网络错误，上传失败');
-            };
-            
-            xhr.send(formData);
-        },
-        // 自动保存
-        auto_save: true,
-        auto_save_interval: '30s',
-        // 粘贴时自动上传图片
-        paste_data_images: true,
-        // 拖拽上传图片
-        dragdrop_callbacks: true,
-        // 设置
+        // 移除复杂的upload_handler，使用默认处理
         branding: false,
         elementpath: false,
         statusbar: true,
         resize: true,
-        // 初始化完成回调
+        // 简化的初始化回调
         setup: function(editor) {
             editor.on('change', function() {
-                // 内容变化时更新隐藏字段（如果存在）
                 const hiddenField = document.getElementById('article-content');
                 if (hiddenField) {
                     hiddenField.value = editor.getContent();
-                }
-            });
-            
-            // 拖拽上传
-            editor.on('drop', function(e) {
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    e.preventDefault();
-                    handleEditorDrop(files, editor);
                 }
             });
         }
@@ -276,17 +211,16 @@ function setupEventListeners() {
 // 加载文章数据
 async function loadArticles() {
     try {
-        const response = await window.fetch(`${API_BASE}/content`, {
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
-            }
-        });
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `${API_BASE}/content`, false); // 同步请求
+        xhr.setRequestHeader('Authorization', `Bearer ${sessionStorage.getItem('authToken')}`);
+        xhr.send();
         
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+        if (xhr.status !== 200) {
+            throw new Error(`HTTP ${xhr.status}`);
         }
         
-        const data = await response.json();
+        const data = JSON.parse(xhr.responseText);
         allArticles = data.articles || [];
         
     } catch (error) {
@@ -298,17 +232,16 @@ async function loadArticles() {
 // 加载文章分类
 async function loadArticleCategories() {
     try {
-        const response = await window.fetch(`${API_BASE}/content/categories`, {
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
-            }
-        });
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `${API_BASE}/content/categories`, false); // 同步请求
+        xhr.setRequestHeader('Authorization', `Bearer ${sessionStorage.getItem('authToken')}`);
+        xhr.send();
         
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+        if (xhr.status !== 200) {
+            throw new Error(`HTTP ${xhr.status}`);
         }
         
-        const data = await response.json();
+        const data = JSON.parse(xhr.responseText);
         articleCategories = data.categories || [];
         
         console.log('[文章分类] 加载的分类数据:', articleCategories);
@@ -632,28 +565,30 @@ async function saveArticle() {
         let response;
         if (editingArticle) {
             // 更新文章
-            response = await window.fetch(`${API_BASE}/content/${editingArticle.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
-                },
-                body: JSON.stringify(articleData)
-            });
+            const xhr = new XMLHttpRequest();
+            xhr.open('PUT', `${API_BASE}/content/${editingArticle.id}`, false); // 同步请求
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('Authorization', `Bearer ${sessionStorage.getItem('authToken')}`);
+            xhr.send(JSON.stringify(articleData));
+            
+            if (xhr.status !== 200) {
+                throw new Error(`HTTP ${xhr.status}`);
+            }
+            
+            response = { ok: true, json: () => JSON.parse(xhr.responseText) };
         } else {
             // 创建文章
-            response = await window.fetch(`${API_BASE}/content`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
-                },
-                body: JSON.stringify(articleData)
-            });
-        }
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `${API_BASE}/content`, false); // 同步请求
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('Authorization', `Bearer ${sessionStorage.getItem('authToken')}`);
+            xhr.send(JSON.stringify(articleData));
+            
+            if (xhr.status !== 200) {
+                throw new Error(`HTTP ${xhr.status}`);
+            }
+            
+            response = { ok: true, json: () => JSON.parse(xhr.responseText) };
         }
         
         const result = await response.json();
@@ -687,15 +622,13 @@ async function deleteArticle(id) {
     }
     
     try {
-        const response = await window.fetch(`${API_BASE}/content/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
-            }
-        });
+        const xhr = new XMLHttpRequest();
+        xhr.open('DELETE', `${API_BASE}/content/${id}`, false); // 同步请求
+        xhr.setRequestHeader('Authorization', `Bearer ${sessionStorage.getItem('authToken')}`);
+        xhr.send();
         
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+        if (xhr.status !== 200) {
+            throw new Error(`HTTP ${xhr.status}`);
         }
         
         showNotification('文章删除成功');
@@ -773,19 +706,23 @@ async function uploadFile(file) {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await window.fetch(`${API_BASE}/upload`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
-        },
-        body: formData
-    });
+    const token = sessionStorage.getItem('authToken');
     
-    if (!response.ok) {
-        throw new Error(`上传失败: HTTP ${response.status}`);
+    // 使用XMLHttpRequest替代fetch
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${API_BASE}/upload`, false); // 同步请求
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.send(formData);
+    
+    if (xhr.status !== 200) {
+        throw new Error(`上传失败: HTTP ${xhr.status}`);
     }
     
-    return await response.json();
+    try {
+        return JSON.parse(xhr.responseText);
+    } catch (e) {
+        throw new Error('解析响应数据失败');
+    }
 }
 
 // 工具函数
