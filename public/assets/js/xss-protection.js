@@ -353,7 +353,7 @@ class XSSProtection {
         }
 
         // 添加CSRF防护
-        const token = localStorage.getItem('authToken');
+        const token = sessionStorage.getItem('authToken');
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
         }

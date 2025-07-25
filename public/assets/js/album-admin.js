@@ -30,7 +30,7 @@ function getFriendlyCategoryName(category) {
 // 初始化
 document.addEventListener('DOMContentLoaded', async function() {
     // 检查登录状态
-    if (!localStorage.getItem('authToken')) {
+    if (!sessionStorage.getItem('authToken')) {
         window.location.href = 'login.html';
         return;
     }
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     } catch (error) {
         console.error('初始化失败:', error);
         if (error.message.includes('401')) {
-            localStorage.removeItem('authToken');
+            sessionStorage.removeItem('authToken');
             window.location.href = 'login.html';
             return;
         }
@@ -98,7 +98,7 @@ async function loadAlbums() {
     try {
         const response = await fetch(`${API_BASE}/images`, {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
             }
         });
         
@@ -120,7 +120,7 @@ async function loadAlbumCategories() {
     try {
         const response = await fetch(`${API_BASE}/images/categories`, {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
             }
         });
         
@@ -443,7 +443,7 @@ async function saveAlbum() {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
                 },
                 body: JSON.stringify(albumData)
             });
@@ -453,7 +453,7 @@ async function saveAlbum() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
                 },
                 body: JSON.stringify(albumData)
             });
@@ -497,7 +497,7 @@ async function deleteAlbum(id) {
         const response = await fetch(`${API_BASE}/images/${id}`, {
             method: 'DELETE',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
             }
         });
         
@@ -682,7 +682,7 @@ async function uploadFile(file) {
     const response = await fetch(`${API_BASE}/upload`, {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
         },
         body: formData
     });
@@ -761,8 +761,8 @@ function showNotification(message, isSuccess = true) {
 }
 
 function logout() {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userInfo');
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('userInfo');
     showNotification('已退出登录');
     setTimeout(() => {
         window.location.href = 'login.html';

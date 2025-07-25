@@ -29,7 +29,7 @@ function getFriendlyCategoryName(category) {
 // 初始化
 document.addEventListener('DOMContentLoaded', async function() {
     // 检查登录状态
-    if (!localStorage.getItem('authToken')) {
+    if (!sessionStorage.getItem('authToken')) {
         window.location.href = 'login.html';
         return;
     }
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     } catch (error) {
         console.error('初始化失败:', error);
         if (error.message.includes('401')) {
-            localStorage.removeItem('authToken');
+            sessionStorage.removeItem('authToken');
             window.location.href = 'login.html';
             return;
         }
@@ -283,7 +283,7 @@ async function loadArticles() {
     try {
         const response = await fetch(`${API_BASE}/content`, {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
             }
         });
         
@@ -305,7 +305,7 @@ async function loadArticleCategories() {
     try {
         const response = await fetch(`${API_BASE}/content/categories`, {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
             }
         });
         
@@ -622,7 +622,7 @@ async function saveArticle() {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
                 },
                 body: JSON.stringify(articleData)
             });
@@ -632,7 +632,7 @@ async function saveArticle() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
                 },
                 body: JSON.stringify(articleData)
             });
@@ -676,7 +676,7 @@ async function deleteArticle(id) {
         const response = await fetch(`${API_BASE}/content/${id}`, {
             method: 'DELETE',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
             }
         });
         
@@ -762,7 +762,7 @@ async function uploadFile(file) {
     const response = await fetch(`${API_BASE}/upload`, {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
         },
         body: formData
     });
@@ -851,8 +851,8 @@ function showNotification(message, isSuccess = true) {
 }
 
 function logout() {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userInfo');
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('userInfo');
     showNotification('已退出登录');
     setTimeout(() => {
         window.location.href = 'login.html';

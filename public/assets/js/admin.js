@@ -14,7 +14,7 @@ let albumCategories = [];
 // 初始化
 document.addEventListener('DOMContentLoaded', async function() {
     // 检查登录状态
-    if (!localStorage.getItem('authToken')) {
+    if (!sessionStorage.getItem('authToken')) {
         window.location.href = 'login.html';
         return;
     }
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     } catch (error) {
         console.error('初始化失败:', error);
         if (error.message.includes('401')) {
-            localStorage.removeItem('authToken');
+            sessionStorage.removeItem('authToken');
             window.location.href = 'login.html';
             return;
         }
@@ -304,7 +304,7 @@ async function loadArticleCategories() {
     try {
         const response = await fetch(`${API_BASE}/content/categories`, {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
             }
         });
         
@@ -324,7 +324,7 @@ async function loadAlbumCategories() {
     try {
         const response = await fetch(`${API_BASE}/images/categories`, {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
             }
         });
         
@@ -731,7 +731,7 @@ async function uploadFile(file) {
     const response = await fetch(`${API_BASE}/upload`, {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
         },
         body: formData
     });
@@ -1013,7 +1013,7 @@ async function deleteAlbum(id) {
 
 // 退出登录
 function logout() {
-    localStorage.removeItem('authToken');
+    sessionStorage.removeItem('authToken');
     window.location.href = 'login.html';
 }
 
