@@ -38,7 +38,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     await loadArticles();
     
     // 加载分类列表
-    await loadCategories();
+    await loadArticleCategories();
+    
+    // 渲染页面内容
+    renderArticles();
+    renderCategorySelect();
+    updateStats();
     
     // 隐藏页面加载动画
     setTimeout(() => {

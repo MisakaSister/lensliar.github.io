@@ -41,6 +41,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 加载分类列表
     await loadAlbumCategories();
     
+    // 渲染页面内容
+    renderAlbums();
+    renderCategorySelect();
+    updateStats();
+    
     // 隐藏页面加载动画
     setTimeout(() => {
         const pageLoading = document.getElementById('page-loading');
@@ -83,6 +88,23 @@ async function checkAuthStatus() {
         sessionStorage.removeItem('authToken');
         window.location.href = 'login.html';
     }
+}
+
+// 初始化页面
+function initPage() {
+    // 设置事件监听
+    setupEventListeners();
+    
+    // 显示加载状态
+    const container = document.getElementById('albums-container');
+    container.innerHTML = `
+        <div class="loading">
+            <div class="spinner"></div>
+            <span>正在加载相册列表...</span>
+        </div>
+    `;
+    
+    Utils.showLoading(false);
 }
 
 // 设置事件监听
