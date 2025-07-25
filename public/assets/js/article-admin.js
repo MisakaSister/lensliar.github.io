@@ -1,4 +1,12 @@
 // 文章管理专用文件
+
+// 确保API_BASE可用
+if (typeof API_BASE === 'undefined') {
+    console.error('API_BASE 未定义，请确保 app.js 已正确加载');
+    // 设置默认值
+    window.API_BASE = 'https://worker.wengguodong.com';
+}
+
 let tinyMCEEditor;
 let currentPage = 1;
 let searchQuery = '';
@@ -133,29 +141,51 @@ function initTinyMCEEditor() {
         images_upload_url: `${API_BASE}/upload`,
         images_upload_credentials: true,
         images_upload_handler: function (blobInfo, success, failure) {
+            // 检查API_BASE是否定义
+            if (typeof API_BASE === 'undefined') {
+                failure('API_BASE 未定义');
+                return;
+            }
+            
             const formData = new FormData();
             formData.append('file', blobInfo.blob(), blobInfo.filename());
             
-            fetch(`${API_BASE}/upload`, {
+            // 获取认证token
+            const token = sessionStorage.getItem('authToken');
+            if (!token) {
+                failure('未找到认证token');
+                return;
+            }
+            
+            // 创建请求配置
+            const requestConfig = {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
+                    'Authorization': `Bearer ${token}`
                 },
                 body: formData
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.url) {
-                    success(result.url);
-                    showNotification('图片上传成功');
-                } else {
-                    failure('图片上传失败');
-                }
-            })
-            .catch(error => {
-                console.error('图片上传错误:', error);
-                failure('图片上传失败: ' + error.message);
-            });
+            };
+            
+            // 执行上传请求
+            fetch(`${API_BASE}/upload`, requestConfig)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(result => {
+                    if (result && result.url) {
+                        success(result.url);
+                        showNotification('图片上传成功');
+                    } else {
+                        failure('服务器返回的数据格式错误');
+                    }
+                })
+                .catch(error => {
+                    console.error('图片上传错误:', error);
+                    failure('图片上传失败: ' + error.message);
+                });
         },
         // 自动保存
         auto_save: true,
@@ -194,6 +224,19 @@ async function handleEditorDrop(files, editor) {
     
     if (imageFiles.length === 0) return;
     
+    // 检查API_BASE是否定义
+    if (typeof API_BASE === 'undefined') {
+        showNotification('API_BASE 未定义', false);
+        return;
+    }
+    
+    // 检查认证token
+    const token = sessionStorage.getItem('authToken');
+    if (!token) {
+        showNotification('未找到认证token', false);
+        return;
+    }
+    
     for (const file of imageFiles) {
         try {
             showNotification('正在上传拖拽的图片...', true);
@@ -204,20 +247,25 @@ async function handleEditorDrop(files, editor) {
             const response = await fetch(`${API_BASE}/upload`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
+                    'Authorization': `Bearer ${token}`
                 },
                 body: formData
             });
             
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const result = await response.json();
             
-            if (result.url) {
+            if (result && result.url) {
                 editor.insertContent(`<img src="${result.url}" alt="${file.name}" style="max-width: 100%; height: auto;">`);
                 showNotification('图片上传成功');
             } else {
-                showNotification('图片上传失败', false);
+                showNotification('服务器返回的数据格式错误', false);
             }
         } catch (error) {
+            console.error('拖拽图片上传错误:', error);
             showNotification('图片上传失败: ' + error.message, false);
         }
     }
