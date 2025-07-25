@@ -75,7 +75,7 @@ async function checkAuthStatus() {
 
     try {
         // 验证token有效性
-        const response = await fetch(`${API_BASE}/auth/verify`, {
+        const response = await window.fetch(`${API_BASE}/auth/verify`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -147,6 +147,12 @@ function initTinyMCEEditor() {
                 return;
             }
             
+            // 检查fetch函数是否可用
+            if (typeof window.fetch === 'undefined') {
+                failure('fetch 函数不可用');
+                return;
+            }
+            
             const formData = new FormData();
             formData.append('file', blobInfo.blob(), blobInfo.filename());
             
@@ -157,35 +163,32 @@ function initTinyMCEEditor() {
                 return;
             }
             
-            // 创建请求配置
-            const requestConfig = {
+            // 使用全局fetch函数
+            window.fetch(`${API_BASE}/upload`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
                 },
                 body: formData
-            };
-            
-            // 执行上传请求
-            fetch(`${API_BASE}/upload`, requestConfig)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    return response.json();
-                })
-                .then(result => {
-                    if (result && result.url) {
-                        success(result.url);
-                        showNotification('图片上传成功');
-                    } else {
-                        failure('服务器返回的数据格式错误');
-                    }
-                })
-                .catch(error => {
-                    console.error('图片上传错误:', error);
-                    failure('图片上传失败: ' + error.message);
-                });
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                if (result && result.url) {
+                    success(result.url);
+                    showNotification('图片上传成功');
+                } else {
+                    failure('服务器返回的数据格式错误');
+                }
+            })
+            .catch(error => {
+                console.error('图片上传错误:', error);
+                failure('图片上传失败: ' + error.message);
+            });
         },
         // 自动保存
         auto_save: true,
@@ -230,6 +233,12 @@ async function handleEditorDrop(files, editor) {
         return;
     }
     
+    // 检查fetch函数是否可用
+    if (typeof window.fetch === 'undefined') {
+        showNotification('fetch 函数不可用', false);
+        return;
+    }
+    
     // 检查认证token
     const token = sessionStorage.getItem('authToken');
     if (!token) {
@@ -244,7 +253,7 @@ async function handleEditorDrop(files, editor) {
             const formData = new FormData();
             formData.append('file', file);
             
-            const response = await fetch(`${API_BASE}/upload`, {
+            const response = await window.fetch(`${API_BASE}/upload`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -291,7 +300,7 @@ function setupEventListeners() {
 // 加载文章数据
 async function loadArticles() {
     try {
-        const response = await fetch(`${API_BASE}/content`, {
+        const response = await window.fetch(`${API_BASE}/content`, {
             headers: {
                 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
             }
@@ -313,7 +322,7 @@ async function loadArticles() {
 // 加载文章分类
 async function loadArticleCategories() {
     try {
-        const response = await fetch(`${API_BASE}/content/categories`, {
+        const response = await window.fetch(`${API_BASE}/content/categories`, {
             headers: {
                 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
             }
@@ -647,7 +656,7 @@ async function saveArticle() {
         let response;
         if (editingArticle) {
             // 更新文章
-            response = await fetch(`${API_BASE}/content/${editingArticle.id}`, {
+            response = await window.fetch(`${API_BASE}/content/${editingArticle.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -657,7 +666,7 @@ async function saveArticle() {
             });
         } else {
             // 创建文章
-            response = await fetch(`${API_BASE}/content`, {
+            response = await window.fetch(`${API_BASE}/content`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -702,7 +711,7 @@ async function deleteArticle(id) {
     }
     
     try {
-        const response = await fetch(`${API_BASE}/content/${id}`, {
+        const response = await window.fetch(`${API_BASE}/content/${id}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
@@ -788,7 +797,7 @@ async function uploadFile(file) {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await fetch(`${API_BASE}/upload`, {
+    const response = await window.fetch(`${API_BASE}/upload`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
