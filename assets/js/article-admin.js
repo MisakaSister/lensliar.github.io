@@ -227,19 +227,24 @@ async function handleEditorDrop(files, editor) {
             formData.append('file', file);
             
             const token = sessionStorage.getItem('authToken');
-            const response = await window.fetch(`${API_BASE}/upload`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData
-            });
             
-            if (response.ok) {
-                const result = await response.json();
-                if (result && result.url) {
-                    editor.insertContent(`<img src="${result.url}" alt="${file.name}" style="max-width: 100%; height: auto;">`);
-                    showNotification('图片上传成功');
+            // 使用XMLHttpRequest替代fetch
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `${API_BASE}/upload`, false); // 同步请求，简化处理
+            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+            xhr.send(formData);
+            
+            if (xhr.status === 200) {
+                try {
+                    const result = JSON.parse(xhr.responseText);
+                    if (result && result.url) {
+                        editor.insertContent(`<img src="${result.url}" alt="${file.name}" style="max-width: 100%; height: auto;">`);
+                        showNotification('图片上传成功');
+                    } else {
+                        showNotification('服务器返回的数据格式错误', false);
+                    }
+                } catch (e) {
+                    showNotification('解析响应数据失败', false);
                 }
             } else {
                 showNotification('图片上传失败', false);
