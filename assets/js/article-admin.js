@@ -150,31 +150,34 @@ function initTinyMCEEditor() {
                 return;
             }
             
-            fetch(`${API_BASE}/upload`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(result => {
-                if (result && result.url) {
-                    success(result.url);
-                    showNotification('图片上传成功');
+            // 使用XMLHttpRequest替代fetch，确保兼容性
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `${API_BASE}/upload`, true);
+            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const result = JSON.parse(xhr.responseText);
+                        if (result && result.url) {
+                            success(result.url);
+                            showNotification('图片上传成功');
+                        } else {
+                            failure('服务器返回的数据格式错误');
+                        }
+                    } catch (e) {
+                        failure('解析响应数据失败');
+                    }
                 } else {
-                    failure('服务器返回的数据格式错误');
+                    failure(`上传失败: HTTP ${xhr.status}`);
                 }
-            })
-            .catch(error => {
-                console.error('图片上传错误:', error);
-                failure('图片上传失败: ' + error.message);
-            });
+            };
+            
+            xhr.onerror = function() {
+                failure('网络错误，上传失败');
+            };
+            
+            xhr.send(formData);
         },
         // 自动保存
         auto_save: true,
