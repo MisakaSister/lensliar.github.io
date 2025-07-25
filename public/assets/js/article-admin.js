@@ -131,6 +131,45 @@ function initTinyMCEEditor() {
         // 简化的图片上传配置
         images_upload_url: `${API_BASE}/upload`,
         images_upload_credentials: true,
+        images_upload_handler: function (blobInfo, success, failure) {
+            const formData = new FormData();
+            formData.append('file', blobInfo.blob(), blobInfo.filename());
+            
+            const token = sessionStorage.getItem('authToken');
+            if (!token) {
+                failure('未找到认证token');
+                return;
+            }
+            
+            // 使用XMLHttpRequest替代fetch，确保兼容性
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `${API_BASE}/upload`, true);
+            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const result = JSON.parse(xhr.responseText);
+                        if (result && result.url) {
+                            success(result.url);
+                            showNotification('图片上传成功');
+                        } else {
+                            failure('服务器返回的数据格式错误');
+                        }
+                    } catch (e) {
+                        failure('解析响应数据失败');
+                    }
+                } else {
+                    failure(`上传失败: HTTP ${xhr.status}`);
+                }
+            };
+            
+            xhr.onerror = function() {
+                failure('网络错误，上传失败');
+            };
+            
+            xhr.send(formData);
+        },
         // 移除复杂的upload_handler，使用默认处理
         branding: false,
         elementpath: false,
