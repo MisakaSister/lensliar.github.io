@@ -507,7 +507,7 @@ function renderCategorySelect() {
 }
 
 // 打开文章模态框
-function openArticleModal(articleId = null) {
+async function openArticleModal(articleId = null) {
     const modal = document.getElementById('article-modal');
     const title = document.getElementById('article-modal-title');
     
@@ -519,21 +519,29 @@ function openArticleModal(articleId = null) {
         editingArticle = allArticles.find(a => a.id === articleId);
         if (editingArticle) {
             title.innerHTML = '<i class="fas fa-edit"></i> 编辑文章';
-            fillArticleForm(editingArticle);
         }
     } else {
         // 新建模式
         editingArticle = null;
         title.innerHTML = '<i class="fas fa-plus"></i> 新建文章';
-        resetArticleForm();
     }
     
     modal.style.display = 'flex';
     
-    // 初始化编辑器
-    setTimeout(() => {
-        initTinyMCEEditor();
-    }, 100);
+    // 等待编辑器初始化完成
+    try {
+        await initTinyMCEEditor();
+        
+        // 编辑器初始化完成后，如果是编辑模式则填充表单
+        if (articleId && editingArticle) {
+            fillArticleForm(editingArticle);
+        } else {
+            resetArticleForm();
+        }
+    } catch (error) {
+        console.error('初始化编辑器失败:', error);
+        showNotification('初始化编辑器失败', false);
+    }
 }
 
 // 关闭文章模态框
@@ -555,16 +563,14 @@ function fillArticleForm(article) {
     document.getElementById('article-title').value = article.title;
     document.getElementById('article-category').value = article.category;
     
-    // 等待编辑器初始化完成后设置内容
-    setTimeout(() => {
-        if (tinyMCEEditor && tinyMCEEditor.setContent) {
-            try {
-                tinyMCEEditor.setContent(article.content);
-            } catch (error) {
-                console.error('设置编辑器内容失败:', error);
-            }
+    // 设置编辑器内容
+    if (tinyMCEEditor && tinyMCEEditor.setContent) {
+        try {
+            tinyMCEEditor.setContent(article.content);
+        } catch (error) {
+            console.error('设置编辑器内容失败:', error);
         }
-    }, 200);
+    }
     
     if (article.coverImage?.url) {
         showArticleImagePreview(article.coverImage);
