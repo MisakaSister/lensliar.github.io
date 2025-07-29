@@ -94,13 +94,13 @@ async function initTinyMCEEditor() {
 
     tinyMCEEditor = await tinymce.init({
         selector: '#article-content-editor',
-        height: 500,
+        height: 600,
         plugins: [
             'advlist autolink lists link image'
         ],
         toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link image',
         menubar: false,
-        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; }',
+        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.6; }',
         images_upload_url: `${API_BASE}/upload`,
         images_upload_credentials: true,
         images_upload_handler: function (blobInfo, success, failure) {
