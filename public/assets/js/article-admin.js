@@ -20,6 +20,47 @@ const pageSize = 10;
 let allArticles = [];
 let articleCategories = [];
 
+// TinyMCE CDN配置 - 支持多个CDN源
+const TINYMCE_CDNS = [
+    'https://cdn.bootcdn.net/ajax/libs/tinymce/5.10.7/tinymce.min.js', // 国内CDN
+    'https://cdnjs.cloudflare.com/ajax/libs/tinymce/5.10.7/tinymce.min.js', // 备用CDN
+    'https://unpkg.com/tinymce@5.10.7/tinymce.min.js' // 备用CDN
+];
+
+// 异步加载TinyMCE
+async function loadTinyMCE() {
+    if (window.tinymce) {
+        return Promise.resolve(window.tinymce);
+    }
+
+    return new Promise((resolve, reject) => {
+        const loadFromCDN = (index = 0) => {
+            if (index >= TINYMCE_CDNS.length) {
+                reject(new Error('所有CDN加载失败'));
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = TINYMCE_CDNS[index];
+            script.referrerPolicy = 'origin';
+            
+            script.onload = () => {
+                console.log(`TinyMCE从CDN ${index + 1} 加载成功`);
+                resolve(window.tinymce);
+            };
+            
+            script.onerror = () => {
+                console.warn(`CDN ${index + 1} 加载失败，尝试下一个`);
+                loadFromCDN(index + 1);
+            };
+            
+            document.head.appendChild(script);
+        };
+        
+        loadFromCDN();
+    });
+}
+
 // 分类名称映射
 const categoryNameMap = {
     'cat_article_1': '技术分享',
@@ -115,77 +156,100 @@ function initPage() {
 
 // 初始化TinyMCE编辑器
 async function initTinyMCEEditor() {
-    if (tinyMCEEditor && tinyMCEEditor.destroy) {
-        tinyMCEEditor.destroy();
-    }
-
-    tinyMCEEditor = await tinymce.init({
-        selector: '#article-content-editor',
-        height: 400,
-        plugins: [
-            'advlist autolink lists link image charmap print preview anchor',
-            'searchreplace visualblocks code fullscreen',
-            'insertdatetime media table paste code help wordcount'
-        ],
-        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
-        menubar: 'file edit view insert format tools table help',
-        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; }',
-        // 简化的图片上传配置
-        images_upload_url: `${API_BASE}/upload`,
-        images_upload_credentials: true,
-        images_upload_handler: function (blobInfo, success, failure) {
-            const formData = new FormData();
-            formData.append('file', blobInfo.blob(), blobInfo.filename());
-            
-            const token = sessionStorage.getItem('authToken');
-            if (!token) {
-                failure('未找到认证token');
-                return;
-            }
-            
-            // 使用fetch确保认证头正确发送
-            fetch(`${API_BASE}/upload`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-            })
-            .then(result => {
-                if (result && result.url) {
-                    success(result.url);
-                    showNotification('图片上传成功');
-                } else {
-                    failure('服务器返回的数据格式错误');
-                }
-            })
-            .catch(error => {
-                console.error('图片上传错误:', error);
-                failure(`上传失败: ${error.message}`);
-            });
-        },
-        // 移除复杂的upload_handler，使用默认处理
-        branding: false,
-        elementpath: false,
-        statusbar: true,
-        resize: true,
-        // 简化的初始化回调
-        setup: function(editor) {
-            editor.on('change', function() {
-                const hiddenField = document.getElementById('article-content');
-                if (hiddenField) {
-                    hiddenField.value = editor.getContent();
-                }
-            });
+    try {
+        // 显示编辑器加载状态
+        const editorContainer = document.getElementById('article-content-editor');
+        if (editorContainer) {
+            editorContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">正在加载编辑器...</div>';
         }
-    });
+
+        // 异步加载TinyMCE
+        await loadTinyMCE();
+
+        if (tinyMCEEditor && tinyMCEEditor.destroy) {
+            tinyMCEEditor.destroy();
+        }
+
+        // 优化配置 - 只保留列表、链接、图片功能
+        tinyMCEEditor = await tinymce.init({
+            selector: '#article-content-editor',
+            height: 400,
+            // 只保留核心功能：列表、链接、图片
+            plugins: [
+                'advlist autolink lists link image'
+            ],
+            // 简化工具栏，只保留必要功能
+            toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link image',
+            menubar: false, // 移除菜单栏
+            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; }',
+            // 图片上传配置
+            images_upload_url: `${API_BASE}/upload`,
+            images_upload_credentials: true,
+            images_upload_handler: function (blobInfo, success, failure) {
+                const formData = new FormData();
+                formData.append('file', blobInfo.blob(), blobInfo.filename());
+                
+                const token = sessionStorage.getItem('authToken');
+                if (!token) {
+                    failure('未找到认证token');
+                    return;
+                }
+                
+                fetch(`${API_BASE}/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                })
+                .then(result => {
+                    if (result && result.url) {
+                        success(result.url);
+                        showNotification('图片上传成功');
+                    } else {
+                        failure('服务器返回的数据格式错误');
+                    }
+                })
+                .catch(error => {
+                    console.error('图片上传错误:', error);
+                    failure(`上传失败: ${error.message}`);
+                });
+            },
+            branding: false,
+            elementpath: false,
+            statusbar: false, // 移除状态栏
+            resize: true,
+            // 优化性能设置
+            cache_suffix: '?v=1.0.18',
+            browser_spellcheck: false,
+            // 初始化回调
+            setup: function(editor) {
+                editor.on('change', function() {
+                    const hiddenField = document.getElementById('article-content');
+                    if (hiddenField) {
+                        hiddenField.value = editor.getContent();
+                    }
+                });
+            }
+        });
+
+        console.log('TinyMCE编辑器初始化成功');
+    } catch (error) {
+        console.error('TinyMCE初始化失败:', error);
+        // 降级为普通textarea
+        const editorContainer = document.getElementById('article-content-editor');
+        if (editorContainer) {
+            editorContainer.innerHTML = '<textarea style="width: 100%; height: 400px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="请输入文章内容..."></textarea>';
+        }
+        showNotification('编辑器加载失败，已降级为普通文本框', false);
+    }
 }
 
 // 处理编辑器拖拽上传
