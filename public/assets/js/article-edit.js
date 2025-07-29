@@ -171,9 +171,15 @@ async function loadArticleCategories() {
 
         if (response.ok) {
             const categories = await response.json();
+            console.log('API返回的分类数据:', categories);
+            
             // 验证返回的数据是否为数组
             if (Array.isArray(categories)) {
                 renderCategorySelect(categories);
+            } else if (categories && categories.categories && Array.isArray(categories.categories)) {
+                // 如果数据包装在categories属性中
+                console.log('使用categories.categories:', categories.categories);
+                renderCategorySelect(categories.categories);
             } else {
                 console.error('分类数据格式错误:', categories);
                 // 使用默认分类
@@ -214,6 +220,8 @@ function renderCategorySelect(categories) {
         return;
     }
     
+    console.log('渲染分类选择器，数据:', categories);
+    
     select.innerHTML = '<option value="">请选择分类</option>';
     
     if (!Array.isArray(categories)) {
@@ -221,12 +229,15 @@ function renderCategorySelect(categories) {
         return;
     }
     
-    categories.forEach(category => {
+    categories.forEach((category, index) => {
+        console.log(`处理分类 ${index}:`, category);
         const option = document.createElement('option');
         option.value = category.id || category;
         option.textContent = category.name || getFriendlyCategoryName(category.id || category);
         select.appendChild(option);
     });
+    
+    console.log('分类选择器渲染完成');
 }
 
 // 加载文章数据（编辑模式）
