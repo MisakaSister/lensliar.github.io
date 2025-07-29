@@ -94,7 +94,7 @@ async function initTinyMCEEditor() {
 
     tinyMCEEditor = await tinymce.init({
         selector: '#article-content-editor',
-        height: 600,
+        height: 700,
         plugins: [
             'advlist autolink lists link image'
         ],
