@@ -94,7 +94,7 @@ async function initTinyMCEEditor() {
 
     tinyMCEEditor = await tinymce.init({
         selector: '#article-content-editor',
-        height: 700,
+        height: 800,
         plugins: [
             'advlist autolink lists link image'
         ],
@@ -171,24 +171,60 @@ async function loadArticleCategories() {
 
         if (response.ok) {
             const categories = await response.json();
-            renderCategorySelect(categories);
+            // 验证返回的数据是否为数组
+            if (Array.isArray(categories)) {
+                renderCategorySelect(categories);
+            } else {
+                console.error('分类数据格式错误:', categories);
+                // 使用默认分类
+                renderCategorySelect([
+                    { id: 'cat_article_1', name: '技术分享' },
+                    { id: 'cat_article_2', name: '生活随笔' },
+                    { id: 'cat_article_3', name: '学习笔记' },
+                    { id: 'cat_article_4', name: '项目展示' }
+                ]);
+            }
         } else {
             console.error('加载分类失败');
+            // 使用默认分类
+            renderCategorySelect([
+                { id: 'cat_article_1', name: '技术分享' },
+                { id: 'cat_article_2', name: '生活随笔' },
+                { id: 'cat_article_3', name: '学习笔记' },
+                { id: 'cat_article_4', name: '项目展示' }
+            ]);
         }
     } catch (error) {
         console.error('加载分类错误:', error);
+        // 使用默认分类
+        renderCategorySelect([
+            { id: 'cat_article_1', name: '技术分享' },
+            { id: 'cat_article_2', name: '生活随笔' },
+            { id: 'cat_article_3', name: '学习笔记' },
+            { id: 'cat_article_4', name: '项目展示' }
+        ]);
     }
 }
 
 // 渲染分类选择器
 function renderCategorySelect(categories) {
     const select = document.getElementById('article-category');
+    if (!select) {
+        console.error('找不到分类选择器元素');
+        return;
+    }
+    
     select.innerHTML = '<option value="">请选择分类</option>';
+    
+    if (!Array.isArray(categories)) {
+        console.error('categories不是数组:', categories);
+        return;
+    }
     
     categories.forEach(category => {
         const option = document.createElement('option');
-        option.value = category.id;
-        option.textContent = getFriendlyCategoryName(category.id);
+        option.value = category.id || category;
+        option.textContent = category.name || getFriendlyCategoryName(category.id || category);
         select.appendChild(option);
     });
 }
