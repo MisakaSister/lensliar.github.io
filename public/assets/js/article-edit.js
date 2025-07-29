@@ -1,0 +1,433 @@
+// 文章编辑页面专用文件
+
+// 确保API_BASE可用
+if (typeof API_BASE === 'undefined') {
+    console.error('API_BASE 未定义，请确保 app.js 已正确加载');
+    window.API_BASE = 'https://worker.wengguodong.com';
+}
+
+let tinyMCEEditor;
+let editingArticle = null;
+let selectedFiles = [];
+
+// 分类名称映射
+const categoryNameMap = {
+    'cat_article_1': '技术分享',
+    'cat_article_2': '生活随笔',
+    'cat_article_3': '学习笔记',
+    'cat_article_4': '项目展示'
+};
+
+// 获取友好的分类名称
+function getFriendlyCategoryName(category) {
+    if (!category) return '未分类';
+    return categoryNameMap[category] || category;
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', async function() {
+    // 检查登录状态
+    await checkAuthStatus();
+    
+    // 获取URL参数
+    const urlParams = new URLSearchParams(window.location.search);
+    const articleId = urlParams.get('id');
+    
+    // 初始化页面
+    await initPage(articleId);
+    
+    // 隐藏加载遮罩
+    hideLoading();
+});
+
+// 检查认证状态
+async function checkAuthStatus() {
+    const token = sessionStorage.getItem('authToken');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/auth/verify`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            sessionStorage.removeItem('authToken');
+            window.location.href = 'login.html';
+        }
+    } catch (error) {
+        console.error('验证token失败:', error);
+        sessionStorage.removeItem('authToken');
+        window.location.href = 'login.html';
+    }
+}
+
+// 初始化页面
+async function initPage(articleId) {
+    // 加载分类列表
+    await loadArticleCategories();
+    
+    // 初始化TinyMCE编辑器
+    await initTinyMCEEditor();
+    
+    // 如果是编辑模式，加载文章数据
+    if (articleId) {
+        await loadArticleData(articleId);
+        document.getElementById('page-title').innerHTML = '<i class="fas fa-edit"></i> 编辑文章';
+    }
+    
+    // 设置事件监听器
+    setupEventListeners();
+}
+
+// 初始化TinyMCE编辑器
+async function initTinyMCEEditor() {
+    if (tinyMCEEditor && tinyMCEEditor.destroy) {
+        tinyMCEEditor.destroy();
+    }
+
+    tinyMCEEditor = await tinymce.init({
+        selector: '#article-content-editor',
+        height: 500,
+        plugins: [
+            'advlist autolink lists link image'
+        ],
+        toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link image',
+        menubar: false,
+        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; }',
+        images_upload_url: `${API_BASE}/upload`,
+        images_upload_credentials: true,
+        images_upload_handler: function (blobInfo, success, failure) {
+            const formData = new FormData();
+            formData.append('file', blobInfo.blob(), blobInfo.filename());
+            
+            const token = sessionStorage.getItem('authToken');
+            if (!token) {
+                failure('未找到认证token');
+                return;
+            }
+            
+            fetch(`${API_BASE}/upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            })
+            .then(result => {
+                if (result && result.url) {
+                    success(result.url);
+                    showNotification('图片上传成功');
+                } else {
+                    failure('服务器返回的数据格式错误');
+                }
+            })
+            .catch(error => {
+                console.error('图片上传错误:', error);
+                failure(`上传失败: ${error.message}`);
+            });
+        },
+        branding: false,
+        elementpath: false,
+        statusbar: false,
+        resize: true,
+        cache_suffix: '?v=1.0.0',
+        browser_spellcheck: false,
+        setup: function(editor) {
+            editor.on('change', function() {
+                const hiddenField = document.getElementById('article-content');
+                if (hiddenField) {
+                    hiddenField.value = editor.getContent();
+                }
+            });
+        }
+    });
+}
+
+// 加载文章分类
+async function loadArticleCategories() {
+    try {
+        const token = sessionStorage.getItem('authToken');
+        const response = await fetch(`${API_BASE}/content/categories`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const categories = await response.json();
+            renderCategorySelect(categories);
+        } else {
+            console.error('加载分类失败');
+        }
+    } catch (error) {
+        console.error('加载分类错误:', error);
+    }
+}
+
+// 渲染分类选择器
+function renderCategorySelect(categories) {
+    const select = document.getElementById('article-category');
+    select.innerHTML = '<option value="">请选择分类</option>';
+    
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.id;
+        option.textContent = getFriendlyCategoryName(category.id);
+        select.appendChild(option);
+    });
+}
+
+// 加载文章数据（编辑模式）
+async function loadArticleData(articleId) {
+    try {
+        showLoading();
+        const token = sessionStorage.getItem('authToken');
+        const response = await fetch(`${API_BASE}/content/articles/${articleId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            editingArticle = await response.json();
+            fillArticleForm(editingArticle);
+        } else {
+            showNotification('加载文章失败', false);
+        }
+    } catch (error) {
+        console.error('加载文章错误:', error);
+        showNotification('加载文章失败', false);
+    } finally {
+        hideLoading();
+    }
+}
+
+// 填充文章表单
+function fillArticleForm(article) {
+    document.getElementById('article-title').value = article.title || '';
+    document.getElementById('article-category').value = article.category || '';
+    
+    if (tinyMCEEditor) {
+        tinyMCEEditor.setContent(article.content || '');
+    }
+    
+    if (article.cover_image) {
+        showArticleImagePreview(article.cover_image);
+    }
+}
+
+// 设置事件监听器
+function setupEventListeners() {
+    // 退出登录
+    document.getElementById('logout-link').addEventListener('click', function(e) {
+        e.preventDefault();
+        logout();
+    });
+    
+    // 页面离开前提示
+    window.addEventListener('beforeunload', function(e) {
+        if (hasUnsavedChanges()) {
+            e.preventDefault();
+            e.returnValue = '您有未保存的更改，确定要离开吗？';
+        }
+    });
+}
+
+// 检查是否有未保存的更改
+function hasUnsavedChanges() {
+    const title = document.getElementById('article-title').value;
+    const content = tinyMCEEditor ? tinyMCEEditor.getContent() : '';
+    const category = document.getElementById('article-category').value;
+    
+    return title.trim() !== '' || content.trim() !== '' || category !== '';
+}
+
+// 保存文章
+async function saveArticle() {
+    try {
+        showLoading();
+        
+        const title = document.getElementById('article-title').value.trim();
+        const category = document.getElementById('article-category').value;
+        const content = tinyMCEEditor ? tinyMCEEditor.getContent() : '';
+        const coverImage = document.getElementById('article-cover-image').value;
+        
+        if (!title) {
+            showNotification('请输入文章标题', false);
+            return;
+        }
+        
+        if (!content.trim()) {
+            showNotification('请输入文章内容', false);
+            return;
+        }
+        
+        const articleData = {
+            title: title,
+            category: category,
+            content: content,
+            cover_image: coverImage
+        };
+        
+        const token = sessionStorage.getItem('authToken');
+        const url = editingArticle 
+            ? `${API_BASE}/content/articles/${editingArticle.id}`
+            : `${API_BASE}/content/articles`;
+        
+        const method = editingArticle ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(articleData)
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            showNotification(editingArticle ? '文章更新成功' : '文章创建成功');
+            
+            // 延迟跳转，让用户看到成功提示
+            setTimeout(() => {
+                window.location.href = 'article-admin.html';
+            }, 1500);
+        } else {
+            const error = await response.text();
+            showNotification(`保存失败: ${error}`, false);
+        }
+    } catch (error) {
+        console.error('保存文章错误:', error);
+        showNotification('保存失败，请检查网络连接', false);
+    } finally {
+        hideLoading();
+    }
+}
+
+// 处理图片选择
+async function handleArticleImageSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification('图片大小不能超过5MB', false);
+        return;
+    }
+    
+    try {
+        showNotification('正在上传图片...', true);
+        const imageData = await uploadFile(file);
+        showArticleImagePreview(imageData);
+        showNotification('图片上传成功');
+    } catch (error) {
+        console.error('图片上传错误:', error);
+        showNotification('图片上传失败', false);
+    }
+}
+
+// 显示图片预览
+function showArticleImagePreview(imageData) {
+    const previewContainer = document.getElementById('article-image-preview');
+    const hiddenInput = document.getElementById('article-cover-image');
+    
+    previewContainer.innerHTML = `
+        <div class="preview-item">
+            <img src="${imageData}" alt="封面图片">
+            <button class="preview-remove" onclick="removeArticleImage()">×</button>
+        </div>
+    `;
+    
+    previewContainer.style.display = 'grid';
+    hiddenInput.value = imageData;
+}
+
+// 移除图片
+function removeArticleImage() {
+    document.getElementById('article-image-preview').style.display = 'none';
+    document.getElementById('article-cover-image').value = '';
+    document.getElementById('article-image-file').value = '';
+}
+
+// 上传文件
+async function uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const token = sessionStorage.getItem('authToken');
+    const response = await fetch(`${API_BASE}/upload`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        body: formData
+    });
+    
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const result = await response.json();
+    if (!result.url) {
+        throw new Error('服务器返回的数据格式错误');
+    }
+    
+    return result.url;
+}
+
+// 返回上一页
+function goBack() {
+    if (hasUnsavedChanges()) {
+        if (confirm('您有未保存的更改，确定要离开吗？')) {
+            window.location.href = 'article-admin.html';
+        }
+    } else {
+        window.location.href = 'article-admin.html';
+    }
+}
+
+// 显示加载遮罩
+function showLoading() {
+    document.getElementById('loading-overlay').style.display = 'flex';
+}
+
+// 隐藏加载遮罩
+function hideLoading() {
+    document.getElementById('loading-overlay').style.display = 'none';
+}
+
+// 显示通知
+function showNotification(message, isSuccess = true) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.className = `notification ${isSuccess ? 'success' : 'error'}`;
+    notification.style.display = 'block';
+    
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 3000);
+}
+
+// 退出登录
+function logout() {
+    sessionStorage.removeItem('authToken');
+    window.location.href = 'login.html';
+}

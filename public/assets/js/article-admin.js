@@ -509,39 +509,12 @@ function renderCategorySelect() {
 
 // 打开文章模态框
 async function openArticleModal(articleId = null) {
-    const modal = document.getElementById('article-modal');
-    const title = document.getElementById('article-modal-title');
-    
-    // 确保分类选择器被正确渲染
-    renderCategorySelect();
-    
     if (articleId) {
-        // 编辑模式
-        editingArticle = allArticles.find(a => a.id === articleId);
-        if (editingArticle) {
-            title.innerHTML = '<i class="fas fa-edit"></i> 编辑文章';
-        }
+        // 编辑文章 - 跳转到编辑页面
+        window.location.href = `article-edit.html?id=${articleId}`;
     } else {
-        // 新建模式
-        editingArticle = null;
-        title.innerHTML = '<i class="fas fa-plus"></i> 新建文章';
-    }
-    
-    modal.style.display = 'flex';
-    
-    // 等待编辑器初始化完成
-    try {
-        await initTinyMCEEditor();
-        
-        // 编辑器初始化完成后，如果是编辑模式则填充表单
-        if (articleId && editingArticle) {
-            fillArticleForm(editingArticle);
-        } else {
-            resetArticleForm();
-        }
-    } catch (error) {
-        console.error('初始化编辑器失败:', error);
-        showNotification('初始化编辑器失败', false);
+        // 新建文章 - 跳转到编辑页面
+        window.location.href = 'article-edit.html';
     }
 }
 
