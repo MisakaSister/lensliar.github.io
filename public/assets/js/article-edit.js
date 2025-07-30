@@ -130,13 +130,6 @@ async function initTinyMCEEditor() {
             tinyMCEEditor.destroy();
         }
 
-        // 确保编辑器容器是空的
-        const editorContainer = document.getElementById('article-content-editor');
-        if (editorContainer) {
-            editorContainer.innerHTML = '';
-            console.log('清空编辑器容器');
-        }
-
         // 添加超时处理
         const initPromise = tinymce.init({
             selector: '#article-content-editor',
@@ -192,7 +185,7 @@ async function initTinyMCEEditor() {
             elementpath: false,
             statusbar: false,
             resize: true,
-            cache_suffix: '?v=1.0.13',
+            cache_suffix: '?v=1.0.14',
             browser_spellcheck: false,
             setup: function(editor) {
                 editor.on('change', function() {
@@ -218,12 +211,6 @@ async function initTinyMCEEditor() {
 
         tinyMCEEditor = await Promise.race([initPromise, timeoutPromise]);
         console.log('TinyMCE初始化成功');
-        
-        // 确保编辑器容器可见
-        if (editorContainer) {
-            editorContainer.style.display = 'block';
-            editorContainer.style.visibility = 'visible';
-        }
         
     } catch (error) {
         console.error('TinyMCE初始化失败:', error);
