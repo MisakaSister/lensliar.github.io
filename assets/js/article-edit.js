@@ -192,7 +192,7 @@ async function initTinyMCEEditor() {
             elementpath: false,
             statusbar: false,
             resize: true,
-            cache_suffix: '?v=1.0.12',
+            cache_suffix: '?v=1.0.13',
             browser_spellcheck: false,
             setup: function(editor) {
                 editor.on('change', function() {
@@ -227,13 +227,7 @@ async function initTinyMCEEditor() {
         
     } catch (error) {
         console.error('TinyMCE初始化失败:', error);
-        // 降级为普通textarea，但先清空容器
-        const editorContainer = document.getElementById('article-content-editor');
-        if (editorContainer) {
-            editorContainer.innerHTML = '<textarea style="width: 100%; height: 1000px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, sans-serif; line-height: 1.6;" placeholder="请输入文章内容..."></textarea>';
-            console.log('已降级为普通textarea');
-        }
-        showNotification('富文本编辑器加载失败，已降级为普通文本框', false);
+        showNotification('富文本编辑器加载失败，请刷新页面重试', false);
     }
 }
 
