@@ -95,10 +95,12 @@ async function initTinyMCEEditor() {
     tinyMCEEditor = await tinymce.init({
         selector: '#article-content-editor',
         height: 1000,
+        // 只保留最核心的插件：列表和图片
         plugins: [
-            'advlist autolink lists link image'
+            'lists image'
         ],
-        toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link image',
+        // 简化工具栏，只保留最常用功能
+        toolbar: 'undo redo | bold italic | bullist numlist | image',
         menubar: false,
         content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.6; }',
         images_upload_url: `${API_BASE}/upload`,
