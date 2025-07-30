@@ -130,6 +130,13 @@ async function initTinyMCEEditor() {
             tinyMCEEditor.destroy();
         }
 
+        // 确保编辑器容器是空的
+        const editorContainer = document.getElementById('article-content-editor');
+        if (editorContainer) {
+            editorContainer.innerHTML = '';
+            console.log('清空编辑器容器');
+        }
+
         // 添加超时处理
         const initPromise = tinymce.init({
             selector: '#article-content-editor',
@@ -185,7 +192,7 @@ async function initTinyMCEEditor() {
             elementpath: false,
             statusbar: false,
             resize: true,
-            cache_suffix: '?v=1.0.10',
+            cache_suffix: '?v=1.0.12',
             browser_spellcheck: false,
             setup: function(editor) {
                 editor.on('change', function() {
@@ -213,7 +220,6 @@ async function initTinyMCEEditor() {
         console.log('TinyMCE初始化成功');
         
         // 确保编辑器容器可见
-        const editorContainer = document.getElementById('article-content-editor');
         if (editorContainer) {
             editorContainer.style.display = 'block';
             editorContainer.style.visibility = 'visible';
@@ -221,10 +227,11 @@ async function initTinyMCEEditor() {
         
     } catch (error) {
         console.error('TinyMCE初始化失败:', error);
-        // 降级为普通textarea
+        // 降级为普通textarea，但先清空容器
         const editorContainer = document.getElementById('article-content-editor');
         if (editorContainer) {
             editorContainer.innerHTML = '<textarea style="width: 100%; height: 1000px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, sans-serif; line-height: 1.6;" placeholder="请输入文章内容..."></textarea>';
+            console.log('已降级为普通textarea');
         }
         showNotification('富文本编辑器加载失败，已降级为普通文本框', false);
     }
