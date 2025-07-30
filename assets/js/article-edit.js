@@ -104,6 +104,13 @@ async function initPage(articleId) {
         setupEventListeners();
         
         console.log('页面初始化完成');
+        
+        // 强制隐藏加载遮罩
+        setTimeout(() => {
+            hideLoading();
+            console.log('强制隐藏加载遮罩');
+        }, 1000);
+        
     } catch (error) {
         console.error('初始化页面失败:', error);
         throw error;
@@ -174,7 +181,7 @@ async function initTinyMCEEditor() {
             elementpath: false,
             statusbar: false,
             resize: true,
-            cache_suffix: '?v=1.0.9',
+            cache_suffix: '?v=1.0.10',
             browser_spellcheck: false,
             setup: function(editor) {
                 editor.on('change', function() {
@@ -182,6 +189,13 @@ async function initTinyMCEEditor() {
                     if (hiddenField) {
                         hiddenField.value = editor.getContent();
                     }
+                });
+                
+                // 编辑器初始化完成后的回调
+                editor.on('init', function() {
+                    console.log('TinyMCE编辑器UI初始化完成');
+                    // 强制隐藏加载遮罩
+                    hideLoading();
                 });
             }
         });
@@ -193,6 +207,13 @@ async function initTinyMCEEditor() {
 
         tinyMCEEditor = await Promise.race([initPromise, timeoutPromise]);
         console.log('TinyMCE初始化成功');
+        
+        // 确保编辑器容器可见
+        const editorContainer = document.getElementById('article-content-editor');
+        if (editorContainer) {
+            editorContainer.style.display = 'block';
+            editorContainer.style.visibility = 'visible';
+        }
         
     } catch (error) {
         console.error('TinyMCE初始化失败:', error);
