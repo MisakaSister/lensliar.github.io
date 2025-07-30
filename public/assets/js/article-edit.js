@@ -42,6 +42,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         await initPage(articleId);
         
         console.log('页面初始化完成');
+        
+        // 立即隐藏加载遮罩
+        hideLoading();
+        
     } catch (error) {
         console.error('页面初始化失败:', error);
         showNotification('页面加载失败: ' + error.message, false);
@@ -551,7 +555,16 @@ function showLoading() {
 
 // 隐藏加载遮罩
 function hideLoading() {
-    document.getElementById('loading-overlay').style.display = 'none';
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+        loadingOverlay.style.visibility = 'hidden';
+        loadingOverlay.style.opacity = '0';
+        loadingOverlay.style.pointerEvents = 'none';
+        console.log('加载遮罩已隐藏');
+    } else {
+        console.error('找不到加载遮罩元素');
+    }
 }
 
 // 显示通知
