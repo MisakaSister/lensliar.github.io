@@ -317,6 +317,14 @@ async function saveArticle() {
         const content = tinyMCEEditor ? tinyMCEEditor.getContent() : '';
         const coverImage = document.getElementById('article-cover-image').value;
         
+        console.log('保存文章数据:', {
+            title,
+            category,
+            contentLength: content.length,
+            coverImage: coverImage ? '已设置' : '未设置',
+            isEdit: !!editingArticle
+        });
+        
         if (!title) {
             showNotification('请输入文章标题', false);
             return;
@@ -341,6 +349,12 @@ async function saveArticle() {
         
         const method = editingArticle ? 'PUT' : 'POST';
         
+        console.log('发送请求:', {
+            url,
+            method,
+            token: token ? '已设置' : '未设置'
+        });
+        
         const response = await fetch(url, {
             method: method,
             headers: {
@@ -350,8 +364,11 @@ async function saveArticle() {
             body: JSON.stringify(articleData)
         });
         
+        console.log('响应状态:', response.status, response.statusText);
+        
         if (response.ok) {
             const result = await response.json();
+            console.log('保存成功:', result);
             showNotification(editingArticle ? '文章更新成功' : '文章创建成功');
             
             // 延迟跳转，让用户看到成功提示
@@ -359,12 +376,19 @@ async function saveArticle() {
                 window.location.href = 'article-admin.html';
             }, 1500);
         } else {
-            const error = await response.text();
-            showNotification(`保存失败: ${error}`, false);
+            const errorText = await response.text();
+            console.error('保存失败 - 状态码:', response.status);
+            console.error('保存失败 - 错误信息:', errorText);
+            showNotification(`保存失败: ${response.status} - ${errorText}`, false);
         }
     } catch (error) {
         console.error('保存文章错误:', error);
-        showNotification('保存失败，请检查网络连接', false);
+        console.error('错误详情:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
+        showNotification(`保存失败: ${error.message}`, false);
     } finally {
         hideLoading();
     }
