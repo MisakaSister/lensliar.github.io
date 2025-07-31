@@ -196,7 +196,7 @@ async function initTinyMCEEditor() {
         statusbar: false, // 移除状态栏
         resize: true,
         // 优化性能设置
-        cache_suffix: '?v=1.0.33',
+        cache_suffix: '?v=1.0.34',
         browser_spellcheck: false,
         // 初始化回调
         setup: function(editor) {
@@ -220,7 +220,19 @@ function checkEditorStatus() {
     }
     
     console.log('编辑器实例:', tinyMCEEditor);
-    console.log('编辑器内容:', tinyMCEEditor.getContent());
+    
+    // 安全地获取编辑器内容
+    let content = '';
+    if (tinyMCEEditor) {
+        try {
+            content = tinyMCEEditor.getContent();
+            console.log('编辑器内容:', content);
+        } catch (error) {
+            console.error('获取编辑器内容失败:', error);
+            content = '';
+        }
+    }
+    
     console.log('编辑器状态检查完成');
 }
 
@@ -339,8 +351,13 @@ function fillArticleForm(article) {
     document.getElementById('article-title').value = article.title || '';
     document.getElementById('article-category').value = article.category || '';
     
-    if (tinyMCEEditor) {
-        tinyMCEEditor.setContent(article.content || '');
+    // 安全地设置编辑器内容
+    if (tinyMCEEditor && tinyMCEEditor.setContent) {
+        try {
+            tinyMCEEditor.setContent(article.content || '');
+        } catch (error) {
+            console.error('设置编辑器内容失败:', error);
+        }
     }
     
     if (article.cover_image) {
@@ -368,8 +385,18 @@ function setupEventListeners() {
 // 检查是否有未保存的更改
 function hasUnsavedChanges() {
     const title = document.getElementById('article-title').value;
-    const content = tinyMCEEditor ? tinyMCEEditor.getContent() : '';
     const category = document.getElementById('article-category').value;
+    
+    // 安全地获取编辑器内容
+    let content = '';
+    if (tinyMCEEditor) {
+        try {
+            content = tinyMCEEditor.getContent();
+        } catch (error) {
+            console.error('获取编辑器内容失败:', error);
+            content = '';
+        }
+    }
     
     return title.trim() !== '' || content.trim() !== '' || category !== '';
 }
@@ -381,7 +408,18 @@ async function saveArticle() {
         
         const title = document.getElementById('article-title').value.trim();
         const category = document.getElementById('article-category').value;
-        const content = tinyMCEEditor ? tinyMCEEditor.getContent() : '';
+        
+        // 安全地获取编辑器内容
+        let content = '';
+        if (tinyMCEEditor) {
+            try {
+                content = tinyMCEEditor.getContent();
+            } catch (error) {
+                console.error('获取编辑器内容失败:', error);
+                content = '';
+            }
+        }
+        
         const coverImage = document.getElementById('article-cover-image').value;
         
         console.log('保存文章数据:', {
@@ -590,6 +628,18 @@ function testEditor() {
     }
     
     console.log('编辑器实例:', tinyMCEEditor);
-    console.log('编辑器内容:', tinyMCEEditor.getContent());
+    
+    // 安全地获取编辑器内容
+    let content = '';
+    if (tinyMCEEditor) {
+        try {
+            content = tinyMCEEditor.getContent();
+            console.log('编辑器内容:', content);
+        } catch (error) {
+            console.error('获取编辑器内容失败:', error);
+            content = '';
+        }
+    }
+    
     alert('编辑器状态已检查，请查看控制台输出');
 }
