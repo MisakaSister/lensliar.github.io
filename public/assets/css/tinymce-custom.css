@@ -19,6 +19,12 @@
     border: none !important;
     border-radius: 8px !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    /* 确保编辑器可交互 */
+    pointer-events: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
 }
 
 /* 工具栏样式 */
@@ -26,18 +32,24 @@
     background: #f8f9fa !important;
     border-bottom: 1px solid #e0e0e0 !important;
     border-radius: 8px 8px 0 0 !important;
+    /* 确保工具栏可交互 */
+    pointer-events: auto !important;
 }
 
 /* 编辑区域 */
 .tox .tox-edit-area {
     height: calc(100% - 40px) !important;
     border: none !important;
+    /* 确保编辑区域可交互 */
+    pointer-events: auto !important;
 }
 
 /* 编辑区域iframe */
 .tox .tox-edit-area__iframe {
     height: 100% !important;
     border: none !important;
+    /* 确保iframe可交互 */
+    pointer-events: auto !important;
 }
 
 /* 编辑器内容样式 */
@@ -48,6 +60,13 @@
     padding: 20px !important;
     margin: 0 !important;
     color: #333 !important;
+    /* 确保内容区域可编辑 */
+    cursor: text !important;
+    pointer-events: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
 }
 
 /* 隐藏状态栏 */
@@ -64,6 +83,9 @@
 .tox .tox-tbtn {
     border-radius: 4px !important;
     transition: all 0.2s ease !important;
+    /* 确保按钮可点击 */
+    pointer-events: auto !important;
+    cursor: pointer !important;
 }
 
 .tox .tox-tbtn:hover {
