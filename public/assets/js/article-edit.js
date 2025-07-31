@@ -204,7 +204,7 @@ async function initTinyMCEEditor() {
             elementpath: false,
             statusbar: false,
             resize: true,
-            cache_suffix: '?v=1.0.19',
+            cache_suffix: '?v=1.0.20',
             browser_spellcheck: false,
             setup: function(editor) {
                 console.log('TinyMCE setup函数被调用');
