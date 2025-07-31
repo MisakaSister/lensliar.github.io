@@ -2854,6 +2854,9 @@ footer p {
 
 /* TinyMCE 工具栏样式 */
 .tox-tinymce {
+    width: 100% !important;
+    min-height: 1000px !important;
+    height: 1000px !important;
     border-radius: 8px !important;
     border: 1px solid var(--border-color) !important;
     box-shadow: var(--shadow) !important;
@@ -2862,6 +2865,7 @@ footer p {
 .tox .tox-toolbar {
     background: var(--background-secondary) !important;
     border-bottom: 1px solid var(--border-color) !important;
+    width: 100% !important;
 }
 
 .tox .tox-toolbar__group {
@@ -2885,10 +2889,14 @@ footer p {
 /* TinyMCE 内容区域样式 */
 .tox .tox-edit-area {
     background: white !important;
+    width: 100% !important;
+    height: calc(100% - 40px) !important;
 }
 
 .tox .tox-edit-area__iframe {
     background: white !important;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 /* TinyMCE 状态栏样式 */
