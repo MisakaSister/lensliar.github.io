@@ -218,7 +218,7 @@ async function initTinyMCEEditor() {
                 elementpath: false,
                 statusbar: false,
                 resize: true,
-                cache_suffix: '?v=1.0.27',
+                cache_suffix: '?v=1.0.28',
                 browser_spellcheck: false,
                 // 确保编辑器可编辑
                 readonly: false,
@@ -241,7 +241,7 @@ async function initTinyMCEEditor() {
                         console.log('TinyMCE编辑器UI初始化完成');
                         
                         // 强制设置编辑器为可编辑状态
-                        editor.setMode('design');
+                        editor.mode.set('design');
                         editor.setContent('<p>请在此输入文章内容...</p>');
                         
                         // 确保编辑器内容区域可编辑
@@ -259,7 +259,7 @@ async function initTinyMCEEditor() {
                             console.log('编辑器已聚焦');
                             
                             // 再次确保编辑器可编辑
-                            editor.setMode('design');
+                            editor.mode.set('design');
                             console.log('编辑器模式设置为design');
                             
                             // 测试输入
@@ -276,7 +276,7 @@ async function initTinyMCEEditor() {
                         console.log('编辑器实例已保存:', tinyMCEEditor);
                         console.log('编辑器实例类型:', typeof tinyMCEEditor);
                         console.log('编辑器实例构造函数:', tinyMCEEditor.constructor);
-                        console.log('编辑器是否有getMode方法:', typeof tinyMCEEditor.getMode);
+                        console.log('编辑器是否有mode方法:', typeof tinyMCEEditor.mode);
                     });
                     
                     editor.on('change', function() {
@@ -291,18 +291,18 @@ async function initTinyMCEEditor() {
                     editor.on('click', function() {
                         console.log('编辑器被点击');
                         editor.focus();
-                        editor.setMode('design');
+                        editor.mode.set('design');
                     });
                     
                     // 添加键盘事件监听
                     editor.on('keydown', function(e) {
-                        console.log('键盘事件:', e.key, '编辑器模式:', editor.getMode());
+                        console.log('键盘事件:', e.key, '编辑器模式:', editor.mode.get());
                     });
                     
                     // 确保编辑器内容可编辑
                     editor.on('focus', function() {
                         console.log('编辑器获得焦点');
-                        editor.setMode('design');
+                        editor.mode.set('design');
                     });
                     
                     editor.on('blur', function() {
@@ -325,15 +325,15 @@ async function initTinyMCEEditor() {
                     console.log('获取到的编辑器实例:', editor);
                     console.log('编辑器实例类型:', typeof editor);
                     console.log('编辑器实例构造函数:', editor.constructor);
-                    console.log('编辑器是否有getMode方法:', typeof editor.getMode);
+                    console.log('编辑器是否有mode方法:', typeof editor.mode);
                     
                     // 确保编辑器实例有效
-                    if (typeof editor.getMode === 'function') {
+                    if (typeof editor.mode === 'function') {
                         tinyMCEEditor = editor;
                         console.log('设置编辑器实例成功:', tinyMCEEditor);
                         resolve(tinyMCEEditor);
                     } else {
-                        console.error('编辑器实例无效，缺少getMode方法');
+                        console.error('编辑器实例无效，缺少mode方法');
                         reject(new Error('编辑器实例无效'));
                     }
                 } else {
@@ -400,7 +400,7 @@ function checkEditorStatus() {
     
     // 尝试通过tinymce.get()获取编辑器实例
     let editor = tinyMCEEditor;
-    if (!editor || typeof editor.getMode !== 'function') {
+    if (!editor || typeof editor.mode !== 'function') {
         console.log('尝试通过tinymce.get()获取编辑器实例...');
         editor = tinymce.get('article-content-editor');
         if (editor) {
@@ -417,15 +417,15 @@ function checkEditorStatus() {
     console.log('编辑器实例:', editor);
     
     // 检查编辑器是否有有效的方法
-    if (typeof editor.getMode !== 'function') {
-        console.error('编辑器实例无效，缺少getMode方法');
+    if (typeof editor.mode !== 'function') {
+        console.error('编辑器实例无效，缺少mode方法');
         console.log('编辑器类型:', typeof editor);
         console.log('编辑器构造函数:', editor.constructor);
         console.log('编辑器可用方法:', Object.getOwnPropertyNames(editor));
         return;
     }
     
-    console.log('编辑器模式:', editor.getMode());
+    console.log('编辑器模式:', editor.mode.get());
     console.log('编辑器内容:', editor.getContent());
     
     // 检查编辑器DOM元素
@@ -449,7 +449,7 @@ function checkEditorStatus() {
     
     // 尝试强制设置编辑器为可编辑
     try {
-        editor.setMode('design');
+        editor.mode.set('design');
         console.log('设置编辑器为design模式');
         
         if (editorBody) {
@@ -828,7 +828,7 @@ function testEditor() {
     
     // 尝试通过tinymce.get()获取编辑器实例
     let editor = tinyMCEEditor;
-    if (!editor || typeof editor.getMode !== 'function') {
+    if (!editor || typeof editor.mode !== 'function') {
         console.log('尝试通过tinymce.get()获取编辑器实例...');
         editor = tinymce.get('article-content-editor');
         if (editor) {
@@ -846,8 +846,8 @@ function testEditor() {
     console.log('编辑器实例:', editor);
     
     // 检查编辑器是否有有效的方法
-    if (typeof editor.getMode !== 'function') {
-        console.error('编辑器实例无效，缺少getMode方法');
+    if (typeof editor.mode !== 'function') {
+        console.error('编辑器实例无效，缺少mode方法');
         console.log('编辑器类型:', typeof editor);
         console.log('编辑器构造函数:', editor.constructor);
         console.log('编辑器可用方法:', Object.getOwnPropertyNames(editor));
@@ -855,9 +855,9 @@ function testEditor() {
         return;
     }
     
-    console.log('编辑器模式:', editor.getMode());
+    console.log('编辑器模式:', editor.mode.get());
     console.log('编辑器内容:', editor.getContent());
-    console.log('编辑器是否只读:', editor.getMode() === 'readonly');
+    console.log('编辑器是否只读:', editor.mode.get() === 'readonly');
     
     // 检查编辑器DOM元素
     const editorElement = document.querySelector('.tox.tox-tinymce');
@@ -884,7 +884,7 @@ function testEditor() {
     
     // 尝试强制设置编辑器为可编辑
     try {
-        editor.setMode('design');
+        editor.mode.set('design');
         console.log('强制设置编辑器为design模式');
         
         if (editorBody) {
