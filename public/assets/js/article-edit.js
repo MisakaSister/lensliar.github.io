@@ -204,7 +204,7 @@ async function initTinyMCEEditor() {
             elementpath: false,
             statusbar: false,
             resize: true,
-            cache_suffix: '?v=1.0.21',
+            cache_suffix: '?v=1.0.22',
             browser_spellcheck: false,
             // 添加这些重要设置
             readonly: false,
