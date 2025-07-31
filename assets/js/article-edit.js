@@ -144,6 +144,10 @@ async function initTinyMCEEditor() {
             return;
         }
         console.log('找到编辑器容器:', editorContainer);
+        
+        // 清空任何多余内容
+        editorContainer.value = '';
+        editorContainer.innerHTML = '';
 
         // 添加超时处理
         const initPromise = tinymce.init({
@@ -200,7 +204,7 @@ async function initTinyMCEEditor() {
             elementpath: false,
             statusbar: false,
             resize: true,
-            cache_suffix: '?v=1.0.15',
+            cache_suffix: '?v=1.0.19',
             browser_spellcheck: false,
             setup: function(editor) {
                 console.log('TinyMCE setup函数被调用');
