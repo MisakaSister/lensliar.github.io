@@ -204,10 +204,35 @@ async function initTinyMCEEditor() {
             elementpath: false,
             statusbar: false,
             resize: true,
-            cache_suffix: '?v=1.0.20',
+            cache_suffix: '?v=1.0.21',
             browser_spellcheck: false,
+            // 添加这些重要设置
+            readonly: false,
+            paste_data_images: true,
+            paste_as_text: false,
+            paste_enable_default_filters: true,
+            paste_word_valid_elements: "b,strong,i,em,h1,h2,h3,h4,h5,h6",
+            paste_retain_style_properties: "color font-size background-color",
+            paste_remove_styles_if_webkit: false,
+            paste_remove_styles: false,
+            paste_auto_cleanup_on_paste: false,
+            paste_convert_word_fake_lists: false,
+            paste_use_dialog: false,
+            paste_merge_formats: true,
+            paste_convert_unsafe_svg: false,
+            paste_webkit_styles: "color font-size background-color",
             setup: function(editor) {
                 console.log('TinyMCE setup函数被调用');
+                
+                // 确保编辑器可编辑
+                editor.on('init', function() {
+                    console.log('TinyMCE编辑器UI初始化完成');
+                    editor.setMode('design'); // 设置为设计模式（可编辑）
+                    editor.focus(); // 聚焦到编辑器
+                    // 强制隐藏加载遮罩
+                    hideLoading();
+                });
+                
                 editor.on('change', function() {
                     const hiddenField = document.getElementById('article-content');
                     if (hiddenField) {
@@ -215,11 +240,14 @@ async function initTinyMCEEditor() {
                     }
                 });
                 
-                // 编辑器初始化完成后的回调
-                editor.on('init', function() {
-                    console.log('TinyMCE编辑器UI初始化完成');
-                    // 强制隐藏加载遮罩
-                    hideLoading();
+                // 添加点击事件确保编辑器可交互
+                editor.on('click', function() {
+                    console.log('编辑器被点击');
+                });
+                
+                // 添加键盘事件监听
+                editor.on('keydown', function(e) {
+                    console.log('键盘事件:', e.key);
                 });
             }
         });
