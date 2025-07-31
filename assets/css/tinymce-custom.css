@@ -11,8 +11,10 @@
     padding: 0 !important;
 }
 
-/* TinyMCE 主容器 */
-.tox.tox-tinymce {
+/* TinyMCE 主容器 - 使用最高优先级 */
+body .tox.tox-tinymce,
+html body .tox.tox-tinymce,
+.edit-form .tox.tox-tinymce {
     width: 100% !important;
     min-height: 1000px !important;
     height: 1000px !important;
@@ -31,10 +33,15 @@
     opacity: 1 !important;
     position: relative !important;
     z-index: 1 !important;
+    /* 强制覆盖可能的全局样式 */
+    cursor: text !important;
+    background: white !important;
 }
 
-/* 工具栏样式 */
-.tox .tox-toolbar {
+/* 工具栏样式 - 使用最高优先级 */
+body .tox .tox-toolbar,
+html body .tox .tox-toolbar,
+.edit-form .tox .tox-toolbar {
     background: #f8f9fa !important;
     border-bottom: 1px solid #e0e0e0 !important;
     border-radius: 8px 8px 0 0 !important;
@@ -43,10 +50,13 @@
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
+    cursor: default !important;
 }
 
-/* 编辑区域 */
-.tox .tox-edit-area {
+/* 编辑区域 - 使用最高优先级 */
+body .tox .tox-edit-area,
+html body .tox .tox-edit-area,
+.edit-form .tox .tox-edit-area {
     height: calc(100% - 40px) !important;
     border: none !important;
     /* 确保编辑区域可交互 */
@@ -55,10 +65,13 @@
     visibility: visible !important;
     opacity: 1 !important;
     position: relative !important;
+    cursor: text !important;
 }
 
-/* 编辑区域iframe */
-.tox .tox-edit-area__iframe {
+/* 编辑区域iframe - 使用最高优先级 */
+body .tox .tox-edit-area__iframe,
+html body .tox .tox-edit-area__iframe,
+.edit-form .tox .tox-edit-area__iframe {
     height: 100% !important;
     border: none !important;
     /* 确保iframe可交互 */
@@ -67,10 +80,13 @@
     visibility: visible !important;
     opacity: 1 !important;
     width: 100% !important;
+    cursor: text !important;
 }
 
-/* 编辑器内容样式 */
-.tox .tox-edit-area__iframe body {
+/* 编辑器内容样式 - 使用最高优先级 */
+body .tox .tox-edit-area__iframe body,
+html body .tox .tox-edit-area__iframe body,
+.edit-form .tox .tox-edit-area__iframe body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     font-size: 16px !important;
     line-height: 1.6 !important;
@@ -90,6 +106,11 @@
     opacity: 1 !important;
     background: white !important;
     min-height: 100% !important;
+    /* 强制设置contentEditable */
+    -webkit-user-modify: read-write !important;
+    -moz-user-modify: read-write !important;
+    -ms-user-modify: read-write !important;
+    user-modify: read-write !important;
 }
 
 /* 隐藏状态栏 */
@@ -102,8 +123,10 @@
     display: none !important;
 }
 
-/* 按钮样式 */
-.tox .tox-tbtn {
+/* 按钮样式 - 使用最高优先级 */
+body .tox .tox-tbtn,
+html body .tox .tox-tbtn,
+.edit-form .tox .tox-tbtn {
     border-radius: 4px !important;
     transition: all 0.2s ease !important;
     /* 确保按钮可点击 */

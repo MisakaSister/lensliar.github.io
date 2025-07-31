@@ -43,8 +43,16 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         console.log('页面初始化完成');
         
-        // 立即隐藏加载遮罩
-        hideLoading();
+        // 强制隐藏加载遮罩
+        setTimeout(() => {
+            hideLoading();
+            console.log('强制隐藏加载遮罩');
+            
+            // 延迟检查编辑器状态
+            setTimeout(() => {
+                checkEditorStatus();
+            }, 2000);
+        }, 1000);
         
     } catch (error) {
         console.error('页面初始化失败:', error);
@@ -113,6 +121,11 @@ async function initPage(articleId) {
         setTimeout(() => {
             hideLoading();
             console.log('强制隐藏加载遮罩');
+            
+            // 延迟检查编辑器状态
+            setTimeout(() => {
+                checkEditorStatus();
+            }, 2000);
         }, 1000);
         
     } catch (error) {
@@ -204,7 +217,7 @@ async function initTinyMCEEditor() {
             elementpath: false,
             statusbar: false,
             resize: true,
-            cache_suffix: '?v=1.0.23',
+            cache_suffix: '?v=1.0.24',
             browser_spellcheck: false,
             // 确保编辑器可编辑
             readonly: false,
@@ -212,22 +225,48 @@ async function initTinyMCEEditor() {
             paste_data_images: true,
             paste_as_text: false,
             paste_enable_default_filters: true,
+            // 强制设置编辑器为可编辑
+            forced_root_block: 'p',
+            force_br_newlines: false,
+            force_p_newlines: true,
+            remove_linebreaks: false,
+            convert_newlines_to_brs: false,
+            remove_redundant_brs: false,
             setup: function(editor) {
                 console.log('TinyMCE setup函数被调用');
                 
                 // 确保编辑器可编辑
                 editor.on('init', function() {
                     console.log('TinyMCE编辑器UI初始化完成');
-                    // 确保编辑器处于可编辑状态
+                    
+                    // 强制设置编辑器为可编辑状态
                     editor.setMode('design');
+                    editor.setContent('<p>请在此输入文章内容...</p>');
+                    
+                    // 确保编辑器内容区域可编辑
+                    const editorBody = editor.getBody();
+                    if (editorBody) {
+                        editorBody.contentEditable = 'true';
+                        editorBody.style.pointerEvents = 'auto';
+                        editorBody.style.userSelect = 'text';
+                        console.log('编辑器body已设置为可编辑');
+                    }
+                    
                     // 聚焦到编辑器
                     setTimeout(() => {
                         editor.focus();
                         console.log('编辑器已聚焦');
-                        // 添加测试内容确保编辑器工作正常
-                        editor.setContent('<p>请在此输入文章内容...</p>');
-                        console.log('测试内容已添加');
-                    }, 100);
+                        
+                        // 再次确保编辑器可编辑
+                        editor.setMode('design');
+                        console.log('编辑器模式设置为design');
+                        
+                        // 测试输入
+                        const testContent = editor.getContent();
+                        console.log('当前编辑器内容:', testContent);
+                        
+                    }, 200);
+                    
                     // 强制隐藏加载遮罩
                     hideLoading();
                 });
@@ -237,26 +276,38 @@ async function initTinyMCEEditor() {
                     if (hiddenField) {
                         hiddenField.value = editor.getContent();
                     }
+                    console.log('编辑器内容变化:', editor.getContent());
                 });
                 
                 // 添加点击事件确保编辑器可交互
                 editor.on('click', function() {
                     console.log('编辑器被点击');
                     editor.focus();
+                    editor.setMode('design');
                 });
                 
                 // 添加键盘事件监听
                 editor.on('keydown', function(e) {
-                    console.log('键盘事件:', e.key);
+                    console.log('键盘事件:', e.key, '编辑器模式:', editor.getMode());
                 });
                 
                 // 确保编辑器内容可编辑
                 editor.on('focus', function() {
                     console.log('编辑器获得焦点');
+                    editor.setMode('design');
                 });
                 
                 editor.on('blur', function() {
                     console.log('编辑器失去焦点');
+                });
+                
+                // 添加更多调试事件
+                editor.on('NodeChange', function() {
+                    console.log('编辑器节点变化');
+                });
+                
+                editor.on('KeyUp', function() {
+                    console.log('键盘抬起事件');
                 });
             }
         });
@@ -280,12 +331,85 @@ async function initTinyMCEEditor() {
             } else {
                 console.error('找不到TinyMCE编辑器元素');
             }
+            
+            // 强制设置编辑器可编辑
+            forceEditorEditable();
         }, 100);
         
     } catch (error) {
         console.error('TinyMCE初始化失败:', error);
         console.error('错误详情:', error.message, error.stack);
         showNotification('富文本编辑器加载失败，请刷新页面重试', false);
+    }
+}
+
+// 强制设置编辑器可编辑
+function forceEditorEditable() {
+    if (tinyMCEEditor) {
+        try {
+            // 确保编辑器内容区域可编辑
+            const editorBody = tinyMCEEditor.getBody();
+            if (editorBody) {
+                editorBody.contentEditable = 'true';
+                editorBody.style.pointerEvents = 'auto';
+                editorBody.style.userSelect = 'text';
+                console.log('强制设置body为可编辑');
+            }
+        } catch (error) {
+            console.error('强制设置编辑器可编辑失败:', error);
+        }
+    }
+}
+
+// 检查编辑器状态
+function checkEditorStatus() {
+    console.log('=== 检查编辑器状态 ===');
+    
+    if (!tinyMCEEditor) {
+        console.error('TinyMCE编辑器未初始化');
+        return;
+    }
+    
+    console.log('编辑器实例:', tinyMCEEditor);
+    console.log('编辑器模式:', tinyMCEEditor.getMode());
+    console.log('编辑器内容:', tinyMCEEditor.getContent());
+    
+    // 检查编辑器DOM元素
+    const editorElement = document.querySelector('.tox.tox-tinymce');
+    if (editorElement) {
+        console.log('编辑器DOM元素:', editorElement);
+        console.log('编辑器显示状态:', window.getComputedStyle(editorElement).display);
+        console.log('编辑器可见性:', window.getComputedStyle(editorElement).visibility);
+        console.log('编辑器透明度:', window.getComputedStyle(editorElement).opacity);
+        console.log('编辑器指针事件:', window.getComputedStyle(editorElement).pointerEvents);
+    }
+    
+    // 检查编辑器内容区域
+    const editorBody = tinyMCEEditor.getBody();
+    if (editorBody) {
+        console.log('编辑器body:', editorBody);
+        console.log('body contentEditable:', editorBody.contentEditable);
+        console.log('body pointerEvents:', editorBody.style.pointerEvents);
+        console.log('body userSelect:', editorBody.style.userSelect);
+    }
+    
+    // 尝试强制设置编辑器为可编辑
+    try {
+        tinyMCEEditor.setMode('design');
+        console.log('设置编辑器为design模式');
+        
+        if (editorBody) {
+            editorBody.contentEditable = 'true';
+            editorBody.style.pointerEvents = 'auto';
+            editorBody.style.userSelect = 'text';
+            console.log('设置body为可编辑');
+        }
+        
+        tinyMCEEditor.focus();
+        console.log('聚焦编辑器');
+        
+    } catch (error) {
+        console.error('设置编辑器状态时出错:', error);
     }
 }
 
@@ -642,4 +766,64 @@ function showNotification(message, isSuccess = true) {
 function logout() {
     sessionStorage.removeItem('authToken');
     window.location.href = 'login.html';
+}
+
+// 测试编辑器状态
+function testEditor() {
+    console.log('=== 编辑器状态测试 ===');
+    
+    if (!tinyMCEEditor) {
+        console.error('TinyMCE编辑器未初始化');
+        alert('TinyMCE编辑器未初始化');
+        return;
+    }
+    
+    console.log('编辑器实例:', tinyMCEEditor);
+    console.log('编辑器模式:', tinyMCEEditor.getMode());
+    console.log('编辑器内容:', tinyMCEEditor.getContent());
+    console.log('编辑器是否只读:', tinyMCEEditor.getMode() === 'readonly');
+    
+    // 检查编辑器DOM元素
+    const editorElement = document.querySelector('.tox.tox-tinymce');
+    if (editorElement) {
+        console.log('编辑器DOM元素:', editorElement);
+        console.log('编辑器显示状态:', window.getComputedStyle(editorElement).display);
+        console.log('编辑器可见性:', window.getComputedStyle(editorElement).visibility);
+        console.log('编辑器透明度:', window.getComputedStyle(editorElement).opacity);
+        console.log('编辑器指针事件:', window.getComputedStyle(editorElement).pointerEvents);
+    } else {
+        console.error('找不到编辑器DOM元素');
+    }
+    
+    // 检查编辑器内容区域
+    const editorBody = tinyMCEEditor.getBody();
+    if (editorBody) {
+        console.log('编辑器body:', editorBody);
+        console.log('body contentEditable:', editorBody.contentEditable);
+        console.log('body pointerEvents:', editorBody.style.pointerEvents);
+        console.log('body userSelect:', editorBody.style.userSelect);
+    } else {
+        console.error('找不到编辑器body');
+    }
+    
+    // 尝试强制设置编辑器为可编辑
+    try {
+        tinyMCEEditor.setMode('design');
+        console.log('强制设置编辑器为design模式');
+        
+        if (editorBody) {
+            editorBody.contentEditable = 'true';
+            editorBody.style.pointerEvents = 'auto';
+            editorBody.style.userSelect = 'text';
+            console.log('强制设置body为可编辑');
+        }
+        
+        tinyMCEEditor.focus();
+        console.log('强制聚焦编辑器');
+        
+        alert('编辑器状态已检查，请查看控制台输出');
+    } catch (error) {
+        console.error('设置编辑器状态时出错:', error);
+        alert('设置编辑器状态时出错: ' + error.message);
+    }
 }
