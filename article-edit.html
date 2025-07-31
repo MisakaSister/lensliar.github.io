@@ -99,6 +99,22 @@
             height: 100% !important;
         }
         
+        /* 确保TinyMCE编辑器可见 */
+        #article-content-editor {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* TinyMCE生成的编辑器容器样式 */
+        .tox.tox-tinymce {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            min-height: 1000px !important;
+            height: 1000px !important;
+        }
+        
         .image-upload-area {
             border: 2px dashed #ddd !important;
             border-radius: 8px !important;
@@ -325,6 +341,6 @@
     <script src="assets/js/app.js"></script>
     <script src="assets/js/utils.js"></script>
     <script src="assets/js/api-client.js"></script>
-    <script src="assets/js/article-edit.js?v=1.0.15"></script>
+    <script src="assets/js/article-edit.js?v=1.0.17"></script>
 </body>
 </html>

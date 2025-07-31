@@ -126,9 +126,24 @@ async function initTinyMCEEditor() {
     try {
         console.log('开始初始化TinyMCE...');
         
+        // 检查TinyMCE是否可用
+        if (typeof tinymce === 'undefined') {
+            console.error('TinyMCE未加载');
+            showNotification('TinyMCE库未加载，请刷新页面重试', false);
+            return;
+        }
+        
         if (tinyMCEEditor && tinyMCEEditor.destroy) {
             tinyMCEEditor.destroy();
         }
+
+        // 检查目标元素
+        const editorContainer = document.getElementById('article-content-editor');
+        if (!editorContainer) {
+            console.error('找不到编辑器容器元素');
+            return;
+        }
+        console.log('找到编辑器容器:', editorContainer);
 
         // 添加超时处理
         const initPromise = tinymce.init({
@@ -185,9 +200,10 @@ async function initTinyMCEEditor() {
             elementpath: false,
             statusbar: false,
             resize: true,
-            cache_suffix: '?v=1.0.14',
+            cache_suffix: '?v=1.0.15',
             browser_spellcheck: false,
             setup: function(editor) {
+                console.log('TinyMCE setup函数被调用');
                 editor.on('change', function() {
                     const hiddenField = document.getElementById('article-content');
                     if (hiddenField) {
@@ -212,8 +228,22 @@ async function initTinyMCEEditor() {
         tinyMCEEditor = await Promise.race([initPromise, timeoutPromise]);
         console.log('TinyMCE初始化成功');
         
+        // 强制显示编辑器
+        setTimeout(() => {
+            const editorElement = document.querySelector('.tox.tox-tinymce');
+            if (editorElement) {
+                editorElement.style.display = 'block';
+                editorElement.style.visibility = 'visible';
+                editorElement.style.opacity = '1';
+                console.log('强制显示TinyMCE编辑器');
+            } else {
+                console.error('找不到TinyMCE编辑器元素');
+            }
+        }, 100);
+        
     } catch (error) {
         console.error('TinyMCE初始化失败:', error);
+        console.error('错误详情:', error.message, error.stack);
         showNotification('富文本编辑器加载失败，请刷新页面重试', false);
     }
 }
