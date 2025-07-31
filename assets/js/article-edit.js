@@ -218,7 +218,7 @@ async function initTinyMCEEditor() {
                 elementpath: false,
                 statusbar: false,
                 resize: true,
-                cache_suffix: '?v=1.0.28',
+                cache_suffix: '?v=1.0.29',
                 browser_spellcheck: false,
                 // 确保编辑器可编辑
                 readonly: false,
@@ -276,7 +276,10 @@ async function initTinyMCEEditor() {
                         console.log('编辑器实例已保存:', tinyMCEEditor);
                         console.log('编辑器实例类型:', typeof tinyMCEEditor);
                         console.log('编辑器实例构造函数:', tinyMCEEditor.constructor);
-                        console.log('编辑器是否有mode方法:', typeof tinyMCEEditor.mode);
+                        console.log('编辑器是否有mode对象:', typeof tinyMCEEditor.mode);
+                        if (tinyMCEEditor.mode) {
+                            console.log('mode对象方法:', Object.getOwnPropertyNames(tinyMCEEditor.mode));
+                        }
                     });
                     
                     editor.on('change', function() {
@@ -325,15 +328,18 @@ async function initTinyMCEEditor() {
                     console.log('获取到的编辑器实例:', editor);
                     console.log('编辑器实例类型:', typeof editor);
                     console.log('编辑器实例构造函数:', editor.constructor);
-                    console.log('编辑器是否有mode方法:', typeof editor.mode);
+                    console.log('编辑器是否有mode对象:', typeof editor.mode);
+                    if (editor.mode) {
+                        console.log('mode对象方法:', Object.getOwnPropertyNames(editor.mode));
+                    }
                     
                     // 确保编辑器实例有效
-                    if (typeof editor.mode === 'function') {
+                    if (typeof editor.mode === 'object' && editor.mode.get && editor.mode.set) {
                         tinyMCEEditor = editor;
                         console.log('设置编辑器实例成功:', tinyMCEEditor);
                         resolve(tinyMCEEditor);
                     } else {
-                        console.error('编辑器实例无效，缺少mode方法');
+                        console.error('编辑器实例无效，缺少mode对象或方法');
                         reject(new Error('编辑器实例无效'));
                     }
                 } else {
@@ -400,7 +406,7 @@ function checkEditorStatus() {
     
     // 尝试通过tinymce.get()获取编辑器实例
     let editor = tinyMCEEditor;
-    if (!editor || typeof editor.mode !== 'function') {
+    if (!editor || typeof editor.mode !== 'object') {
         console.log('尝试通过tinymce.get()获取编辑器实例...');
         editor = tinymce.get('article-content-editor');
         if (editor) {
@@ -416,12 +422,16 @@ function checkEditorStatus() {
     
     console.log('编辑器实例:', editor);
     
-    // 检查编辑器是否有有效的方法
-    if (typeof editor.mode !== 'function') {
-        console.error('编辑器实例无效，缺少mode方法');
+    // 检查编辑器是否有有效的mode对象
+    if (typeof editor.mode !== 'object' || !editor.mode.get || !editor.mode.set) {
+        console.error('编辑器实例无效，缺少mode对象或方法');
         console.log('编辑器类型:', typeof editor);
         console.log('编辑器构造函数:', editor.constructor);
         console.log('编辑器可用方法:', Object.getOwnPropertyNames(editor));
+        console.log('editor.mode类型:', typeof editor.mode);
+        if (editor.mode) {
+            console.log('editor.mode方法:', Object.getOwnPropertyNames(editor.mode));
+        }
         return;
     }
     
@@ -828,7 +838,7 @@ function testEditor() {
     
     // 尝试通过tinymce.get()获取编辑器实例
     let editor = tinyMCEEditor;
-    if (!editor || typeof editor.mode !== 'function') {
+    if (!editor || typeof editor.mode !== 'object') {
         console.log('尝试通过tinymce.get()获取编辑器实例...');
         editor = tinymce.get('article-content-editor');
         if (editor) {
@@ -845,12 +855,16 @@ function testEditor() {
     
     console.log('编辑器实例:', editor);
     
-    // 检查编辑器是否有有效的方法
-    if (typeof editor.mode !== 'function') {
-        console.error('编辑器实例无效，缺少mode方法');
+    // 检查编辑器是否有有效的mode对象
+    if (typeof editor.mode !== 'object' || !editor.mode.get || !editor.mode.set) {
+        console.error('编辑器实例无效，缺少mode对象或方法');
         console.log('编辑器类型:', typeof editor);
         console.log('编辑器构造函数:', editor.constructor);
         console.log('编辑器可用方法:', Object.getOwnPropertyNames(editor));
+        console.log('editor.mode类型:', typeof editor.mode);
+        if (editor.mode) {
+            console.log('editor.mode方法:', Object.getOwnPropertyNames(editor.mode));
+        }
         alert('编辑器实例无效，请刷新页面重试');
         return;
     }
