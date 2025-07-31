@@ -25,6 +25,12 @@
     -webkit-user-select: text !important;
     -moz-user-select: text !important;
     -ms-user-select: text !important;
+    /* 确保编辑器可见和可操作 */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 1 !important;
 }
 
 /* 工具栏样式 */
@@ -34,6 +40,9 @@
     border-radius: 8px 8px 0 0 !important;
     /* 确保工具栏可交互 */
     pointer-events: auto !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 /* 编辑区域 */
@@ -42,6 +51,10 @@
     border: none !important;
     /* 确保编辑区域可交互 */
     pointer-events: auto !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
 }
 
 /* 编辑区域iframe */
@@ -50,6 +63,10 @@
     border: none !important;
     /* 确保iframe可交互 */
     pointer-events: auto !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100% !important;
 }
 
 /* 编辑器内容样式 */
@@ -67,6 +84,12 @@
     -webkit-user-select: text !important;
     -moz-user-select: text !important;
     -ms-user-select: text !important;
+    /* 确保内容区域可见 */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    background: white !important;
+    min-height: 100% !important;
 }
 
 /* 隐藏状态栏 */
@@ -86,6 +109,9 @@
     /* 确保按钮可点击 */
     pointer-events: auto !important;
     cursor: pointer !important;
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .tox .tox-tbtn:hover {

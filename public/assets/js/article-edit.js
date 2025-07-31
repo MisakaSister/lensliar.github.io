@@ -204,31 +204,30 @@ async function initTinyMCEEditor() {
             elementpath: false,
             statusbar: false,
             resize: true,
-            cache_suffix: '?v=1.0.22',
+            cache_suffix: '?v=1.0.23',
             browser_spellcheck: false,
-            // 添加这些重要设置
+            // 确保编辑器可编辑
             readonly: false,
+            // 简化粘贴设置
             paste_data_images: true,
             paste_as_text: false,
             paste_enable_default_filters: true,
-            paste_word_valid_elements: "b,strong,i,em,h1,h2,h3,h4,h5,h6",
-            paste_retain_style_properties: "color font-size background-color",
-            paste_remove_styles_if_webkit: false,
-            paste_remove_styles: false,
-            paste_auto_cleanup_on_paste: false,
-            paste_convert_word_fake_lists: false,
-            paste_use_dialog: false,
-            paste_merge_formats: true,
-            paste_convert_unsafe_svg: false,
-            paste_webkit_styles: "color font-size background-color",
             setup: function(editor) {
                 console.log('TinyMCE setup函数被调用');
                 
                 // 确保编辑器可编辑
                 editor.on('init', function() {
                     console.log('TinyMCE编辑器UI初始化完成');
-                    editor.setMode('design'); // 设置为设计模式（可编辑）
-                    editor.focus(); // 聚焦到编辑器
+                    // 确保编辑器处于可编辑状态
+                    editor.setMode('design');
+                    // 聚焦到编辑器
+                    setTimeout(() => {
+                        editor.focus();
+                        console.log('编辑器已聚焦');
+                        // 添加测试内容确保编辑器工作正常
+                        editor.setContent('<p>请在此输入文章内容...</p>');
+                        console.log('测试内容已添加');
+                    }, 100);
                     // 强制隐藏加载遮罩
                     hideLoading();
                 });
@@ -243,11 +242,21 @@ async function initTinyMCEEditor() {
                 // 添加点击事件确保编辑器可交互
                 editor.on('click', function() {
                     console.log('编辑器被点击');
+                    editor.focus();
                 });
                 
                 // 添加键盘事件监听
                 editor.on('keydown', function(e) {
                     console.log('键盘事件:', e.key);
+                });
+                
+                // 确保编辑器内容可编辑
+                editor.on('focus', function() {
+                    console.log('编辑器获得焦点');
+                });
+                
+                editor.on('blur', function() {
+                    console.log('编辑器失去焦点');
                 });
             }
         });
