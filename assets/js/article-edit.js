@@ -162,218 +162,74 @@ async function initTinyMCEEditor() {
         editorContainer.value = '';
         editorContainer.innerHTML = '';
 
-        // 添加超时处理
-        const initPromise = new Promise((resolve, reject) => {
-            tinymce.init({
-                selector: '#article-content-editor',
-                height: 1000,
-                // 只保留最核心的插件：列表和图片
-                plugins: [
-                    'lists image'
-                ],
-                // 简化工具栏，只保留最常用功能
-                toolbar: 'undo redo | bold italic | bullist numlist | image',
-                menubar: false,
-                content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.6; }',
-                images_upload_url: `${API_BASE}/upload`,
-                images_upload_credentials: true,
-                images_upload_handler: function (blobInfo, success, failure) {
-                    const formData = new FormData();
-                    formData.append('file', blobInfo.blob(), blobInfo.filename());
-                    
-                    const token = sessionStorage.getItem('authToken');
-                    if (!token) {
-                        failure('未找到认证token');
-                        return;
-                    }
-                    
-                    fetch(`${API_BASE}/upload`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: formData
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            return response.json();
-                        } else {
-                            throw new Error(`HTTP ${response.status}`);
-                        }
-                    })
-                    .then(result => {
-                        if (result && result.url) {
-                            success(result.url);
-                            showNotification('图片上传成功');
-                        } else {
-                            failure('服务器返回的数据格式错误');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('图片上传错误:', error);
-                        failure(`上传失败: ${error.message}`);
-                    });
-                },
-                branding: false,
-                elementpath: false,
-                statusbar: false,
-                resize: true,
-                cache_suffix: '?v=1.0.29',
-                browser_spellcheck: false,
-                // 确保编辑器可编辑
-                readonly: false,
-                // 简化粘贴设置
-                paste_data_images: true,
-                paste_as_text: false,
-                paste_enable_default_filters: true,
-                // 强制设置编辑器为可编辑
-                forced_root_block: 'p',
-                force_br_newlines: false,
-                force_p_newlines: true,
-                remove_linebreaks: false,
-                convert_newlines_to_brs: false,
-                remove_redundant_brs: false,
-                setup: function(editor) {
-                    console.log('TinyMCE setup函数被调用');
-                    
-                    // 确保编辑器可编辑
-                    editor.on('init', function() {
-                        console.log('TinyMCE编辑器UI初始化完成');
-                        
-                        // 强制设置编辑器为可编辑状态
-                        editor.mode.set('design');
-                        editor.setContent('<p>请在此输入文章内容...</p>');
-                        
-                        // 确保编辑器内容区域可编辑
-                        const editorBody = editor.getBody();
-                        if (editorBody) {
-                            editorBody.contentEditable = 'true';
-                            editorBody.style.pointerEvents = 'auto';
-                            editorBody.style.userSelect = 'text';
-                            console.log('编辑器body已设置为可编辑');
-                        }
-                        
-                        // 聚焦到编辑器
-                        setTimeout(() => {
-                            editor.focus();
-                            console.log('编辑器已聚焦');
-                            
-                            // 再次确保编辑器可编辑
-                            editor.mode.set('design');
-                            console.log('编辑器模式设置为design');
-                            
-                            // 测试输入
-                            const testContent = editor.getContent();
-                            console.log('当前编辑器内容:', testContent);
-                            
-                        }, 200);
-                        
-                        // 强制隐藏加载遮罩
-                        hideLoading();
-                        
-                        // 保存编辑器实例
-                        tinyMCEEditor = editor;
-                        console.log('编辑器实例已保存:', tinyMCEEditor);
-                        console.log('编辑器实例类型:', typeof tinyMCEEditor);
-                        console.log('编辑器实例构造函数:', tinyMCEEditor.constructor);
-                        console.log('编辑器是否有mode对象:', typeof tinyMCEEditor.mode);
-                        if (tinyMCEEditor.mode) {
-                            console.log('mode对象方法:', Object.getOwnPropertyNames(tinyMCEEditor.mode));
-                        }
-                    });
-                    
-                    editor.on('change', function() {
-                        const hiddenField = document.getElementById('article-content');
-                        if (hiddenField) {
-                            hiddenField.value = editor.getContent();
-                        }
-                        console.log('编辑器内容变化:', editor.getContent());
-                    });
-                    
-                    // 添加点击事件确保编辑器可交互
-                    editor.on('click', function() {
-                        console.log('编辑器被点击');
-                        editor.focus();
-                        editor.mode.set('design');
-                    });
-                    
-                    // 添加键盘事件监听
-                    editor.on('keydown', function(e) {
-                        console.log('键盘事件:', e.key, '编辑器模式:', editor.mode.get());
-                    });
-                    
-                    // 确保编辑器内容可编辑
-                    editor.on('focus', function() {
-                        console.log('编辑器获得焦点');
-                        editor.mode.set('design');
-                    });
-                    
-                    editor.on('blur', function() {
-                        console.log('编辑器失去焦点');
-                    });
-                    
-                    // 添加更多调试事件
-                    editor.on('NodeChange', function() {
-                        console.log('编辑器节点变化');
-                    });
-                    
-                    editor.on('KeyUp', function() {
-                        console.log('键盘抬起事件');
-                    });
+        // 使用原来弹窗的简单有效方式
+        tinyMCEEditor = await tinymce.init({
+            selector: '#article-content-editor',
+            height: 1000,
+            plugins: [
+                'advlist autolink lists link image'
+            ],
+            toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link image',
+            menubar: false,
+            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.6; }',
+            images_upload_url: `${API_BASE}/upload`,
+            images_upload_credentials: true,
+            images_upload_handler: function (blobInfo, success, failure) {
+                const formData = new FormData();
+                formData.append('file', blobInfo.blob(), blobInfo.filename());
+                
+                const token = sessionStorage.getItem('authToken');
+                if (!token) {
+                    failure('未找到认证token');
+                    return;
                 }
-            }).then(function(editors) {
-                console.log('TinyMCE初始化成功，返回的编辑器:', editors);
-                if (editors && editors.length > 0) {
-                    const editor = editors[0];
-                    console.log('获取到的编辑器实例:', editor);
-                    console.log('编辑器实例类型:', typeof editor);
-                    console.log('编辑器实例构造函数:', editor.constructor);
-                    console.log('编辑器是否有mode对象:', typeof editor.mode);
-                    if (editor.mode) {
-                        console.log('mode对象方法:', Object.getOwnPropertyNames(editor.mode));
-                    }
-                    
-                    // 确保编辑器实例有效
-                    if (typeof editor.mode === 'object' && editor.mode.get && editor.mode.set) {
-                        tinyMCEEditor = editor;
-                        console.log('设置编辑器实例成功:', tinyMCEEditor);
-                        resolve(tinyMCEEditor);
+                
+                fetch(`${API_BASE}/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
                     } else {
-                        console.error('编辑器实例无效，缺少mode对象或方法');
-                        reject(new Error('编辑器实例无效'));
+                        throw new Error(`HTTP ${response.status}`);
                     }
-                } else {
-                    reject(new Error('没有返回有效的编辑器实例'));
-                }
-            }).catch(function(error) {
-                console.error('TinyMCE初始化失败:', error);
-                reject(error);
-            });
-        });
-
-        // 设置超时
-        const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('TinyMCE初始化超时')), 10000);
-        });
-
-        tinyMCEEditor = await Promise.race([initPromise, timeoutPromise]);
-        console.log('TinyMCE初始化成功');
-        
-        // 强制显示编辑器
-        setTimeout(() => {
-            const editorElement = document.querySelector('.tox.tox-tinymce');
-            if (editorElement) {
-                editorElement.style.display = 'block';
-                editorElement.style.visibility = 'visible';
-                editorElement.style.opacity = '1';
-                console.log('强制显示TinyMCE编辑器');
-            } else {
-                console.error('找不到TinyMCE编辑器元素');
+                })
+                .then(result => {
+                    if (result && result.url) {
+                        success(result.url);
+                        showNotification('图片上传成功');
+                    } else {
+                        failure('服务器返回的数据格式错误');
+                    }
+                })
+                .catch(error => {
+                    console.error('图片上传错误:', error);
+                    failure(`上传失败: ${error.message}`);
+                });
+            },
+            branding: false,
+            elementpath: false,
+            statusbar: false,
+            resize: true,
+            cache_suffix: '?v=1.0.30',
+            browser_spellcheck: false,
+            setup: function(editor) {
+                console.log('TinyMCE setup函数被调用');
+                editor.on('change', function() {
+                    const hiddenField = document.getElementById('article-content');
+                    if (hiddenField) {
+                        hiddenField.value = editor.getContent();
+                    }
+                    console.log('编辑器内容变化:', editor.getContent());
+                });
             }
-            
-            // 强制设置编辑器可编辑
-            forceEditorEditable();
-        }, 100);
+        });
+        
+        console.log('TinyMCE初始化成功');
         
     } catch (error) {
         console.error('TinyMCE初始化失败:', error);
@@ -382,61 +238,17 @@ async function initTinyMCEEditor() {
     }
 }
 
-// 强制设置编辑器可编辑
-function forceEditorEditable() {
-    if (tinyMCEEditor) {
-        try {
-            // 确保编辑器内容区域可编辑
-            const editorBody = tinyMCEEditor.getBody();
-            if (editorBody) {
-                editorBody.contentEditable = 'true';
-                editorBody.style.pointerEvents = 'auto';
-                editorBody.style.userSelect = 'text';
-                console.log('强制设置body为可编辑');
-            }
-        } catch (error) {
-            console.error('强制设置编辑器可编辑失败:', error);
-        }
-    }
-}
-
 // 检查编辑器状态
 function checkEditorStatus() {
     console.log('=== 检查编辑器状态 ===');
     
-    // 尝试通过tinymce.get()获取编辑器实例
-    let editor = tinyMCEEditor;
-    if (!editor || typeof editor.mode !== 'object') {
-        console.log('尝试通过tinymce.get()获取编辑器实例...');
-        editor = tinymce.get('article-content-editor');
-        if (editor) {
-            console.log('通过tinymce.get()获取到编辑器实例:', editor);
-            tinyMCEEditor = editor;
-        }
-    }
-    
-    if (!editor) {
+    if (!tinyMCEEditor) {
         console.error('TinyMCE编辑器未初始化');
         return;
     }
     
-    console.log('编辑器实例:', editor);
-    
-    // 检查编辑器是否有有效的mode对象
-    if (typeof editor.mode !== 'object' || !editor.mode.get || !editor.mode.set) {
-        console.error('编辑器实例无效，缺少mode对象或方法');
-        console.log('编辑器类型:', typeof editor);
-        console.log('编辑器构造函数:', editor.constructor);
-        console.log('编辑器可用方法:', Object.getOwnPropertyNames(editor));
-        console.log('editor.mode类型:', typeof editor.mode);
-        if (editor.mode) {
-            console.log('editor.mode方法:', Object.getOwnPropertyNames(editor.mode));
-        }
-        return;
-    }
-    
-    console.log('编辑器模式:', editor.mode.get());
-    console.log('编辑器内容:', editor.getContent());
+    console.log('编辑器实例:', tinyMCEEditor);
+    console.log('编辑器内容:', tinyMCEEditor.getContent());
     
     // 检查编辑器DOM元素
     const editorElement = document.querySelector('.tox.tox-tinymce');
@@ -444,37 +256,9 @@ function checkEditorStatus() {
         console.log('编辑器DOM元素:', editorElement);
         console.log('编辑器显示状态:', window.getComputedStyle(editorElement).display);
         console.log('编辑器可见性:', window.getComputedStyle(editorElement).visibility);
-        console.log('编辑器透明度:', window.getComputedStyle(editorElement).opacity);
-        console.log('编辑器指针事件:', window.getComputedStyle(editorElement).pointerEvents);
     }
     
-    // 检查编辑器内容区域
-    const editorBody = editor.getBody();
-    if (editorBody) {
-        console.log('编辑器body:', editorBody);
-        console.log('body contentEditable:', editorBody.contentEditable);
-        console.log('body pointerEvents:', editorBody.style.pointerEvents);
-        console.log('body userSelect:', editorBody.style.userSelect);
-    }
-    
-    // 尝试强制设置编辑器为可编辑
-    try {
-        editor.mode.set('design');
-        console.log('设置编辑器为design模式');
-        
-        if (editorBody) {
-            editorBody.contentEditable = 'true';
-            editorBody.style.pointerEvents = 'auto';
-            editorBody.style.userSelect = 'text';
-            console.log('设置body为可编辑');
-        }
-        
-        editor.focus();
-        console.log('聚焦编辑器');
-        
-    } catch (error) {
-        console.error('设置编辑器状态时出错:', error);
-    }
+    console.log('编辑器状态检查完成');
 }
 
 // 加载文章分类
@@ -836,42 +620,14 @@ function logout() {
 function testEditor() {
     console.log('=== 编辑器状态测试 ===');
     
-    // 尝试通过tinymce.get()获取编辑器实例
-    let editor = tinyMCEEditor;
-    if (!editor || typeof editor.mode !== 'object') {
-        console.log('尝试通过tinymce.get()获取编辑器实例...');
-        editor = tinymce.get('article-content-editor');
-        if (editor) {
-            console.log('通过tinymce.get()获取到编辑器实例:', editor);
-            tinyMCEEditor = editor;
-        }
-    }
-    
-    if (!editor) {
+    if (!tinyMCEEditor) {
         console.error('TinyMCE编辑器未初始化');
         alert('TinyMCE编辑器未初始化');
         return;
     }
     
-    console.log('编辑器实例:', editor);
-    
-    // 检查编辑器是否有有效的mode对象
-    if (typeof editor.mode !== 'object' || !editor.mode.get || !editor.mode.set) {
-        console.error('编辑器实例无效，缺少mode对象或方法');
-        console.log('编辑器类型:', typeof editor);
-        console.log('编辑器构造函数:', editor.constructor);
-        console.log('编辑器可用方法:', Object.getOwnPropertyNames(editor));
-        console.log('editor.mode类型:', typeof editor.mode);
-        if (editor.mode) {
-            console.log('editor.mode方法:', Object.getOwnPropertyNames(editor.mode));
-        }
-        alert('编辑器实例无效，请刷新页面重试');
-        return;
-    }
-    
-    console.log('编辑器模式:', editor.mode.get());
-    console.log('编辑器内容:', editor.getContent());
-    console.log('编辑器是否只读:', editor.mode.get() === 'readonly');
+    console.log('编辑器实例:', tinyMCEEditor);
+    console.log('编辑器内容:', tinyMCEEditor.getContent());
     
     // 检查编辑器DOM元素
     const editorElement = document.querySelector('.tox.tox-tinymce');
@@ -879,41 +635,9 @@ function testEditor() {
         console.log('编辑器DOM元素:', editorElement);
         console.log('编辑器显示状态:', window.getComputedStyle(editorElement).display);
         console.log('编辑器可见性:', window.getComputedStyle(editorElement).visibility);
-        console.log('编辑器透明度:', window.getComputedStyle(editorElement).opacity);
-        console.log('编辑器指针事件:', window.getComputedStyle(editorElement).pointerEvents);
     } else {
         console.error('找不到编辑器DOM元素');
     }
     
-    // 检查编辑器内容区域
-    const editorBody = editor.getBody();
-    if (editorBody) {
-        console.log('编辑器body:', editorBody);
-        console.log('body contentEditable:', editorBody.contentEditable);
-        console.log('body pointerEvents:', editorBody.style.pointerEvents);
-        console.log('body userSelect:', editorBody.style.userSelect);
-    } else {
-        console.error('找不到编辑器body');
-    }
-    
-    // 尝试强制设置编辑器为可编辑
-    try {
-        editor.mode.set('design');
-        console.log('强制设置编辑器为design模式');
-        
-        if (editorBody) {
-            editorBody.contentEditable = 'true';
-            editorBody.style.pointerEvents = 'auto';
-            editorBody.style.userSelect = 'text';
-            console.log('强制设置body为可编辑');
-        }
-        
-        editor.focus();
-        console.log('强制聚焦编辑器');
-        
-        alert('编辑器状态已检查，请查看控制台输出');
-    } catch (error) {
-        console.error('设置编辑器状态时出错:', error);
-        alert('设置编辑器状态时出错: ' + error.message);
-    }
+    alert('编辑器状态已检查，请查看控制台输出');
 }
