@@ -163,153 +163,171 @@ async function initTinyMCEEditor() {
         editorContainer.innerHTML = '';
 
         // 添加超时处理
-        const initPromise = tinymce.init({
-            selector: '#article-content-editor',
-            height: 1000,
-            // 只保留最核心的插件：列表和图片
-            plugins: [
-                'lists image'
-            ],
-            // 简化工具栏，只保留最常用功能
-            toolbar: 'undo redo | bold italic | bullist numlist | image',
-            menubar: false,
-            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.6; }',
-            images_upload_url: `${API_BASE}/upload`,
-            images_upload_credentials: true,
-            images_upload_handler: function (blobInfo, success, failure) {
-                const formData = new FormData();
-                formData.append('file', blobInfo.blob(), blobInfo.filename());
-                
-                const token = sessionStorage.getItem('authToken');
-                if (!token) {
-                    failure('未找到认证token');
-                    return;
-                }
-                
-                fetch(`${API_BASE}/upload`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: formData
-                })
-                .then(response => {
-                    if (response.ok) {
-                        return response.json();
-                    } else {
-                        throw new Error(`HTTP ${response.status}`);
+        const initPromise = new Promise((resolve, reject) => {
+            tinymce.init({
+                selector: '#article-content-editor',
+                height: 1000,
+                // 只保留最核心的插件：列表和图片
+                plugins: [
+                    'lists image'
+                ],
+                // 简化工具栏，只保留最常用功能
+                toolbar: 'undo redo | bold italic | bullist numlist | image',
+                menubar: false,
+                content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.6; }',
+                images_upload_url: `${API_BASE}/upload`,
+                images_upload_credentials: true,
+                images_upload_handler: function (blobInfo, success, failure) {
+                    const formData = new FormData();
+                    formData.append('file', blobInfo.blob(), blobInfo.filename());
+                    
+                    const token = sessionStorage.getItem('authToken');
+                    if (!token) {
+                        failure('未找到认证token');
+                        return;
                     }
-                })
-                .then(result => {
-                    if (result && result.url) {
-                        success(result.url);
-                        showNotification('图片上传成功');
-                    } else {
-                        failure('服务器返回的数据格式错误');
-                    }
-                })
-                .catch(error => {
-                    console.error('图片上传错误:', error);
-                    failure(`上传失败: ${error.message}`);
-                });
-            },
-            branding: false,
-            elementpath: false,
-            statusbar: false,
-            resize: true,
-            cache_suffix: '?v=1.0.24',
-            browser_spellcheck: false,
-            // 确保编辑器可编辑
-            readonly: false,
-            // 简化粘贴设置
-            paste_data_images: true,
-            paste_as_text: false,
-            paste_enable_default_filters: true,
-            // 强制设置编辑器为可编辑
-            forced_root_block: 'p',
-            force_br_newlines: false,
-            force_p_newlines: true,
-            remove_linebreaks: false,
-            convert_newlines_to_brs: false,
-            remove_redundant_brs: false,
-            setup: function(editor) {
-                console.log('TinyMCE setup函数被调用');
-                
+                    
+                    fetch(`${API_BASE}/upload`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        } else {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                    })
+                    .then(result => {
+                        if (result && result.url) {
+                            success(result.url);
+                            showNotification('图片上传成功');
+                        } else {
+                            failure('服务器返回的数据格式错误');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('图片上传错误:', error);
+                        failure(`上传失败: ${error.message}`);
+                    });
+                },
+                branding: false,
+                elementpath: false,
+                statusbar: false,
+                resize: true,
+                cache_suffix: '?v=1.0.25',
+                browser_spellcheck: false,
                 // 确保编辑器可编辑
-                editor.on('init', function() {
-                    console.log('TinyMCE编辑器UI初始化完成');
+                readonly: false,
+                // 简化粘贴设置
+                paste_data_images: true,
+                paste_as_text: false,
+                paste_enable_default_filters: true,
+                // 强制设置编辑器为可编辑
+                forced_root_block: 'p',
+                force_br_newlines: false,
+                force_p_newlines: true,
+                remove_linebreaks: false,
+                convert_newlines_to_brs: false,
+                remove_redundant_brs: false,
+                setup: function(editor) {
+                    console.log('TinyMCE setup函数被调用');
                     
-                    // 强制设置编辑器为可编辑状态
-                    editor.setMode('design');
-                    editor.setContent('<p>请在此输入文章内容...</p>');
-                    
-                    // 确保编辑器内容区域可编辑
-                    const editorBody = editor.getBody();
-                    if (editorBody) {
-                        editorBody.contentEditable = 'true';
-                        editorBody.style.pointerEvents = 'auto';
-                        editorBody.style.userSelect = 'text';
-                        console.log('编辑器body已设置为可编辑');
-                    }
-                    
-                    // 聚焦到编辑器
-                    setTimeout(() => {
-                        editor.focus();
-                        console.log('编辑器已聚焦');
+                    // 确保编辑器可编辑
+                    editor.on('init', function() {
+                        console.log('TinyMCE编辑器UI初始化完成');
                         
-                        // 再次确保编辑器可编辑
+                        // 强制设置编辑器为可编辑状态
                         editor.setMode('design');
-                        console.log('编辑器模式设置为design');
+                        editor.setContent('<p>请在此输入文章内容...</p>');
                         
-                        // 测试输入
-                        const testContent = editor.getContent();
-                        console.log('当前编辑器内容:', testContent);
+                        // 确保编辑器内容区域可编辑
+                        const editorBody = editor.getBody();
+                        if (editorBody) {
+                            editorBody.contentEditable = 'true';
+                            editorBody.style.pointerEvents = 'auto';
+                            editorBody.style.userSelect = 'text';
+                            console.log('编辑器body已设置为可编辑');
+                        }
                         
-                    }, 200);
+                        // 聚焦到编辑器
+                        setTimeout(() => {
+                            editor.focus();
+                            console.log('编辑器已聚焦');
+                            
+                            // 再次确保编辑器可编辑
+                            editor.setMode('design');
+                            console.log('编辑器模式设置为design');
+                            
+                            // 测试输入
+                            const testContent = editor.getContent();
+                            console.log('当前编辑器内容:', testContent);
+                            
+                        }, 200);
+                        
+                        // 强制隐藏加载遮罩
+                        hideLoading();
+                        
+                        // 保存编辑器实例
+                        tinyMCEEditor = editor;
+                        console.log('编辑器实例已保存:', tinyMCEEditor);
+                    });
                     
-                    // 强制隐藏加载遮罩
-                    hideLoading();
-                });
-                
-                editor.on('change', function() {
-                    const hiddenField = document.getElementById('article-content');
-                    if (hiddenField) {
-                        hiddenField.value = editor.getContent();
-                    }
-                    console.log('编辑器内容变化:', editor.getContent());
-                });
-                
-                // 添加点击事件确保编辑器可交互
-                editor.on('click', function() {
-                    console.log('编辑器被点击');
-                    editor.focus();
-                    editor.setMode('design');
-                });
-                
-                // 添加键盘事件监听
-                editor.on('keydown', function(e) {
-                    console.log('键盘事件:', e.key, '编辑器模式:', editor.getMode());
-                });
-                
-                // 确保编辑器内容可编辑
-                editor.on('focus', function() {
-                    console.log('编辑器获得焦点');
-                    editor.setMode('design');
-                });
-                
-                editor.on('blur', function() {
-                    console.log('编辑器失去焦点');
-                });
-                
-                // 添加更多调试事件
-                editor.on('NodeChange', function() {
-                    console.log('编辑器节点变化');
-                });
-                
-                editor.on('KeyUp', function() {
-                    console.log('键盘抬起事件');
-                });
-            }
+                    editor.on('change', function() {
+                        const hiddenField = document.getElementById('article-content');
+                        if (hiddenField) {
+                            hiddenField.value = editor.getContent();
+                        }
+                        console.log('编辑器内容变化:', editor.getContent());
+                    });
+                    
+                    // 添加点击事件确保编辑器可交互
+                    editor.on('click', function() {
+                        console.log('编辑器被点击');
+                        editor.focus();
+                        editor.setMode('design');
+                    });
+                    
+                    // 添加键盘事件监听
+                    editor.on('keydown', function(e) {
+                        console.log('键盘事件:', e.key, '编辑器模式:', editor.getMode());
+                    });
+                    
+                    // 确保编辑器内容可编辑
+                    editor.on('focus', function() {
+                        console.log('编辑器获得焦点');
+                        editor.setMode('design');
+                    });
+                    
+                    editor.on('blur', function() {
+                        console.log('编辑器失去焦点');
+                    });
+                    
+                    // 添加更多调试事件
+                    editor.on('NodeChange', function() {
+                        console.log('编辑器节点变化');
+                    });
+                    
+                    editor.on('KeyUp', function() {
+                        console.log('键盘抬起事件');
+                    });
+                }
+            }).then(function(editors) {
+                console.log('TinyMCE初始化成功，返回的编辑器:', editors);
+                if (editors && editors.length > 0) {
+                    tinyMCEEditor = editors[0];
+                    console.log('设置编辑器实例:', tinyMCEEditor);
+                    resolve(tinyMCEEditor);
+                } else {
+                    reject(new Error('没有返回有效的编辑器实例'));
+                }
+            }).catch(function(error) {
+                console.error('TinyMCE初始化失败:', error);
+                reject(error);
+            });
         });
 
         // 设置超时
@@ -371,6 +389,15 @@ function checkEditorStatus() {
     }
     
     console.log('编辑器实例:', tinyMCEEditor);
+    
+    // 检查编辑器是否有有效的方法
+    if (typeof tinyMCEEditor.getMode !== 'function') {
+        console.error('编辑器实例无效，缺少getMode方法');
+        console.log('编辑器类型:', typeof tinyMCEEditor);
+        console.log('编辑器构造函数:', tinyMCEEditor.constructor);
+        return;
+    }
+    
     console.log('编辑器模式:', tinyMCEEditor.getMode());
     console.log('编辑器内容:', tinyMCEEditor.getContent());
     
@@ -779,6 +806,16 @@ function testEditor() {
     }
     
     console.log('编辑器实例:', tinyMCEEditor);
+    
+    // 检查编辑器是否有有效的方法
+    if (typeof tinyMCEEditor.getMode !== 'function') {
+        console.error('编辑器实例无效，缺少getMode方法');
+        console.log('编辑器类型:', typeof tinyMCEEditor);
+        console.log('编辑器构造函数:', tinyMCEEditor.constructor);
+        alert('编辑器实例无效，请刷新页面重试');
+        return;
+    }
+    
     console.log('编辑器模式:', tinyMCEEditor.getMode());
     console.log('编辑器内容:', tinyMCEEditor.getContent());
     console.log('编辑器是否只读:', tinyMCEEditor.getMode() === 'readonly');
