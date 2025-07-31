@@ -108,7 +108,7 @@ async function initPage(articleId) {
         if (articleId) {
             console.log('加载文章数据...');
             await loadArticleData(articleId);
-            document.getElementById('page-title').innerHTML = '<i class="fas fa-edit"></i> 编辑文章';
+            document.getElementById('page-title').innerHTML = '<span class="title-icon">✏️</span> 编辑文章';
         }
         
         // 设置事件监听器

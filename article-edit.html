@@ -7,7 +7,6 @@
     <link rel="icon" type="image/png" href="assets/logo/ed3ac818-534b-4963-b114-b814a0a43304 (1).png">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/tinymce-custom.css">
     <!-- TinyMCE 富文本编辑器 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/5.10.7/tinymce.min.js" referrerpolicy="origin"></script>
@@ -207,6 +206,32 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        /* Unicode图标样式 */
+        .logo-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        
+        .nav-icon {
+            font-size: 16px;
+            margin-right: 8px;
+        }
+        
+        .title-icon {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+        
+        .btn-icon {
+            font-size: 14px;
+            margin-right: 6px;
+        }
+        
+        .label-icon {
+            font-size: 16px;
+            margin-right: 8px;
+        }
     </style>
 </head>
 <body class="admin-page">
@@ -218,21 +243,21 @@
     <header>
         <nav>
             <div class="logo">
-                <i class="fas fa-newspaper"></i>
+                <span class="logo-icon">📰</span>
                 <span class="logo-text">创作空间</span>
                 <span class="admin-badge">文章编辑</span>
             </div>
             <div class="nav-links">
                 <a href="article-admin.html" class="nav-item">
-                    <i class="fas fa-arrow-left"></i>
+                    <span class="nav-icon">←</span>
                     <span>返回管理</span>
                 </a>
                 <a href="admin.html" class="nav-item">
-                    <i class="fas fa-cogs"></i>
+                    <span class="nav-icon">⚙️</span>
                     <span>管理后台</span>
                 </a>
                 <a href="#" id="logout-link" class="nav-item">
-                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="nav-icon">🚪</span>
                     <span>退出</span>
                 </a>
             </div>
@@ -242,20 +267,20 @@
     <div class="edit-container">
         <div class="edit-header">
             <h1 class="edit-title" id="page-title">
-                <i class="fas fa-edit"></i>
+                <span class="title-icon">✏️</span>
                 新建文章
             </h1>
             <div class="edit-actions">
                 <button class="btn-cancel" onclick="goBack()">
-                    <i class="fas fa-times"></i>
+                    <span class="btn-icon">✕</span>
                     取消
                 </button>
                 <button class="btn-save" onclick="saveArticle()" id="save-btn">
-                    <i class="fas fa-save"></i>
+                    <span class="btn-icon">💾</span>
                     保存文章
                 </button>
                 <button class="btn-test" onclick="testEditor()" style="background: #ffc107; color: #333; border: none; padding: 15px 20px; border-radius: 8px; font-size: 14px; cursor: pointer;">
-                    <i class="fas fa-bug"></i>
+                    <span class="btn-icon">🐛</span>
                     测试编辑器
                 </button>
             </div>
@@ -266,14 +291,14 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label" for="article-title">
-                            <i class="fas fa-heading"></i>
+                            <span class="label-icon">📝</span>
                             文章标题 *
                         </label>
                         <input type="text" class="form-input" id="article-title" name="title" placeholder="请输入文章标题" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="article-category">
-                            <i class="fas fa-tag"></i>
+                            <span class="label-icon">🏷️</span>
                             分类
                         </label>
                         <select class="form-input" id="article-category" name="category">
@@ -284,7 +309,7 @@
                 
                 <div class="form-group full-width">
                     <label class="form-label">
-                        <i class="fas fa-align-left"></i>
+                        <span class="label-icon">📄</span>
                         文章内容 *
                     </label>
                     <textarea id="article-content-editor" class="tinymce-editor" placeholder="请输入文章内容..."></textarea>
@@ -292,7 +317,7 @@
                 
                 <div class="form-group full-width">
                     <label class="form-label">
-                        <i class="fas fa-image"></i>
+                        <span class="label-icon">🖼️</span>
                         封面图片
                     </label>
                     <div class="image-upload-area" onclick="document.getElementById('article-image-file').click()">
@@ -313,6 +338,6 @@
     <script src="assets/js/app.js"></script>
     <script src="assets/js/utils.js"></script>
     <script src="assets/js/api-client.js"></script>
-    <script src="assets/js/article-edit.js?v=1.0.30"></script>
+    <script src="assets/js/article-edit.js?v=1.0.31"></script>
 </body>
 </html>
