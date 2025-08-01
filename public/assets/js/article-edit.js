@@ -196,7 +196,7 @@ async function initTinyMCEEditor() {
         statusbar: false, // 移除状态栏
         resize: true,
         // 优化性能设置
-        cache_suffix: '?v=1.0.35',
+        cache_suffix: '?v=1.0.36',
         browser_spellcheck: false,
         // 初始化回调
         setup: function(editor) {
@@ -633,6 +633,20 @@ function testEditor() {
     
     console.log('编辑器实例:', tinyMCEEditor);
     
+    // 检查编辑器是否可编辑
+    console.log('编辑器只读状态:', tinyMCEEditor.getMode());
+    console.log('编辑器是否只读:', tinyMCEEditor.mode.get());
+    
+    // 尝试获取编辑器body
+    try {
+        const editorBody = tinyMCEEditor.getBody();
+        console.log('编辑器body:', editorBody);
+        console.log('body contentEditable:', editorBody.contentEditable);
+        console.log('body style:', editorBody.style);
+    } catch (error) {
+        console.error('获取编辑器body失败:', error);
+    }
+    
     // 安全地获取编辑器内容
     let content = '';
     if (tinyMCEEditor) {
@@ -643,6 +657,14 @@ function testEditor() {
             console.error('获取编辑器内容失败:', error);
             content = '';
         }
+    }
+    
+    // 尝试设置编辑器为可编辑状态
+    try {
+        tinyMCEEditor.mode.set('design');
+        console.log('设置编辑器为design模式');
+    } catch (error) {
+        console.error('设置编辑器模式失败:', error);
     }
     
     alert('编辑器状态已检查，请查看控制台输出');
