@@ -143,7 +143,7 @@ async function initTinyMCEEditor() {
     // 只保留核心功能：列表、链接、图片
     const editors = await tinymce.init({
         selector: '#article-content-editor',
-        height: 1000,
+        height: 1200,
         plugins: [
             'advlist autolink lists link image'
         ],
@@ -196,7 +196,7 @@ async function initTinyMCEEditor() {
         statusbar: false, // 移除状态栏
         resize: true,
         // 优化性能设置
-        cache_suffix: '?v=1.0.41',
+        cache_suffix: '?v=1.0.42',
         browser_spellcheck: false,
         // 初始化回调
         setup: function(editor) {
