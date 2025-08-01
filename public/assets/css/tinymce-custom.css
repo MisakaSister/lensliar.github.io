@@ -36,6 +36,10 @@ html body .tox.tox-tinymce,
     /* 强制覆盖可能的全局样式 */
     cursor: text !important;
     background: white !important;
+    /* 确保充分利用空间 */
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 /* 工具栏样式 - 使用最高优先级 */
