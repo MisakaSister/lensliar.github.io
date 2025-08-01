@@ -13,7 +13,6 @@
     <style>
         /* 页面特有样式 */
         body.admin-page {
-            background: #f5f7fa !important;
             min-height: 100vh !important;
         }
         
@@ -49,6 +48,7 @@
             padding: 40px !important;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
             width: 100% !important;
+            max-width: none !important;
         }
         
         .form-row {
@@ -245,6 +245,23 @@
             max-width: none !important;
         }
         
+        /* 让编辑器容器更宽 */
+        .edit-form {
+            background: #fff !important;
+            border-radius: 12px !important;
+            padding: 40px !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+            width: 100% !important;
+            max-width: none !important;
+        }
+        
+        /* 确保富文本框充分利用空间 */
+        .tox.tox-tinymce {
+            width: 100% !important;
+            max-width: none !important;
+            min-width: 100% !important;
+        }
+        
         /* 修复header样式 */
         header {
             background: #fff !important;
@@ -365,6 +382,6 @@
     <script src="assets/js/app.js"></script>
     <script src="assets/js/utils.js"></script>
     <script src="assets/js/api-client.js"></script>
-    <script src="assets/js/article-edit.js?v=1.0.39"></script>
+    <script src="assets/js/article-edit.js?v=1.0.41"></script>
 </body>
 </html>
