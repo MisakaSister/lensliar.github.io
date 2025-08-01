@@ -12,8 +12,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/5.10.7/tinymce.min.js" referrerpolicy="origin"></script>
     <style>
         /* 页面特有样式 */
+        body.admin-page {
+            background: #f5f7fa !important;
+            min-height: 100vh !important;
+        }
+        
         .edit-container {
-            max-width: 60vw !important;
+            max-width: 90vw !important;
             margin: 0 auto !important;
             padding: 20px !important;
         }
@@ -43,6 +48,7 @@
             border-radius: 12px !important;
             padding: 40px !important;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+            width: 100% !important;
         }
         
         .form-row {
@@ -232,6 +238,27 @@
             font-size: 16px;
             margin-right: 8px;
         }
+        
+        /* 确保编辑器容器充分利用空间 */
+        .form-group.full-width .tinymce-editor {
+            width: 100% !important;
+            max-width: none !important;
+        }
+        
+        /* 修复header样式 */
+        header {
+            background: #fff !important;
+            color: #333 !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .nav-links a {
+            color: #333 !important;
+        }
+        
+        .nav-links a:hover {
+            background: rgba(0, 123, 255, 0.1) !important;
+        }
     </style>
 </head>
 <body class="admin-page">
@@ -338,6 +365,6 @@
     <script src="assets/js/app.js"></script>
     <script src="assets/js/utils.js"></script>
     <script src="assets/js/api-client.js"></script>
-    <script src="assets/js/article-edit.js?v=1.0.38"></script>
+    <script src="assets/js/article-edit.js?v=1.0.39"></script>
 </body>
 </html>
