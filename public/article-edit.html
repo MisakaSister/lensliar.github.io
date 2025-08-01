@@ -13,7 +13,7 @@
     <style>
         /* 页面特有样式 - 最小化覆盖 */
         .edit-container {
-            max-width: 1400px !important;
+            max-width: 95vw !important;
             margin: 0 auto !important;
             padding: 30px 20px !important;
         }
@@ -43,19 +43,25 @@
         }
         
         .edit-form {
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(10px) !important;
-            border-radius: 20px !important;
+            background: #fff !important;
+            border-radius: 12px !important;
             padding: 40px !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+            width: 100% !important;
+            max-width: none !important;
         }
         
         /* 确保富文本框充分利用空间 */
-        .tox.tox-tinymce {
+        .form-group.full-width {
             width: 100% !important;
-            min-height: 1200px !important;
-            height: 1200px !important;
             max-width: none !important;
+        }
+        
+        .form-group.full-width .tinymce-editor {
+            width: 100% !important;
+            max-width: none !important;
+            min-height: 1500px !important;
+            height: 1500px !important;
         }
         
         /* Unicode图标样式 */
@@ -189,6 +195,6 @@
     <script src="assets/js/app.js"></script>
     <script src="assets/js/utils.js"></script>
     <script src="assets/js/api-client.js"></script>
-    <script src="assets/js/article-edit.js?v=1.0.42"></script>
+    <script src="assets/js/article-edit.js?v=1.0.43"></script>
 </body>
 </html>

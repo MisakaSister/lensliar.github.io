@@ -3,8 +3,8 @@
 /* 编辑器容器样式 */
 .tinymce-editor {
     width: 100% !important;
-    min-height: 1200px !important;
-    height: 1200px !important;
+    min-height: 1500px !important;
+    height: 1500px !important;
     border: 2px solid #e0e0e0 !important;
     border-radius: 8px !important;
     margin: 0 !important;
@@ -16,8 +16,8 @@ body .tox.tox-tinymce,
 html body .tox.tox-tinymce,
 .edit-form .tox.tox-tinymce {
     width: 100% !important;
-    min-height: 1200px !important;
-    height: 1200px !important;
+    min-height: 1500px !important;
+    height: 1500px !important;
     border: none !important;
     border-radius: 8px !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
