@@ -141,7 +141,7 @@ async function initTinyMCEEditor() {
     }
 
     // 只保留核心功能：列表、链接、图片
-    tinyMCEEditor = await tinymce.init({
+    const editors = await tinymce.init({
         selector: '#article-content-editor',
         height: 1000,
         plugins: [
@@ -196,7 +196,7 @@ async function initTinyMCEEditor() {
         statusbar: false, // 移除状态栏
         resize: true,
         // 优化性能设置
-        cache_suffix: '?v=1.0.34',
+        cache_suffix: '?v=1.0.35',
         browser_spellcheck: false,
         // 初始化回调
         setup: function(editor) {
@@ -208,6 +208,10 @@ async function initTinyMCEEditor() {
             });
         }
     });
+    
+    // tinymce.init() 返回的是数组，取第一个编辑器实例
+    tinyMCEEditor = editors[0];
+    console.log('TinyMCE编辑器初始化完成:', tinyMCEEditor);
 }
 
 // 检查编辑器状态
