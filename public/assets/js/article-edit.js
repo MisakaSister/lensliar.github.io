@@ -196,7 +196,7 @@ async function initTinyMCEEditor() {
         statusbar: false, // 移除状态栏
         resize: true,
         // 优化性能设置
-        cache_suffix: '?v=1.0.36',
+        cache_suffix: '?v=1.0.37',
         browser_spellcheck: false,
         // 初始化回调
         setup: function(editor) {
@@ -643,8 +643,38 @@ function testEditor() {
         console.log('编辑器body:', editorBody);
         console.log('body contentEditable:', editorBody.contentEditable);
         console.log('body style:', editorBody.style);
+        
+        // 检查编辑器容器的样式
+        const editorContainer = tinyMCEEditor.getContainer();
+        console.log('编辑器容器:', editorContainer);
+        console.log('容器display:', window.getComputedStyle(editorContainer).display);
+        console.log('容器visibility:', window.getComputedStyle(editorContainer).visibility);
+        console.log('容器opacity:', window.getComputedStyle(editorContainer).opacity);
+        console.log('容器z-index:', window.getComputedStyle(editorContainer).zIndex);
+        console.log('容器position:', window.getComputedStyle(editorContainer).position);
+        
+        // 检查编辑区域的样式
+        const editArea = editorContainer.querySelector('.tox-edit-area');
+        if (editArea) {
+            console.log('编辑区域:', editArea);
+            console.log('编辑区域display:', window.getComputedStyle(editArea).display);
+            console.log('编辑区域visibility:', window.getComputedStyle(editArea).visibility);
+            console.log('编辑区域height:', window.getComputedStyle(editArea).height);
+            console.log('编辑区域z-index:', window.getComputedStyle(editArea).zIndex);
+        }
+        
+        // 检查iframe的样式
+        const iframe = editArea ? editArea.querySelector('iframe') : null;
+        if (iframe) {
+            console.log('编辑器iframe:', iframe);
+            console.log('iframe display:', window.getComputedStyle(iframe).display);
+            console.log('iframe visibility:', window.getComputedStyle(iframe).visibility);
+            console.log('iframe height:', window.getComputedStyle(iframe).height);
+            console.log('iframe width:', window.getComputedStyle(iframe).width);
+        }
+        
     } catch (error) {
-        console.error('获取编辑器body失败:', error);
+        console.error('获取编辑器元素失败:', error);
     }
     
     // 安全地获取编辑器内容
@@ -665,6 +695,21 @@ function testEditor() {
         console.log('设置编辑器为design模式');
     } catch (error) {
         console.error('设置编辑器模式失败:', error);
+    }
+    
+    // 尝试强制显示编辑器
+    try {
+        const editorContainer = tinyMCEEditor.getContainer();
+        if (editorContainer) {
+            editorContainer.style.display = 'block';
+            editorContainer.style.visibility = 'visible';
+            editorContainer.style.opacity = '1';
+            editorContainer.style.zIndex = '1000';
+            editorContainer.style.position = 'relative';
+            console.log('强制显示编辑器容器');
+        }
+    } catch (error) {
+        console.error('强制显示编辑器失败:', error);
     }
     
     alert('编辑器状态已检查，请查看控制台输出');
