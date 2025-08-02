@@ -3,8 +3,8 @@
 /* 编辑器容器样式 */
 .tinymce-editor {
     width: 100% !important;
-    min-height: 1500px !important;
-    height: 1500px !important;
+    min-height: 2000px !important;
+    height: 2000px !important;
     border: 2px solid #e0e0e0 !important;
     border-radius: 8px !important;
     margin: 0 !important;
@@ -16,8 +16,8 @@ body .tox.tox-tinymce,
 html body .tox.tox-tinymce,
 .edit-form .tox.tox-tinymce {
     width: 100% !important;
-    min-height: 1500px !important;
-    height: 1500px !important;
+    min-height: 2000px !important;
+    height: 2000px !important;
     border: none !important;
     border-radius: 8px !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
@@ -201,14 +201,14 @@ html body .tox .tox-tbtn,
 .form-group.full-width .tinymce-editor {
     width: 100% !important;
     max-width: none !important;
-    min-height: 1500px !important;
-    height: 1500px !important;
+    min-height: 2000px !important;
+    height: 2000px !important;
 }
 
 /* 覆盖全局textarea样式 */
 .form-group.full-width textarea.tinymce-editor {
-    min-height: 1500px !important;
-    height: 1500px !important;
+    min-height: 2000px !important;
+    height: 2000px !important;
     width: 100% !important;
     max-width: none !important;
     resize: none !important;
@@ -263,6 +263,10 @@ html body .tox .tox-tbtn,
     position: relative !important;
     z-index: 1000 !important;
     overflow: visible !important;
+    min-height: 2000px !important;
+    height: 2000px !important;
+    width: 100% !important;
+    max-width: none !important;
 }
 
 .tox .tox-edit-area {

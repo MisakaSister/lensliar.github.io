@@ -2855,8 +2855,8 @@ footer p {
 /* TinyMCE 工具栏样式 */
 .tox-tinymce {
     width: 100% !important;
-    min-height: 1500px !important;
-    height: 1500px !important;
+    min-height: 2000px !important;
+    height: 2000px !important;
     border-radius: 8px !important;
     border: 1px solid var(--border-color) !important;
     box-shadow: var(--shadow) !important;
