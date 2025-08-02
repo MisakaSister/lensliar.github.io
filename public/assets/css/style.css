@@ -281,7 +281,7 @@ nav {
     background: white;
 }
 
-textarea {
+textarea:not(.tinymce-editor) {
     min-height: 120px;
     resize: vertical;
 }
