@@ -384,14 +384,14 @@ function updateStats() {
     
     if (articlesStatsEl) {
         articlesStatsEl.innerHTML = `
-            <i class="fas fa-newspaper"></i>
+            <i class="fas fa-newspaper btn-primary"></i>
             <span>共 ${articleStats.totalItems} 篇文章</span>
         `;
     }
     
     if (imagesStatsEl) {
         imagesStatsEl.innerHTML = `
-            <i class="fas fa-images"></i>
+            <i class="fas fa-images btn-primary"></i>
             <span>共 ${albumStats.totalItems} 个相册</span>
         `;
     }

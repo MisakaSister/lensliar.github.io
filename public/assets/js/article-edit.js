@@ -655,7 +655,6 @@ function testEditor() {
     console.log('编辑器实例:', tinyMCEEditor);
     
     // 检查编辑器是否可编辑
-    console.log('编辑器只读状态:', tinyMCEEditor.getMode());
     console.log('编辑器是否只读:', tinyMCEEditor.mode.get());
     
     // 尝试获取编辑器body
