@@ -2855,8 +2855,8 @@ footer p {
 /* TinyMCE 工具栏样式 */
 .tox-tinymce {
     width: 100% !important;
-    min-height: 1000px !important;
-    height: 1000px !important;
+    min-height: 1500px !important;
+    height: 1500px !important;
     border-radius: 8px !important;
     border: 1px solid var(--border-color) !important;
     box-shadow: var(--shadow) !important;
@@ -2974,7 +2974,12 @@ footer p {
 /* 响应式设计 */
 @media (max-width: 768px) {
     .tinymce-editor {
-        min-height: 300px;
+        min-height: 800px;
+    }
+    
+    .tox-tinymce {
+        min-height: 800px !important;
+        height: 800px !important;
     }
     
     .tox .tox-toolbar__group {
