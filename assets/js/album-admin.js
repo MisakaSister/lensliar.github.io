@@ -177,7 +177,7 @@ function updateStats() {
     const totalImages = allAlbums.reduce((sum, album) => sum + (album.images?.length || 0), 0);
     
     statsElement.innerHTML = `
-        <i class="fas fa-images"></i>
+        <i class="fas fa-images "></i>
         <span>共 ${totalAlbums} 个相册，${totalImages} 张图片</span>
     `;
 }
