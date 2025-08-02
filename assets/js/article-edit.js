@@ -196,7 +196,7 @@ async function initTinyMCEEditor() {
         statusbar: false, // 移除状态栏
         resize: false, // 禁用手动调整大小
         // 优化性能设置
-        cache_suffix: '?v=1.0.47',
+        cache_suffix: '?v=1.0.48',
         browser_spellcheck: false,
         // 初始化回调
         setup: function(editor) {
