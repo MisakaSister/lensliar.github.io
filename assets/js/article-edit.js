@@ -143,7 +143,7 @@ async function initTinyMCEEditor() {
     // 只保留核心功能：列表、链接、图片
     const editors = await tinymce.init({
         selector: '#article-content-editor',
-        height: 1500,
+        height: 2000,
         plugins: [
             'advlist autolink lists link image'
         ],
@@ -194,9 +194,9 @@ async function initTinyMCEEditor() {
         branding: false,
         elementpath: false,
         statusbar: false, // 移除状态栏
-        resize: true,
+        resize: false, // 禁用手动调整大小
         // 优化性能设置
-        cache_suffix: '?v=1.0.44',
+        cache_suffix: '?v=1.0.47',
         browser_spellcheck: false,
         // 初始化回调
         setup: function(editor) {
@@ -212,6 +212,17 @@ async function initTinyMCEEditor() {
     // tinymce.init() 返回的是数组，取第一个编辑器实例
     tinyMCEEditor = editors[0];
     console.log('TinyMCE编辑器初始化完成:', tinyMCEEditor);
+    
+    // 检查编辑器高度
+    setTimeout(() => {
+        const editorContainer = document.querySelector('.tox.tox-tinymce');
+        if (editorContainer) {
+            const computedStyle = window.getComputedStyle(editorContainer);
+            console.log('编辑器容器高度:', editorContainer.offsetHeight);
+            console.log('编辑器容器计算样式高度:', computedStyle.height);
+            console.log('编辑器容器最小高度:', computedStyle.minHeight);
+        }
+    }, 1000);
     
     // 确保原始textarea被隐藏
     const originalTextarea = document.getElementById('article-content-editor');
