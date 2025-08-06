@@ -143,6 +143,7 @@ async function initTinyMCEEditor() {
     // 只保留核心功能：列表、链接、图片
     const editors = await tinymce.init({
         selector: '#article-content-editor',
+        width: '100%',
         height: 2000,
         plugins: [
             'advlist autolink lists link image'
@@ -205,6 +206,34 @@ async function initTinyMCEEditor() {
                 if (hiddenField) {
                     hiddenField.value = editor.getContent();
                 }
+            });
+            
+            // 编辑器初始化完成后强制设置宽度
+            editor.on('init', function() {
+                setTimeout(() => {
+                    const editorContainer = editor.getContainer();
+                    if (editorContainer) {
+                        editorContainer.style.width = '100%';
+                        editorContainer.style.minWidth = '100%';
+                        editorContainer.style.maxWidth = 'none';
+                        
+                        const editArea = editorContainer.querySelector('.tox-edit-area');
+                        if (editArea) {
+                            editArea.style.width = '100%';
+                            editArea.style.minWidth = '100%';
+                            editArea.style.maxWidth = 'none';
+                        }
+                        
+                        const iframe = editorContainer.querySelector('.tox-edit-area__iframe');
+                        if (iframe) {
+                            iframe.style.width = '100%';
+                            iframe.style.minWidth = '100%';
+                            iframe.style.maxWidth = 'none';
+                        }
+                        
+                        console.log('强制设置编辑器宽度为100%');
+                    }
+                }, 500);
             });
         }
     });

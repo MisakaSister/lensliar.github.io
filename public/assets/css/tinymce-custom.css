@@ -16,6 +16,8 @@ body .tox.tox-tinymce,
 html body .tox.tox-tinymce,
 .edit-form .tox.tox-tinymce {
     width: 100% !important;
+    min-width: 100% !important;
+    max-width: none !important;
     min-height: 2000px !important;
     height: 2000px !important;
     border: none !important;
@@ -37,8 +39,6 @@ html body .tox.tox-tinymce,
     cursor: text !important;
     background: white !important;
     /* 确保充分利用空间 */
-    max-width: none !important;
-    min-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     /* 确保不被其他样式限制 */
@@ -66,6 +66,8 @@ body .tox .tox-edit-area,
 html body .tox .tox-edit-area,
 .edit-form .tox .tox-edit-area {
     width: 100% !important;
+    min-width: 100% !important;
+    max-width: none !important;
     height: calc(100% - 40px) !important;
     border: none !important;
     /* 确保编辑区域可见 */
@@ -75,8 +77,6 @@ html body .tox .tox-edit-area,
     position: relative !important;
     z-index: 2 !important;
     /* 确保充分利用空间 */
-    max-width: none !important;
-    min-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     /* 确保不被其他样式限制 */
@@ -89,6 +89,8 @@ body .tox .tox-edit-area__iframe,
 html body .tox .tox-edit-area__iframe,
 .edit-form .tox .tox-edit-area__iframe {
     width: 100% !important;
+    min-width: 100% !important;
+    max-width: none !important;
     height: 100% !important;
     border: none !important;
     /* 确保iframe可见 */
@@ -98,8 +100,6 @@ html body .tox .tox-edit-area__iframe,
     position: relative !important;
     z-index: 3 !important;
     /* 确保充分利用空间 */
-    max-width: none !important;
-    min-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     /* 确保不被其他样式限制 */
@@ -221,11 +221,18 @@ html body .tox .tox-tbtn,
     box-sizing: border-box !important;
 }
 
-.edit-form .form-group.full-width {
+/* 强制表单组充分利用宽度 - 最高优先级 */
+.form-group.full-width,
+.edit-form .form-group.full-width,
+body .form-group.full-width,
+html body .form-group.full-width {
     width: 100% !important;
+    min-width: 100% !important;
     max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
+    box-sizing: border-box !important;
+    display: block !important;
 }
 
 /* 编辑器加载状态 */

@@ -55,13 +55,30 @@
         .form-group.full-width {
             width: 100% !important;
             max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
         
         .form-group.full-width .tinymce-editor {
             width: 100% !important;
+            min-width: 100% !important;
             max-width: none !important;
             min-height: 1500px !important;
             height: 1500px !important;
+        }
+        
+        /* 强制TinyMCE容器使用全宽 */
+        .tox.tox-tinymce {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: none !important;
+        }
+        
+        .tox .tox-edit-area,
+        .tox .tox-edit-area__iframe {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: none !important;
         }
         
         /* Unicode图标样式 */
@@ -195,6 +212,6 @@
     <script src="assets/js/app.js"></script>
     <script src="assets/js/utils.js"></script>
     <script src="assets/js/api-client.js"></script>
-    <script src="assets/js/article-edit.js?v=1.0.49"></script>
+    <script src="assets/js/article-edit.js?v=1.0.48"></script>
 </body>
 </html>
