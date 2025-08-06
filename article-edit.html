@@ -63,15 +63,17 @@
             width: 100% !important;
             min-width: 100% !important;
             max-width: none !important;
-            min-height: 1500px !important;
-            height: 1500px !important;
+            min-height: 600px !important;
+            height: auto !important;
         }
         
-        /* 强制TinyMCE容器使用全宽 */
+        /* 强制TinyMCE容器使用全宽和合适高度 */
         .tox.tox-tinymce {
             width: 100% !important;
             min-width: 100% !important;
             max-width: none !important;
+            height: 600px !important;
+            min-height: 600px !important;
         }
         
         .tox .tox-edit-area,
@@ -79,6 +81,52 @@
             width: 100% !important;
             min-width: 100% !important;
             max-width: none !important;
+            height: calc(100% - 40px) !important;
+            min-height: 550px !important;
+        }
+        
+        /* 最强力的宽度修复 - 覆盖所有可能的限制 */
+        .edit-form,
+        .edit-form *,
+        .edit-form .form-group,
+        .edit-form .form-group.full-width,
+        .edit-form .form-group.full-width *,
+        .edit-form .tinymce-editor,
+        .edit-form .tox,
+        .edit-form .tox.tox-tinymce,
+        .edit-form .tox *,
+        body .edit-form .form-group.full-width,
+        html body .edit-form .form-group.full-width {
+            max-width: none !important;
+        }
+        
+        /* 特别针对编辑器容器 */
+        .edit-form .form-group.full-width {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+        }
+        
+        /* 强制编辑器使用全宽和合适高度 */
+        .edit-form .tox.tox-tinymce {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: none !important;
+            height: 600px !important;
+            min-height: 600px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+        }
+        
+        /* 确保编辑区域有合适的高度 */
+        .edit-form .tox .tox-edit-area,
+        .edit-form .tox .tox-edit-area__iframe {
+            height: calc(100% - 40px) !important;
+            min-height: 550px !important;
         }
         
         /* Unicode图标样式 */
