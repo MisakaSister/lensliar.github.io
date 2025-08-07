@@ -695,17 +695,7 @@ function hideLoading() {
     }
 }
 
-// 显示通知
-function showNotification(message, isSuccess = true) {
-    const notification = document.getElementById('notification');
-    notification.textContent = message;
-    notification.className = `notification ${isSuccess ? 'success' : 'error'}`;
-    notification.style.display = 'block';
-    
-    setTimeout(() => {
-        notification.style.display = 'none';
-    }, 3000);
-}
+// showNotification函数已在app.js中定义
 
 // 退出登录
 function logout() {

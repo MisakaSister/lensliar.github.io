@@ -718,7 +718,9 @@ function createAlbumCard(album, index) {
 
 // 分享内容
 function shareContent(type, id, title) {
-    const url = `${window.location.origin}/detail.html?type=${type}&id=${id}`;
+    const url = type === 'article' 
+        ? `${window.location.origin}/article-detail.html?id=${id}`
+        : `${window.location.origin}/album-detail.html?id=${id}`;
     
     if (navigator.share) {
         navigator.share({
@@ -1140,17 +1142,7 @@ function logout() {
     }, 1000);
 }
 
-// 显示通知
-function showNotification(message, isSuccess = true) {
-    const notification = document.getElementById('notification');
-    notification.textContent = message;
-    notification.className = `notification ${isSuccess ? 'success' : 'error'}`;
-    notification.style.display = 'block';
-    
-    setTimeout(() => {
-        notification.style.display = 'none';
-    }, 3000);
-}
+// showNotification函数已在app.js中定义
 
 // 键盘快捷键
 document.addEventListener('keydown', function(e) {
