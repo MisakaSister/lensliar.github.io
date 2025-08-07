@@ -646,10 +646,6 @@ async function saveArticle() {
         renderArticles();
         updateStats();
         
-        // 通知其他页面数据已更新
-        localStorage.setItem('contentUpdated', Date.now().toString());
-        localStorage.setItem('articleUpdated', Date.now().toString());
-        
     } catch (error) {
         console.error('保存文章失败:', error);
         showNotification('保存失败: ' + error.message, false);
@@ -688,10 +684,6 @@ async function deleteArticle(id) {
         await loadArticles();
         renderArticles();
         updateStats();
-        
-        // 通知其他页面数据已更新
-        localStorage.setItem('contentUpdated', Date.now().toString());
-        localStorage.setItem('articleUpdated', Date.now().toString());
         
     } catch (error) {
         console.error('删除文章失败:', error);

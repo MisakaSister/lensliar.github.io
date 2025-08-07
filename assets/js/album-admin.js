@@ -504,10 +504,6 @@ async function saveAlbum() {
         renderAlbums();
         updateStats();
         
-        // 通知其他页面数据已更新
-        localStorage.setItem('contentUpdated', Date.now().toString());
-        localStorage.setItem('albumUpdated', Date.now().toString());
-        
     } catch (error) {
         console.error('保存相册失败:', error);
         showNotification('保存失败: ' + error.message, false);
@@ -546,10 +542,6 @@ async function deleteAlbum(id) {
         await loadAlbums();
         renderAlbums();
         updateStats();
-        
-        // 通知其他页面数据已更新
-        localStorage.setItem('contentUpdated', Date.now().toString());
-        localStorage.setItem('albumUpdated', Date.now().toString());
         
     } catch (error) {
         console.error('删除相册失败:', error);

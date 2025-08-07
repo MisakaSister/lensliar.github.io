@@ -37,9 +37,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 设置事件监听
     setupEventListeners();
-    
-    // 添加数据更新监听
-    setupContentUpdateListener();
 
     // 隐藏页面加载动画
     setTimeout(() => {
@@ -177,10 +174,7 @@ async function loadAlbums() {
         const response = await fetch(`${API_BASE}/api/content`, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
+                'Content-Type': 'application/json'
             },
             credentials: 'include'
         });
@@ -538,33 +532,4 @@ function formatDate(dateString) {
         console.error('formatDate: 日期格式化错误:', error, '原始值:', dateString);
         return '未知日期';
     }
-}
-
-// 设置内容更新监听器
-function setupContentUpdateListener() {
-    let lastContentUpdate = localStorage.getItem('contentUpdated') || '0';
-    let lastAlbumUpdate = localStorage.getItem('albumUpdated') || '0';
-    
-    // 监听localStorage变化
-    window.addEventListener('storage', function(e) {
-        if ((e.key === 'contentUpdated' && e.newValue !== lastContentUpdate) ||
-            (e.key === 'albumUpdated' && e.newValue !== lastAlbumUpdate)) {
-            lastContentUpdate = localStorage.getItem('contentUpdated') || '0';
-            lastAlbumUpdate = localStorage.getItem('albumUpdated') || '0';
-            console.log('检测到相册更新，重新加载数据...');
-            loadAlbums();
-        }
-    });
-    
-    // 监听焦点事件，当页面重新获得焦点时检查是否有更新
-    window.addEventListener('focus', function() {
-        const currentContentUpdate = localStorage.getItem('contentUpdated') || '0';
-        const currentAlbumUpdate = localStorage.getItem('albumUpdated') || '0';
-        if (currentContentUpdate !== lastContentUpdate || currentAlbumUpdate !== lastAlbumUpdate) {
-            lastContentUpdate = currentContentUpdate;
-            lastAlbumUpdate = currentAlbumUpdate;
-            console.log('页面获得焦点，检测到相册更新，重新加载数据...');
-            loadAlbums();
-        }
-    });
 } 

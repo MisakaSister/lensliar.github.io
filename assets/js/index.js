@@ -91,9 +91,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化延迟加载
     lazyLoadImages();
-    
-    // 添加数据更新监听
-    setupContentUpdateListener();
 });
 
 // 检查认证状态
@@ -742,10 +739,7 @@ async function loadContent() {
         const response = await fetch(`${API_BASE}/api/content`, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
+                'Content-Type': 'application/json'
             },
             credentials: 'include'
         });
@@ -1358,29 +1352,5 @@ function lazyLoadImages() {
     
     document.querySelectorAll('[data-src]').forEach(img => {
         observer.observe(img);
-    });
-}
-
-// 设置内容更新监听器
-function setupContentUpdateListener() {
-    let lastContentUpdate = localStorage.getItem('contentUpdated') || '0';
-    
-    // 监听localStorage变化
-    window.addEventListener('storage', function(e) {
-        if (e.key === 'contentUpdated' && e.newValue !== lastContentUpdate) {
-            lastContentUpdate = e.newValue;
-            console.log('检测到内容更新，重新加载数据...');
-            loadContent();
-        }
-    });
-    
-    // 监听焦点事件，当页面重新获得焦点时检查是否有更新
-    window.addEventListener('focus', function() {
-        const currentUpdate = localStorage.getItem('contentUpdated') || '0';
-        if (currentUpdate !== lastContentUpdate) {
-            lastContentUpdate = currentUpdate;
-            console.log('页面获得焦点，检测到内容更新，重新加载数据...');
-            loadContent();
-        }
     });
 }
