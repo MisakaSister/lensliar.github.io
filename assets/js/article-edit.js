@@ -27,33 +27,33 @@ function getFriendlyCategoryName(category) {
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', async function() {
     try {
-        console.log('页面开始加载...');
-        
+
+
         // 检查登录状态
         await checkAuthStatus();
-        
+
         // 获取URL参数
         const urlParams = new URLSearchParams(window.location.search);
         const articleId = urlParams.get('id');
-        
-        console.log('文章ID:', articleId);
-        
+
+
+
         // 初始化页面
         await initPage(articleId);
-        
-        console.log('页面初始化完成');
-        
+
+
+
         // 强制隐藏加载遮罩
         setTimeout(() => {
             hideLoading();
-            console.log('强制隐藏加载遮罩');
-            
+
+
             // 延迟检查编辑器状态
             setTimeout(() => {
                 checkEditorStatus();
             }, 2000);
         }, 1000);
-        
+
     } catch (error) {
         console.error('页面初始化失败:', error);
         showNotification('页面加载失败: ' + error.message, false);
@@ -94,40 +94,40 @@ async function checkAuthStatus() {
 // 初始化页面
 async function initPage(articleId) {
     try {
-        console.log('开始初始化页面...');
-        
+
+
         // 加载分类列表
-        console.log('加载分类列表...');
+
         await loadArticleCategories();
-        
+
         // 初始化TinyMCE编辑器
-        console.log('初始化TinyMCE编辑器...');
+
         await initTinyMCEEditor();
-        
+
         // 如果是编辑模式，加载文章数据
         if (articleId) {
-            console.log('加载文章数据...');
+
             await loadArticleData(articleId);
             document.getElementById('page-title').innerHTML = '<span class="title-icon">✏️</span> 编辑文章';
         }
-        
+
         // 设置事件监听器
-        console.log('设置事件监听器...');
+
         setupEventListeners();
-        
-        console.log('页面初始化完成');
-        
+
+
+
         // 强制隐藏加载遮罩
         setTimeout(() => {
             hideLoading();
-            console.log('强制隐藏加载遮罩');
-            
+
+
             // 延迟检查编辑器状态
             setTimeout(() => {
                 checkEditorStatus();
             }, 2000);
         }, 1000);
-        
+
     } catch (error) {
         console.error('初始化页面失败:', error);
         throw error;
@@ -158,13 +158,13 @@ async function initTinyMCEEditor() {
         images_upload_handler: function (blobInfo, success, failure) {
             const formData = new FormData();
             formData.append('file', blobInfo.blob(), blobInfo.filename());
-            
+
             const token = sessionStorage.getItem('authToken');
             if (!token) {
                 failure('未找到认证token');
                 return;
             }
-            
+
             fetch(`${API_BASE}/upload`, {
                 method: 'POST',
                 headers: {
@@ -207,7 +207,7 @@ async function initTinyMCEEditor() {
                     hiddenField.value = editor.getContent();
                 }
             });
-            
+
             // 编辑器初始化完成后强制设置宽度
             editor.on('init', function() {
                 setTimeout(() => {
@@ -221,7 +221,7 @@ async function initTinyMCEEditor() {
                         formGroup.style.padding = '0';
                         formGroup.style.boxSizing = 'border-box';
                     }
-                    
+
                     const editorContainer = editor.getContainer();
                     if (editorContainer) {
                         // 设置编辑器容器的宽度和高度
@@ -233,7 +233,7 @@ async function initTinyMCEEditor() {
                         editorContainer.style.margin = '0';
                         editorContainer.style.padding = '0';
                         editorContainer.style.boxSizing = 'border-box';
-                        
+
                         const editArea = editorContainer.querySelector('.tox-edit-area');
                         if (editArea) {
                             editArea.style.width = '100%';
@@ -242,7 +242,7 @@ async function initTinyMCEEditor() {
                             editArea.style.height = 'calc(100% - 40px)';
                             editArea.style.minHeight = '550px';
                         }
-                        
+
                         const iframe = editorContainer.querySelector('.tox-edit-area__iframe');
                         if (iframe) {
                             iframe.style.width = '100%';
@@ -251,11 +251,11 @@ async function initTinyMCEEditor() {
                             iframe.style.height = '100%';
                             iframe.style.minHeight = '550px';
                         }
-                        
-                        console.log('强制设置编辑器和父容器宽度高度');
+
+
                     }
                 }, 500);
-                
+
                 // 添加额外的延迟检查
                 setTimeout(() => {
                     const container = editor.getContainer();
@@ -265,36 +265,36 @@ async function initTinyMCEEditor() {
                             container.style.width = '100%';
                             container.style.minWidth = '100%';
                             container.style.maxWidth = 'none';
-                            console.log('二次修正编辑器宽度');
+
                         }
-                        
+
                         // 检查高度
                         if (container.offsetHeight < 600) {
                             container.style.height = '600px';
                             container.style.minHeight = '600px';
-                            console.log('二次修正编辑器高度');
+
                         }
                     }
                 }, 1000);
             });
         }
     });
-    
+
     // tinymce.init() 返回的是数组，取第一个编辑器实例
     tinyMCEEditor = editors[0];
-    console.log('TinyMCE编辑器初始化完成:', tinyMCEEditor);
-    
+
+
     // 检查编辑器高度
     setTimeout(() => {
         const editorContainer = document.querySelector('.tox.tox-tinymce');
         if (editorContainer) {
             const computedStyle = window.getComputedStyle(editorContainer);
-            console.log('编辑器容器高度:', editorContainer.offsetHeight);
-            console.log('编辑器容器计算样式高度:', computedStyle.height);
-            console.log('编辑器容器最小高度:', computedStyle.minHeight);
+
+
+
         }
     }, 1000);
-    
+
     // 确保原始textarea被隐藏
     const originalTextarea = document.getElementById('article-content-editor');
     if (originalTextarea) {
@@ -302,34 +302,34 @@ async function initTinyMCEEditor() {
         originalTextarea.style.visibility = 'hidden';
         originalTextarea.style.position = 'absolute';
         originalTextarea.style.left = '-9999px';
-        console.log('原始textarea已隐藏');
+
     }
 }
 
 // 检查编辑器状态
 function checkEditorStatus() {
-    console.log('=== 检查编辑器状态 ===');
-    
+
+
     if (!tinyMCEEditor) {
         console.error('TinyMCE编辑器未初始化');
         return;
     }
-    
-    console.log('编辑器实例:', tinyMCEEditor);
-    
+
+
+
     // 安全地获取编辑器内容
     let content = '';
     if (tinyMCEEditor) {
         try {
             content = tinyMCEEditor.getContent();
-            console.log('编辑器内容:', content);
+
         } catch (error) {
             console.error('获取编辑器内容失败:', error);
             content = '';
         }
     }
-    
-    console.log('编辑器状态检查完成');
+
+
 }
 
 // 加载文章分类
@@ -346,14 +346,14 @@ async function loadArticleCategories() {
 
         if (response.ok) {
             const categories = await response.json();
-            console.log('API返回的分类数据:', categories);
-            
+
+
             // 验证返回的数据是否为数组
             if (Array.isArray(categories)) {
                 renderCategorySelect(categories);
             } else if (categories && categories.categories && Array.isArray(categories.categories)) {
                 // 如果数据包装在categories属性中
-                console.log('使用categories.categories:', categories.categories);
+
                 renderCategorySelect(categories.categories);
             } else {
                 console.error('分类数据格式错误:', categories);
@@ -394,25 +394,25 @@ function renderCategorySelect(categories) {
         console.error('找不到分类选择器元素');
         return;
     }
-    
-    console.log('渲染分类选择器，数据:', categories);
-    
+
+
+
     select.innerHTML = '<option value="">请选择分类</option>';
-    
+
     if (!Array.isArray(categories)) {
         console.error('categories不是数组:', categories);
         return;
     }
-    
+
     categories.forEach((category, index) => {
-        console.log(`处理分类 ${index}:`, category);
+
         const option = document.createElement('option');
         option.value = category.id || category;
         option.textContent = category.name || getFriendlyCategoryName(category.id || category);
         select.appendChild(option);
     });
-    
-    console.log('分类选择器渲染完成');
+
+
 }
 
 // 加载文章数据（编辑模式）
@@ -446,7 +446,7 @@ async function loadArticleData(articleId) {
 function fillArticleForm(article) {
     document.getElementById('article-title').value = article.title || '';
     document.getElementById('article-category').value = article.category || '';
-    
+
     // 安全地设置编辑器内容
     if (tinyMCEEditor && tinyMCEEditor.setContent) {
         try {
@@ -455,7 +455,7 @@ function fillArticleForm(article) {
             console.error('设置编辑器内容失败:', error);
         }
     }
-    
+
     if (article.cover_image) {
         showArticleImagePreview(article.cover_image);
     }
@@ -468,7 +468,7 @@ function setupEventListeners() {
         e.preventDefault();
         logout();
     });
-    
+
     // 页面离开前提示
     window.addEventListener('beforeunload', function(e) {
         if (hasUnsavedChanges()) {
@@ -482,7 +482,7 @@ function setupEventListeners() {
 function hasUnsavedChanges() {
     const title = document.getElementById('article-title').value;
     const category = document.getElementById('article-category').value;
-    
+
     // 安全地获取编辑器内容
     let content = '';
     if (tinyMCEEditor) {
@@ -493,7 +493,7 @@ function hasUnsavedChanges() {
             content = '';
         }
     }
-    
+
     return title.trim() !== '' || content.trim() !== '' || category !== '';
 }
 
@@ -501,10 +501,10 @@ function hasUnsavedChanges() {
 async function saveArticle() {
     try {
         showLoading();
-        
+
         const title = document.getElementById('article-title').value.trim();
         const category = document.getElementById('article-category').value;
-        
+
         // 安全地获取编辑器内容
         let content = '';
         if (tinyMCEEditor) {
@@ -515,9 +515,9 @@ async function saveArticle() {
                 content = '';
             }
         }
-        
+
         const coverImage = document.getElementById('article-cover-image').value;
-        
+
         console.log('保存文章数据:', {
             title,
             category,
@@ -525,37 +525,37 @@ async function saveArticle() {
             coverImage: coverImage ? '已设置' : '未设置',
             isEdit: !!editingArticle
         });
-        
+
         if (!title) {
             showNotification('请输入文章标题', false);
             return;
         }
-        
+
         if (!content.trim()) {
             showNotification('请输入文章内容', false);
             return;
         }
-        
+
         const articleData = {
             title: title,
             category: category,
             content: content,
             cover_image: coverImage
         };
-        
+
         const token = sessionStorage.getItem('authToken');
-        const url = editingArticle 
+        const url = editingArticle
             ? `${API_BASE}/content/articles/${editingArticle.id}`
             : `${API_BASE}/content/articles`;
-        
+
         const method = editingArticle ? 'PUT' : 'POST';
-        
+
         console.log('发送请求:', {
             url,
             method,
             token: token ? '已设置' : '未设置'
         });
-        
+
         const response = await fetch(url, {
             method: method,
             headers: {
@@ -564,14 +564,14 @@ async function saveArticle() {
             },
             body: JSON.stringify(articleData)
         });
-        
-        console.log('响应状态:', response.status, response.statusText);
-        
+
+
+
         if (response.ok) {
             const result = await response.json();
-            console.log('保存成功:', result);
+
             showNotification(editingArticle ? '文章更新成功' : '文章创建成功');
-            
+
             // 延迟跳转，让用户看到成功提示
             setTimeout(() => {
                 window.location.href = 'article-admin.html';
@@ -599,12 +599,12 @@ async function saveArticle() {
 async function handleArticleImageSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     if (file.size > 5 * 1024 * 1024) {
         showNotification('图片大小不能超过5MB', false);
         return;
     }
-    
+
     try {
         showNotification('正在上传图片...', true);
         const imageData = await uploadFile(file);
@@ -620,14 +620,14 @@ async function handleArticleImageSelect(event) {
 function showArticleImagePreview(imageData) {
     const previewContainer = document.getElementById('article-image-preview');
     const hiddenInput = document.getElementById('article-cover-image');
-    
+
     previewContainer.innerHTML = `
         <div class="preview-item">
             <img src="${imageData}" alt="封面图片">
             <button class="preview-remove" onclick="removeArticleImage()">×</button>
         </div>
     `;
-    
+
     previewContainer.style.display = 'grid';
     hiddenInput.value = imageData;
 }
@@ -643,7 +643,7 @@ function removeArticleImage() {
 async function uploadFile(file) {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     const token = sessionStorage.getItem('authToken');
     const response = await fetch(`${API_BASE}/upload`, {
         method: 'POST',
@@ -652,16 +652,16 @@ async function uploadFile(file) {
         },
         body: formData
     });
-    
+
     if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
     }
-    
+
     const result = await response.json();
     if (!result.url) {
         throw new Error('服务器返回的数据格式错误');
     }
-    
+
     return result.url;
 }
 
@@ -689,7 +689,7 @@ function hideLoading() {
         loadingOverlay.style.visibility = 'hidden';
         loadingOverlay.style.opacity = '0';
         loadingOverlay.style.pointerEvents = 'none';
-        console.log('加载遮罩已隐藏');
+
     } else {
         console.error('找不到加载遮罩元素');
     }
@@ -701,7 +701,7 @@ function showNotification(message, isSuccess = true) {
     notification.textContent = message;
     notification.className = `notification ${isSuccess ? 'success' : 'error'}`;
     notification.style.display = 'block';
-    
+
     setTimeout(() => {
         notification.style.display = 'none';
     }, 3000);
@@ -715,79 +715,53 @@ function logout() {
 
 // 测试编辑器状态
 function testEditor() {
-    console.log('=== 编辑器状态测试 ===');
-    
+
+
     if (!tinyMCEEditor) {
         console.error('TinyMCE编辑器未初始化');
         alert('TinyMCE编辑器未初始化');
         return;
     }
-    
-    console.log('编辑器实例:', tinyMCEEditor);
-    
-    // 检查编辑器是否可编辑
-    console.log('编辑器是否只读:', tinyMCEEditor.mode.get());
-    
+
     // 尝试获取编辑器body
     try {
         const editorBody = tinyMCEEditor.getBody();
-        console.log('编辑器body:', editorBody);
-        console.log('body contentEditable:', editorBody.contentEditable);
-        console.log('body style:', editorBody.style);
-        
+
+
+
         // 检查编辑器容器的样式
         const editorContainer = tinyMCEEditor.getContainer();
-        console.log('编辑器容器:', editorContainer);
-        console.log('容器display:', window.getComputedStyle(editorContainer).display);
-        console.log('容器visibility:', window.getComputedStyle(editorContainer).visibility);
-        console.log('容器opacity:', window.getComputedStyle(editorContainer).opacity);
-        console.log('容器z-index:', window.getComputedStyle(editorContainer).zIndex);
-        console.log('容器position:', window.getComputedStyle(editorContainer).position);
-        
+
+
         // 检查编辑区域的样式
         const editArea = editorContainer.querySelector('.tox-edit-area');
-        if (editArea) {
-            console.log('编辑区域:', editArea);
-            console.log('编辑区域display:', window.getComputedStyle(editArea).display);
-            console.log('编辑区域visibility:', window.getComputedStyle(editArea).visibility);
-            console.log('编辑区域height:', window.getComputedStyle(editArea).height);
-            console.log('编辑区域z-index:', window.getComputedStyle(editArea).zIndex);
-        }
-        
         // 检查iframe的样式
         const iframe = editArea ? editArea.querySelector('iframe') : null;
-        if (iframe) {
-            console.log('编辑器iframe:', iframe);
-            console.log('iframe display:', window.getComputedStyle(iframe).display);
-            console.log('iframe visibility:', window.getComputedStyle(iframe).visibility);
-            console.log('iframe height:', window.getComputedStyle(iframe).height);
-            console.log('iframe width:', window.getComputedStyle(iframe).width);
-        }
-        
+
     } catch (error) {
         console.error('获取编辑器元素失败:', error);
     }
-    
+
     // 安全地获取编辑器内容
     let content = '';
     if (tinyMCEEditor) {
         try {
             content = tinyMCEEditor.getContent();
-            console.log('编辑器内容:', content);
+
         } catch (error) {
             console.error('获取编辑器内容失败:', error);
             content = '';
         }
     }
-    
+
     // 尝试设置编辑器为可编辑状态
     try {
         tinyMCEEditor.mode.set('design');
-        console.log('设置编辑器为design模式');
+
     } catch (error) {
         console.error('设置编辑器模式失败:', error);
     }
-    
+
     // 尝试强制显示编辑器
     try {
         const editorContainer = tinyMCEEditor.getContainer();
@@ -797,27 +771,22 @@ function testEditor() {
             editorContainer.style.opacity = '1';
             editorContainer.style.zIndex = '1000';
             editorContainer.style.position = 'relative';
-            console.log('强制显示编辑器容器');
+
         }
     } catch (error) {
         console.error('强制显示编辑器失败:', error);
     }
-    
+
     // 检查原始textarea是否被隐藏
     const originalTextarea = document.getElementById('article-content-editor');
     if (originalTextarea) {
-        console.log('原始textarea:', originalTextarea);
-        console.log('原始textarea display:', window.getComputedStyle(originalTextarea).display);
-        console.log('原始textarea visibility:', window.getComputedStyle(originalTextarea).visibility);
-        console.log('原始textarea position:', window.getComputedStyle(originalTextarea).position);
-        
         // 强制隐藏原始textarea
         originalTextarea.style.display = 'none';
         originalTextarea.style.visibility = 'hidden';
         originalTextarea.style.position = 'absolute';
         originalTextarea.style.left = '-9999px';
-        console.log('强制隐藏原始textarea');
+
     }
-    
+
     alert('编辑器状态已检查，请查看控制台输出');
 }

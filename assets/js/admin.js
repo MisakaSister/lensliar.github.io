@@ -313,10 +313,6 @@ async function loadAllContent() {
         articleCategories = articleCategoriesResult.categories || [];
         albumCategories = albumCategoriesResult.categories || [];
         
-        console.log('加载完成 - 文章数量:', articleManager.getAll().length);
-        console.log('加载完成 - 相册数量:', albumManager.getAll().length);
-        console.log('文章分类数量:', articleCategories.length);
-        console.log('相册分类数量:', albumCategories.length);
         
         updateStats();
         renderCurrentTab();
@@ -478,8 +474,8 @@ function renderImages() {
     const container = document.getElementById('images-container');
     const albums = albumManager.getAll();
     
-    console.log('渲染相册列表，相册数量:', albums.length);
-    console.log('相册数据:', albums);
+    
+    
     
     if (albums.length === 0) {
         container.innerHTML = `
@@ -867,8 +863,8 @@ async function saveArticle() {
         coverImage: coverImageElement ? coverImageElement.value : null
     };
     
-    console.log('文章数据:', articleData);
-    console.log('内容长度:', articleData.content.length);
+    
+    
     
     if (!articleData.title || !articleData.content) {
         Utils.showNotification('请填写标题和内容', false);
@@ -919,8 +915,8 @@ async function saveImages() {
         images: selectedFiles
     };
     
-    console.log('相册数据:', albumData);
-    console.log('选中的文件数量:', selectedFiles.length);
+    
+    
     
     if (!albumData.title || selectedFiles.length === 0) {
         Utils.showNotification('请填写标题并选择图片', false);
