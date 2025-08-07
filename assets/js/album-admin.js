@@ -162,7 +162,7 @@ async function loadAlbumCategories() {
         const data = await response.json();
         albumCategories = data.categories || [];
         
-        
+        console.log('[相册分类] 加载的分类数据:', albumCategories);
         
     } catch (error) {
         console.error('加载相册分类失败:', error);
@@ -358,8 +358,8 @@ function renderCategorySelect() {
     const formSelect = document.getElementById('album-category');
     formSelect.innerHTML = '<option value="">请选择分类</option>';
     
-    
-    
+    console.log('[相册分类] 渲染分类选择器，分类数量:', albumCategories.length);
+    console.log('[相册分类] 分类数据:', albumCategories);
     
     if (albumCategories.length === 0) {
         console.warn('[相册分类] 警告：分类数据为空，可能还没有加载完成');
@@ -367,7 +367,7 @@ function renderCategorySelect() {
     }
     
     albumCategories.forEach(category => {
-        
+        console.log('[相册分类] 处理分类:', category);
         
         // 为筛选器添加选项
         const filterOption = document.createElement('option');

@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 添加环境信息到控制台
-    
-    
-    
+    console.log(`[登录系统] API地址: ${API_BASE}`);
+    console.log(`[登录系统] 当前域名: ${window.location.origin}`);
+    console.log(`[登录系统] 用户代理: ${navigator.userAgent}`);
 }); 

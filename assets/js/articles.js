@@ -173,7 +173,7 @@ function setupEventListeners() {
 
 // 加载文章数据
 async function loadArticles() {
-    
+    console.log('开始加载文章数据...');
     
     try {
         const response = await fetch(`${API_BASE}/api/content`, {
@@ -184,14 +184,14 @@ async function loadArticles() {
             credentials: 'include'
         });
 
-        
+        console.log('API响应状态:', response.status);
 
         if (response.ok) {
             const content = await response.json();
             allArticles = content.articles || [];
             
-            
-            
+            console.log('加载到的文章数据:', allArticles);
+            console.log('文章数量:', allArticles.length);
             
             renderArticles();
             loadAndPopulateCategories();
@@ -425,8 +425,8 @@ function loadMoreArticles() {
 
 // 查看文章详情
 function viewArticleDetail(id) {
-    
-    
+    console.log('点击文章详情，ID:', id);
+    console.log('当前文章列表:', allArticles);
     
     // 检查文章是否存在
     const article = allArticles.find(a => a.id === id);
@@ -436,7 +436,7 @@ function viewArticleDetail(id) {
         return;
     }
     
-    
+    console.log('找到文章:', article);
     window.location.href = `article-detail.html?id=${id}`;
 }
 

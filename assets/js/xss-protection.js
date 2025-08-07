@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
             enableDOMProtection: true,
             logWarnings: true
         });
-        
+        console.log('[XSS Protection] Strict mode enabled');
     };
 });
 

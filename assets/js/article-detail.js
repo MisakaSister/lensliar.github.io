@@ -114,7 +114,7 @@ async function loadArticleDetail() {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
     
-    
+    console.log('文章详情页 - URL参数ID:', id);
     
     if (!id) {
         showError('文章ID不存在');
@@ -135,13 +135,13 @@ async function loadArticleDetail() {
             const content = await response.json();
             allArticles = content.articles || [];
             
-            
-            
+            console.log('加载到的所有文章:', allArticles);
+            console.log('查找文章ID:', id);
             
             // 查找指定文章
             currentArticle = allArticles.find(article => article.id === id);
             
-            
+            console.log('找到的文章:', currentArticle);
             
             if (currentArticle) {
                 renderArticleDetail(currentArticle);
