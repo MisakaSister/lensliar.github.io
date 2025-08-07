@@ -60,7 +60,14 @@ async function getPublicContent(request, env) {
                 LIMIT ? OFFSET ?
             `).bind(limit, (page - 1) * limit).all();
             
-            articles = results || [];
+            // 转换字段名称以匹配前端期望的格式
+            articles = (results || []).map(article => ({
+                ...article,
+                coverImage: article.cover_image ? JSON.parse(article.cover_image) : null,
+                createdAt: article.created_at,
+                updatedAt: article.updated_at,
+                publishedAt: article.published_at
+            }));
         } catch (error) {
             console.error('Error fetching articles:', error);
             articles = [];

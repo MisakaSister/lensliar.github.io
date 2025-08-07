@@ -456,8 +456,8 @@ function fillArticleForm(article) {
         }
     }
     
-    if (article.cover_image) {
-        showArticleImagePreview(article.cover_image);
+    if (article.coverImage || article.cover_image) {
+        showArticleImagePreview(article.coverImage || article.cover_image);
     }
 }
 
@@ -540,7 +540,7 @@ async function saveArticle() {
             title: title,
             category: category,
             content: content,
-            cover_image: coverImage
+            coverImage: coverImage
         };
         
         const token = sessionStorage.getItem('authToken');

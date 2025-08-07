@@ -86,9 +86,18 @@ async function getAllArticles(env) {
         
         console.log(`[文章] 查询结果数量: ${results?.length || 0}`);
         
+        // 转换字段名称以匹配前端期望的格式
+        const articles = (results || []).map(article => ({
+            ...article,
+            coverImage: article.cover_image ? JSON.parse(article.cover_image) : null,
+            createdAt: article.created_at,
+            updatedAt: article.updated_at,
+            publishedAt: article.published_at
+        }));
+        
         return new Response(JSON.stringify({
-            articles: results || [],
-            total: results?.length || 0
+            articles: articles,
+            total: articles.length
         }), {
             status: 200,
             headers: {
@@ -120,7 +129,16 @@ async function getArticle(id, env) {
             });
         }
 
-        return new Response(JSON.stringify(results[0]), {
+        // 转换字段名称以匹配前端期望的格式
+        const article = {
+            ...results[0],
+            coverImage: results[0].cover_image ? JSON.parse(results[0].cover_image) : null,
+            createdAt: results[0].created_at,
+            updatedAt: results[0].updated_at,
+            publishedAt: results[0].published_at
+        };
+
+        return new Response(JSON.stringify(article), {
             status: 200,
             headers: {
                 'Content-Type': 'application/json'
@@ -177,7 +195,7 @@ async function createArticle(articleData, env) {
             articleData.summary || articleData.content.substring(0, 200),
             articleData.category || '',
             JSON.stringify(Array.isArray(articleData.tags) ? articleData.tags : []),
-            JSON.stringify(articleData.coverImage || null),
+            JSON.stringify(articleData.coverImage || articleData.cover_image || null),
             JSON.stringify(Array.isArray(articleData.images) ? articleData.images : []),
             JSON.stringify(Array.isArray(articleData.attachments) ? articleData.attachments : []),
             articleData.author || 'Admin',
@@ -280,7 +298,7 @@ async function updateArticle(id, articleData, env) {
             articleData.summary || results[0].summary,
             articleData.category || results[0].category,
             JSON.stringify(Array.isArray(articleData.tags) ? articleData.tags : results[0].tags || []),
-            JSON.stringify(articleData.coverImage || results[0].cover_image),
+            JSON.stringify(articleData.coverImage || articleData.cover_image || results[0].cover_image),
             JSON.stringify(Array.isArray(articleData.images) ? articleData.images : results[0].images || []),
             JSON.stringify(Array.isArray(articleData.attachments) ? articleData.attachments : results[0].attachments || []),
             articleData.author || results[0].author,
