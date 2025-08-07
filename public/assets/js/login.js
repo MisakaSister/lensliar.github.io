@@ -138,18 +138,7 @@ function togglePassword() {
     }
 }
 
-// 显示通知
-function showNotification(message, isSuccess = true) {
-    const notification = document.getElementById('notification');
-    if (notification) {
-        notification.textContent = message;
-        notification.className = `notification ${isSuccess ? 'success' : 'error'} show`;
-
-        setTimeout(() => {
-            notification.classList.remove('show');
-        }, 5000); // 延长显示时间以便查看详细错误
-    }
-}
+// showNotification函数已在app.js中定义
 
 // 键盘事件处理
 document.addEventListener('DOMContentLoaded', function() {

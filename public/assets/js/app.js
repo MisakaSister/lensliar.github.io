@@ -1,12 +1,8 @@
-// 本地开发时使用
-// const API_BASE = "http://localhost:8787";
-
-// 部署时使用
+// API配置 - 部署时使用
 const API_BASE = "https://worker.wengguodong.com";
 
 // 全局应用配置
 const APP_CONFIG = {
-    API_BASE: 'http://127.0.0.1:8787',
     UPLOAD_MAX_SIZE: 5 * 1024 * 1024, // 5MB
     SUPPORTED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
     SUPPORTED_VIDEO_TYPES: ['video/mp4', 'video/webm', 'video/ogg'],
