@@ -153,9 +153,11 @@ class ContentManager extends ApiClient {
         }
     }
 
-    async delete(id) {
+    // 重命名以避免与基类方法名冲突导致递归
+    async removeItem(id) {
         try {
-            const data = await this.delete(`${this.endpoint}/${id}`);
+            // 调用基类的 delete 方法
+            const data = await super.delete(`${this.endpoint}/${id}`);
             if (!data) return false;
             
             if (data.success) {
