@@ -187,6 +187,16 @@ async function initTinyMCEEditor() {
                     hiddenField.value = editor.getContent();
                 }
             });
+            editor.on('init', function() {
+                try {
+                    const container = editor.getContainer();
+                    if (container) {
+                        container.classList.add('tinymce-fixed', 'tinymce-fixed--modal');
+                    }
+                } catch (e) {
+                    console.warn('设置固定工具栏布局失败:', e);
+                }
+            });
         }
     });
 }
