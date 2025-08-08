@@ -45,7 +45,8 @@ html body .tox.tox-tinymce,
 .tox.tox-tinymce.tinymce-fixed {
     display: flex;
     flex-direction: column;
-    height: 600px; /* 可根据需要调整或用容器控制 */
+    height: 600px !important; /* 固定容器高度 */
+    overflow: hidden !important; /* 自身不滚动，由编辑区滚动 */
 }
 
 .tox.tox-tinymce.tinymce-fixed .tox-toolbar__primary,
@@ -58,7 +59,8 @@ html body .tox.tox-tinymce,
 
 .tox.tox-tinymce.tinymce-fixed .tox-edit-area {
     flex: 1 1 auto;
-    overflow: auto;
+    overflow: auto; /* 超出出现滚动条 */
+    min-height: 0;  /* 允许在flex中缩小，从而显示滚动条 */
 }
 
 .tox.tox-tinymce.tinymce-fixed .tox-edit-area__iframe {
@@ -313,7 +315,8 @@ html body .form-group.full-width {
     opacity: 1 !important;
     position: relative !important;
     z-index: 1001 !important;
-    overflow: auto;
+    overflow: auto; /* 确保滚动条 */
+    min-height: 0 !important;
     height: calc(100% - 40px) !important;
 }
 
@@ -335,7 +338,7 @@ html body .form-group.full-width {
     opacity: 1 !important;
     position: relative !important;
     z-index: 1003 !important;
-    overflow: auto;
+    overflow: auto; /* 编辑内容区域可滚动 */
     background: white !important;
     color: #333 !important;
     min-height: 100% !important;
