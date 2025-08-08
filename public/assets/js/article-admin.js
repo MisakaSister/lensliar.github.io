@@ -19,6 +19,8 @@ const pageSize = 10;
 // 全局变量
 let allArticles = [];
 let articleCategories = [];
+// 统一的文章管理器（基于 ApiClient）
+const articleManager = new ArticleManager(API_BASE);
 
 // 分类名称映射
 const categoryNameMap = {
@@ -667,16 +669,9 @@ async function deleteArticle(id) {
     }
     
     try {
-        const response = await fetch(`${API_BASE}/content/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
+        // 使用统一的ApiClient删除
+        const ok = await articleManager.removeItem(id);
+        if (!ok) throw new Error('删除失败');
         
         showNotification('文章删除成功');
         

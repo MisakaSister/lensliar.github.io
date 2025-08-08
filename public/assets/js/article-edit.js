@@ -140,18 +140,22 @@ async function initTinyMCEEditor() {
         tinyMCEEditor.destroy();
     }
 
-    // 只保留核心功能：列表、链接、图片
+    // 只保留核心功能：列表、链接、图片，并启用自适应高度
     const editors = await tinymce.init({
         selector: '#article-content-editor',
         width: '100%',
-        height: 600,
         plugins: [
-            'advlist autolink lists link image'
+            'advlist autolink lists link image autoresize'
         ],
         // 简化工具栏，只保留必要功能
         toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link image',
         menubar: false, // 移除菜单栏
         content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.6; }',
+        // 自适应高度
+        autoresize_bottom_margin: 40,
+        autoresize_overflow_padding: 20,
+        autoresize_min_height: 400,
+        autoresize_max_height: 0, // 0 表示不限制最大高度
         // 图片上传配置
         images_upload_url: `${API_BASE}/upload`,
         images_upload_credentials: true,
@@ -224,12 +228,10 @@ async function initTinyMCEEditor() {
                     
                     const editorContainer = editor.getContainer();
                     if (editorContainer) {
-                        // 设置编辑器容器的宽度和高度
+                        // 仅设置宽度，由autoresize控制高度
                         editorContainer.style.width = '100%';
                         editorContainer.style.minWidth = '100%';
                         editorContainer.style.maxWidth = 'none';
-                        editorContainer.style.height = '600px';
-                        editorContainer.style.minHeight = '600px';
                         editorContainer.style.margin = '0';
                         editorContainer.style.padding = '0';
                         editorContainer.style.boxSizing = 'border-box';
@@ -239,8 +241,7 @@ async function initTinyMCEEditor() {
                             editArea.style.width = '100%';
                             editArea.style.minWidth = '100%';
                             editArea.style.maxWidth = 'none';
-                            editArea.style.height = 'calc(100% - 40px)';
-                            editArea.style.minHeight = '550px';
+                            editArea.style.height = 'auto';
                         }
                         
                         const iframe = editorContainer.querySelector('.tox-edit-area__iframe');
@@ -248,8 +249,7 @@ async function initTinyMCEEditor() {
                             iframe.style.width = '100%';
                             iframe.style.minWidth = '100%';
                             iframe.style.maxWidth = 'none';
-                            iframe.style.height = '100%';
-                            iframe.style.minHeight = '550px';
+                            iframe.style.height = 'auto';
                         }
                         
                         console.log('强制设置编辑器和父容器宽度高度');
@@ -266,13 +266,6 @@ async function initTinyMCEEditor() {
                             container.style.minWidth = '100%';
                             container.style.maxWidth = 'none';
                             console.log('二次修正编辑器宽度');
-                        }
-                        
-                        // 检查高度
-                        if (container.offsetHeight < 600) {
-                            container.style.height = '600px';
-                            container.style.minHeight = '600px';
-                            console.log('二次修正编辑器高度');
                         }
                     }
                 }, 1000);

@@ -11,6 +11,8 @@ const pageSize = 10;
 // 全局变量
 let allAlbums = [];
 let albumCategories = [];
+// 统一的相册管理器（基于 ApiClient）
+const albumManager = new AlbumManager(API_BASE);
 
 // 分类名称映射
 const categoryNameMap = {
@@ -525,16 +527,9 @@ async function deleteAlbum(id) {
     }
     
     try {
-        const response = await fetch(`${API_BASE}/images/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
+        // 使用统一的ApiClient删除
+        const ok = await albumManager.removeItem(id);
+        if (!ok) throw new Error('删除失败');
         
         showNotification('相册删除成功');
         
