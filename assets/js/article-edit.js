@@ -228,6 +228,8 @@ async function initTinyMCEEditor() {
                     
                     const editorContainer = editor.getContainer();
                     if (editorContainer) {
+                        // 固定工具栏 + 可滚动编辑区布局
+                        editorContainer.classList.add('tinymce-fixed');
                         // 仅设置宽度，由autoresize控制高度
                         editorContainer.style.width = '100%';
                         editorContainer.style.minWidth = '100%';

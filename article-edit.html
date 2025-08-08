@@ -49,6 +49,8 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
             width: 100% !important;
             max-width: none !important;
+            display: flex;
+            justify-content: center;
         }
         
         /* 确保富文本框充分利用空间 */
@@ -83,7 +85,9 @@
         
         /* 特别针对编辑器容器 */
         .edit-form .form-group.full-width {
-            width: 100%;
+            width: 60%;
+            min-width: 320px;
+            max-width: 1200px;
             box-sizing: border-box;
         }
         
