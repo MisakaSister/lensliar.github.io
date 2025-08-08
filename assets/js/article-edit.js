@@ -145,17 +145,12 @@ async function initTinyMCEEditor() {
         selector: '#article-content-editor',
         width: '100%',
         plugins: [
-            'advlist autolink lists link image autoresize'
+            'advlist autolink lists link image'
         ],
         // 简化工具栏，只保留必要功能
         toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link image',
         menubar: false, // 移除菜单栏
         content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.6; }',
-        // 自适应高度
-        autoresize_bottom_margin: 40,
-        autoresize_overflow_padding: 20,
-        autoresize_min_height: 400,
-        autoresize_max_height: 0, // 0 表示不限制最大高度
         // 图片上传配置
         images_upload_url: `${API_BASE}/upload`,
         images_upload_credentials: true,
@@ -215,13 +210,13 @@ async function initTinyMCEEditor() {
             // 编辑器初始化完成后强制设置宽度
             editor.on('init', function() {
                 setTimeout(() => {
-                    // 强制设置父容器宽度
+                    // 强制设置父容器宽度为视口的60%
                     const formGroup = document.querySelector('.form-group.full-width');
                     if (formGroup) {
-                        formGroup.style.width = '100%';
-                        formGroup.style.minWidth = '100%';
-                        formGroup.style.maxWidth = 'none';
-                        formGroup.style.margin = '0';
+                        formGroup.style.width = '60vw';
+                        formGroup.style.maxWidth = '60vw';
+                        formGroup.style.minWidth = '0';
+                        formGroup.style.margin = '0 auto';
                         formGroup.style.padding = '0';
                         formGroup.style.boxSizing = 'border-box';
                     }
@@ -230,10 +225,10 @@ async function initTinyMCEEditor() {
                     if (editorContainer) {
                         // 固定工具栏 + 可滚动编辑区布局
                         editorContainer.classList.add('tinymce-fixed');
-                        // 仅设置宽度，由autoresize控制高度
+                        // 让编辑器填满父容器（60vw）
                         editorContainer.style.width = '100%';
-                        editorContainer.style.minWidth = '100%';
-                        editorContainer.style.maxWidth = 'none';
+                        editorContainer.style.minWidth = '0';
+                        editorContainer.style.maxWidth = '100%';
                         editorContainer.style.margin = '0';
                         editorContainer.style.padding = '0';
                         editorContainer.style.boxSizing = 'border-box';
@@ -241,16 +236,17 @@ async function initTinyMCEEditor() {
                         const editArea = editorContainer.querySelector('.tox-edit-area');
                         if (editArea) {
                             editArea.style.width = '100%';
-                            editArea.style.minWidth = '100%';
-                            editArea.style.maxWidth = 'none';
+                            editArea.style.minWidth = '0';
+                            editArea.style.maxWidth = '100%';
                             editArea.style.height = 'auto';
+                            editArea.style.overflow = 'auto';
                         }
                         
                         const iframe = editorContainer.querySelector('.tox-edit-area__iframe');
                         if (iframe) {
                             iframe.style.width = '100%';
-                            iframe.style.minWidth = '100%';
-                            iframe.style.maxWidth = 'none';
+                            iframe.style.minWidth = '0';
+                            iframe.style.maxWidth = '100%';
                             iframe.style.height = 'auto';
                         }
                         
