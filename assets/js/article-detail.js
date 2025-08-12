@@ -30,6 +30,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // 加载文章详情
     loadArticleDetail();
 
+    // 绑定退出登录
+    const logoutLink = document.getElementById('logout-link');
+    if (logoutLink) {
+        logoutLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+    }
+
     // 隐藏页面加载动画
     setTimeout(() => {
         const pageLoading = document.getElementById('page-loading');
@@ -45,8 +54,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // 检查认证状态
 async function checkAuthStatus() {
     const token = sessionStorage.getItem('authToken');
+    const adminLink = document.getElementById('admin-link');
+    const logoutLink = document.getElementById('logout-link');
+
     if (!token) {
-        document.getElementById('admin-link').style.display = 'none';
+        if (adminLink) adminLink.style.display = 'none';
+        if (logoutLink) logoutLink.style.display = 'none';
         return;
     }
 
@@ -62,16 +75,19 @@ async function checkAuthStatus() {
         });
 
         if (response.ok) {
-            document.getElementById('admin-link').style.display = 'block';
+            if (adminLink) adminLink.style.display = 'block';
+            if (logoutLink) logoutLink.style.display = 'block';
         } else {
             // token无效，清除并隐藏管理按钮
             sessionStorage.removeItem('authToken');
-            document.getElementById('admin-link').style.display = 'none';
+            if (adminLink) adminLink.style.display = 'none';
+            if (logoutLink) logoutLink.style.display = 'none';
         }
     } catch (error) {
         console.error('验证token失败:', error);
         // 网络错误时也隐藏管理按钮
-        document.getElementById('admin-link').style.display = 'none';
+        if (adminLink) adminLink.style.display = 'none';
+        if (logoutLink) logoutLink.style.display = 'none';
     }
 }
 
@@ -286,6 +302,16 @@ function shareArticle(id, title) {
 // 返回文章列表
 function goBackToArticles() {
     window.location.href = 'articles.html';
+}
+
+// 退出登录
+function logout() {
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('userInfo');
+    showNotification('已退出登录');
+    setTimeout(() => {
+        window.location.href = 'index.html';
+    }, 1000);
 }
 
 // 显示错误信息
