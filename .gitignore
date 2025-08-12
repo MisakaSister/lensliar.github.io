@@ -6,3 +6,4 @@ package-lock.json
 /worker/node_modules/
 package.json
 .cursor/rules/decode1.mdc
+.kilocode/mcp.json
