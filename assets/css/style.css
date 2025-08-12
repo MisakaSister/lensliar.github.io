@@ -79,6 +79,35 @@ nav {
     color: var(--secondary);
 }
 
+/* 修复导航Logo与链接在header内的可视样式（避免a:visited紫色、确保白色文字） */
+header .logo,
+header .logo:link,
+header .logo:visited {
+    color: #fff !important;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Logo文字始终保持白色 */
+header .logo .logo-text {
+    color: #fff !important;
+}
+
+/* 导航链接在header区域内保持白色，避免被index.css的.nav-item覆盖为灰/紫 */
+header .nav-links a,
+header .nav-links a:link,
+header .nav-links a:visited {
+    color: #fff !important;
+    text-decoration: none;
+}
+
+/* 悬停时维持既有白色方案的悬停背景 */
+header .nav-links a:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
 .nav-links {
     display: flex;
     gap: 20px;

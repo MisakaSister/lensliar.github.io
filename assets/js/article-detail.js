@@ -93,7 +93,7 @@ async function checkAuthStatus() {
 
 // 初始化主题
 function initTheme() {
-    const savedTheme = sessionStorage.getItem('theme');
+    const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
         isDarkTheme = true;
         document.body.classList.add('dark-theme');
@@ -109,10 +109,10 @@ function toggleTheme() {
     const themeIcon = document.querySelector('.quick-btn i');
     if (isDarkTheme) {
         themeIcon.classList.replace('fa-moon', 'fa-sun');
-        sessionStorage.setItem('theme', 'dark');
+        localStorage.setItem('theme', 'dark');
     } else {
         themeIcon.classList.replace('fa-sun', 'fa-moon');
-        sessionStorage.setItem('theme', 'light');
+        localStorage.setItem('theme', 'light');
     }
 }
 
