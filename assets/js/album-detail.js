@@ -366,7 +366,11 @@ function openImageViewer(imageUrl, imageIndex = 0) {
             currentImages = [{ url: imageUrl }];
             currentImageIndex = 0;
         }
-        
+
+        // 打开前重置缩放，禁止页面滚动，避免样式跳动
+        resetZoom();
+        document.body.style.overflow = 'hidden';
+
         viewer.style.display = 'block';
         viewer.classList.add('active');
     }
@@ -379,6 +383,10 @@ function closeImageViewer() {
         setTimeout(() => {
             viewer.style.display = 'none';
         }, 300);
+
+        // 关闭时恢复页面滚动与缩放
+        document.body.style.overflow = 'auto';
+        resetZoom();
     }
 }
 
