@@ -7,18 +7,6 @@ let currentSort = 'date-desc';
 let isDarkTheme = false;
 let articlesDisplayed = 6;
 const itemsPerPage = 6;
-let feedbackSystem;
-let loadingManager;
-
-// 初始化系统
-function initializeSystems() {
-    if (typeof FeedbackSystem !== 'undefined') {
-        feedbackSystem = new FeedbackSystem();
-    }
-    if (typeof LoadingManager !== 'undefined') {
-        loadingManager = new LoadingManager();
-    }
-}
 
 // 分类名称映射
 const categoryNameMap = {
@@ -41,9 +29,6 @@ function getFriendlyCategoryName(category) {
 
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
-    // 初始化系统
-    initializeSystems();
-    
     // 检查是否已登录并验证token有效性
     checkAuthStatus();
 
@@ -190,25 +175,15 @@ function setupEventListeners() {
 async function loadArticles() {
     console.log('开始加载文章数据...');
     
-    // 显示加载状态
-    if (loadingManager) {
-        loadingManager.showLoading('正在加载文章...');
-    }
-    
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
-        
         const response = await fetch(`${API_BASE}/api/content`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
             },
-            credentials: 'include',
-            signal: controller.signal
+            credentials: 'include'
         });
 
-        clearTimeout(timeoutId);
         console.log('API响应状态:', response.status);
 
         if (response.ok) {
@@ -218,81 +193,19 @@ async function loadArticles() {
             console.log('加载到的文章数据:', allArticles);
             console.log('文章数量:', allArticles.length);
             
-            // 隐藏加载状态
-            if (loadingManager) {
-                loadingManager.hideLoading();
-            }
-            
             renderArticles();
             loadAndPopulateCategories();
-            
-            // 显示成功通知
-            if (feedbackSystem && allArticles.length > 0) {
-                feedbackSystem.showNotification({
-                    type: 'success',
-                    title: '加载完成',
-                    message: `成功加载 ${allArticles.length} 篇文章`,
-                    duration: 2000
-                });
-            }
         } else {
             console.error('API请求失败:', response.status, response.statusText);
             allArticles = [];
-            
-            // 隐藏加载状态
-            if (loadingManager) {
-                loadingManager.hideLoading();
-            }
-            
             renderArticles();
-            
-            // 显示错误通知
-            if (feedbackSystem) {
-                feedbackSystem.showNotification({
-                    type: 'error',
-                    title: '加载失败',
-                    message: '加载文章失败，请稍后重试',
-                    duration: 5000,
-                    actions: [{
-                        text: '重试',
-                        action: () => loadArticles()
-                    }]
-                });
-            } else {
-                showNotification('加载文章失败，请稍后重试', false);
-            }
+            showNotification('加载文章失败，请稍后重试', false);
         }
     } catch (error) {
         console.error('网络错误:', error);
         allArticles = [];
-        
-        // 隐藏加载状态
-        if (loadingManager) {
-            loadingManager.hideLoading();
-        }
-        
         renderArticles();
-        
-        let errorMessage = '网络错误，请检查网络连接';
-        if (error.name === 'AbortError') {
-            errorMessage = '请求超时，请检查网络连接';
-        }
-        
-        // 显示错误通知
-        if (feedbackSystem) {
-            feedbackSystem.showNotification({
-                type: 'error',
-                title: '网络错误',
-                message: errorMessage,
-                duration: 5000,
-                actions: [{
-                    text: '重试',
-                    action: () => loadArticles()
-                }]
-            });
-        } else {
-            showNotification(errorMessage, false);
-        }
+        showNotification('网络错误，请检查网络连接', false);
     }
 }
 
@@ -528,85 +441,30 @@ function viewArticleDetail(id) {
 }
 
 // 分享文章
-async function shareArticle(id, title) {
+function shareArticle(id, title) {
     const url = `${window.location.origin}/article-detail.html?id=${id}`;
     
-    try {
-        if (navigator.share) {
-            await navigator.share({
-                title: title,
-                url: url
-            });
-            
-            if (feedbackSystem) {
-                feedbackSystem.showNotification({
-                    type: 'success',
-                    title: '分享成功',
-                    message: '文章已成功分享',
-                    duration: 2000
-                });
-            }
-        } else {
-            // 复制到剪贴板
-            await navigator.clipboard.writeText(url);
-            
-            if (feedbackSystem) {
-                feedbackSystem.showNotification({
-                    type: 'success',
-                    title: '链接已复制',
-                    message: '文章链接已复制到剪贴板',
-                    duration: 3000
-                });
-            } else {
-                showNotification('文章链接已复制到剪贴板');
-            }
-        }
-    } catch (error) {
-        console.error('分享失败:', error);
-        
-        if (feedbackSystem) {
-            feedbackSystem.showNotification({
-                type: 'error',
-                title: '分享失败',
-                message: '无法分享文章，请稍后重试',
-                duration: 3000
-            });
-        }
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            url: url
+        });
+    } else {
+        // 复制到剪贴板
+        navigator.clipboard.writeText(url).then(() => {
+            showNotification('文章链接已复制到剪贴板');
+        });
     }
 }
 
 // 退出登录
 function logout() {
-    if (feedbackSystem) {
-        feedbackSystem.showConfirmDialog({
-            title: '确认退出',
-            message: '确定要退出登录吗？',
-            confirmText: '退出',
-            cancelText: '取消',
-            onConfirm: () => {
-                sessionStorage.removeItem('authToken');
-                sessionStorage.removeItem('userInfo');
-                
-                feedbackSystem.showNotification({
-                    type: 'success',
-                    title: '已退出登录',
-                    message: '正在刷新页面...',
-                    duration: 2000
-                });
-                
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            }
-        });
-    } else {
-        sessionStorage.removeItem('authToken');
-        sessionStorage.removeItem('userInfo');
-        showNotification('已退出登录');
-        setTimeout(() => {
-            window.location.reload();
-        }, 1000);
-    }
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('userInfo');
+    showNotification('已退出登录');
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
 }
 
 // showNotification函数已在app.js中定义

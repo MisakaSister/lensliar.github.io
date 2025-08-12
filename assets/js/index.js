@@ -36,22 +36,14 @@ function getFriendlyCategoryName(category) {
 
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
-    // 显示初始加载进度
-    loadingManager.showProgress(5);
-    
     // 检查是否已登录并验证token有效性
     checkAuthStatus();
 
     // 初始化主题
     initTheme();
-    loadingManager.updateProgress(15);
-
-    // 显示统计数据骨架屏
-    showStatsSkeletonScreen();
 
     // 加载内容
     loadContent();
-    loadingManager.updateProgress(25);
 
     // 绑定导航切换事件
     setupNavigation();
@@ -79,7 +71,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 检查返回的目标区域
     checkTargetSection();
-    loadingManager.updateProgress(40);
     
     // 隐藏页面加载动画
     setTimeout(() => {
@@ -90,7 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 pageLoading.style.display = 'none';
             }, 500);
         }
-        loadingManager.updateProgress(60);
     }, 800);
 
     // 初始化相册交互
@@ -99,10 +89,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // 添加触摸支持
     addTouchSupport();
     
-    // 初始化改进的延迟加载
-    initImprovedLazyLoading();
-    
-    loadingManager.updateProgress(80);
+    // 初始化延迟加载
+    lazyLoadImages();
 });
 
 // 检查认证状态
@@ -587,52 +575,32 @@ function createArticleCard(article, index) {
     
     const imageUrl = article.coverImage?.url ? decodeHtmlEntities(article.coverImage.url) : 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg';
     
-    // 创建懒加载图片
-    const img = createLazyImage(imageUrl, article.title, 'card-img');
-    
-    // 创建卡片内容
-    const cardBody = document.createElement('div');
-    cardBody.className = 'card-body';
-    cardBody.innerHTML = `
-        <h3 class="card-title">${article.title}</h3>
-        <p class="card-text">${decodeContentImages(article.content).substring(0, 150)}...</p>
-        <div class="card-meta">
-            <span class="card-date">
-                <i class="fas fa-calendar"></i>
-                ${formatDate(article.date || article.createdAt)}
-            </span>
-            <span class="card-category">
-                <i class="fas fa-tag"></i>
-                ${getFriendlyCategoryName(article.category)}
-            </span>
-        </div>
-        <div class="card-actions">
-            <button class="btn btn-primary" onclick="viewDetail('article', '${article.id}')" aria-label="阅读文章：${article.title}">
-                <i class="fas fa-eye"></i>
-                阅读全文
-            </button>
-            <button class="btn btn-secondary" onclick="shareContent('article', '${article.id}', '${article.title}')" aria-label="分享文章：${article.title}">
-                <i class="fas fa-share"></i>
-            </button>
+    articleElement.innerHTML = `
+        <img src="${imageUrl}" alt="${article.title}" class="card-img" loading="lazy">
+        <div class="card-body">
+            <h3 class="card-title">${article.title}</h3>
+            <p class="card-text">${decodeContentImages(article.content).substring(0, 150)}...</p>
+            <div class="card-meta">
+                <span class="card-date">
+                    <i class="fas fa-calendar"></i>
+                    ${formatDate(article.date || article.createdAt)}
+                </span>
+                <span class="card-category">
+                    <i class="fas fa-tag"></i>
+                    ${getFriendlyCategoryName(article.category)}
+                </span>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-primary" onclick="viewDetail('article', '${article.id}')">
+                    <i class="fas fa-eye"></i>
+                    阅读全文
+                </button>
+                <button class="btn btn-secondary" onclick="shareContent('article', '${article.id}', '${article.title}')">
+                    <i class="fas fa-share"></i>
+                </button>
+            </div>
         </div>
     `;
-    
-    // 组装卡片
-    articleElement.appendChild(img);
-    articleElement.appendChild(cardBody);
-    
-    // 添加加载状态处理
-    articleElement.addEventListener('mouseenter', function() {
-        // 预加载相关图片
-        if (article.images && article.images.length > 0) {
-            article.images.slice(0, 2).forEach(imgData => {
-                if (imgData.url) {
-                    const preloadImg = new Image();
-                    preloadImg.src = decodeHtmlEntities(imgData.url);
-                }
-            });
-        }
-    });
     
     return articleElement;
 }
@@ -649,21 +617,21 @@ function createAlbumCard(album, index) {
     const images = album.images || [];
     const imageCount = album.imageCount || images.length || 0;
     
-    // 创建懒加载的轮播图片
-    const carouselImages = images.slice(0, 5).map(img => {
-        const lazyImg = createLazyImage(decodeHtmlEntities(img.url), img.title || album.title, 'carousel-image');
-        return lazyImg.outerHTML;
-    }).join('');
-    
-    const carouselIndicators = images.slice(0, 5).map((_, i) =>
-        `<span class="carousel-indicator ${i === 0 ? 'active' : ''}" onclick="changeCarouselImage(this, ${i}, event)" role="button" tabindex="0" aria-label="显示第${i + 1}张图片"></span>`
+    // 创建图片轮播
+    const carouselImages = images.slice(0, 5).map(img => 
+        `<img src="${decodeHtmlEntities(img.url)}" alt="${img.title || album.title}" class="carousel-image" loading="lazy">`
     ).join('');
     
-    // 创建懒加载的预览图片网格
-    const previewImages = images.slice(0, 4).map(img => {
-        const lazyImg = createLazyImage(decodeHtmlEntities(img.url), img.title || album.title);
-        return `<div class="album-preview-item">${lazyImg.outerHTML}</div>`;
-    }).join('');
+    const carouselIndicators = images.slice(0, 5).map((_, i) => 
+        `<span class="carousel-indicator ${i === 0 ? 'active' : ''}" onclick="changeCarouselImage(this, ${i}, event)"></span>`
+    ).join('');
+    
+    // 创建预览图片网格
+    const previewImages = images.slice(0, 4).map(img => 
+        `<div class="album-preview-item">
+            <img src="${decodeHtmlEntities(img.url)}" alt="${img.title || album.title}" loading="lazy">
+        </div>`
+    ).join('');
     
     albumElement.innerHTML = `
         <div class="album-card-inner">
@@ -671,16 +639,16 @@ function createAlbumCard(album, index) {
             <div class="album-card-front">
                 <div class="card-image-carousel">
                     <div class="carousel-images" data-current="0">
-                        ${carouselImages.length > 0 ? carouselImages : createLazyImage(decodeHtmlEntities(imageUrl), album.title, 'carousel-image').outerHTML}
+                        ${carouselImages.length > 0 ? carouselImages : `<img src="${decodeHtmlEntities(imageUrl)}" alt="${album.title}" class="carousel-image" loading="lazy">`}
                     </div>
                     ${images.length > 1 ? `
-                        <button class="carousel-nav prev" onclick="changeCarouselImage(this, -1, event)" aria-label="上一张图片">
+                        <button class="carousel-nav prev" onclick="changeCarouselImage(this, -1, event)">
                             <i class="fas fa-chevron-left"></i>
                         </button>
-                        <button class="carousel-nav next" onclick="changeCarouselImage(this, 1, event)" aria-label="下一张图片">
+                        <button class="carousel-nav next" onclick="changeCarouselImage(this, 1, event)">
                             <i class="fas fa-chevron-right"></i>
                         </button>
-                        <div class="carousel-indicators" role="tablist" aria-label="图片指示器">
+                        <div class="carousel-indicators">
                             ${carouselIndicators}
                         </div>
                     ` : ''}
@@ -717,11 +685,11 @@ function createAlbumCard(album, index) {
                     </div>
                 </div>
                 <div class="album-actions">
-                    <button class="album-action-btn" onclick="viewDetail('album', '${album.id}'); event.stopPropagation();" aria-label="查看相册：${album.title}">
+                    <button class="album-action-btn" onclick="viewDetail('album', '${album.id}'); event.stopPropagation();">
                         <i class="fas fa-eye"></i>
                         查看相册
                     </button>
-                    <button class="album-action-btn" onclick="shareContent('album', '${album.id}', '${album.title}'); event.stopPropagation();" aria-label="分享相册：${album.title}">
+                    <button class="album-action-btn" onclick="shareContent('album', '${album.id}', '${album.title}'); event.stopPropagation();">
                         <i class="fas fa-share"></i>
                         分享
                     </button>
@@ -733,8 +701,8 @@ function createAlbumCard(album, index) {
     // 添加点击效果和导航
     albumElement.addEventListener('click', function(e) {
         // 如果点击的是导航按钮或指示器，不进行页面跳转
-        if (!e.target.closest('.carousel-nav') &&
-            !e.target.closest('.carousel-indicator') &&
+        if (!e.target.closest('.carousel-nav') && 
+            !e.target.closest('.carousel-indicator') && 
             !e.target.closest('.album-action-btn')) {
             
             this.classList.add('clicked');
@@ -745,103 +713,31 @@ function createAlbumCard(album, index) {
         }
     });
     
-    // 添加键盘支持
-    albumElement.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            viewDetail('album', album.id);
-        }
-    });
-    
-    // 设置可访问性属性
-    albumElement.setAttribute('tabindex', '0');
-    albumElement.setAttribute('role', 'button');
-    albumElement.setAttribute('aria-label', `查看相册：${album.title}，包含${imageCount}张图片`);
-    
     return albumElement;
 }
 
 // 分享内容
-async function shareContent(type, id, title) {
-    const url = type === 'article'
+function shareContent(type, id, title) {
+    const url = type === 'article' 
         ? `${window.location.origin}/article-detail.html?id=${id}`
         : `${window.location.origin}/album-detail.html?id=${id}`;
     
-    try {
-        if (navigator.share) {
-            await navigator.share({
-                title: title,
-                url: url,
-                text: `查看这个精彩的${type === 'article' ? '文章' : '相册'}：${title}`
-            });
-            
-            feedbackSystem.showToast('分享成功', 'success');
-        } else {
-            // 复制到剪贴板
-            await navigator.clipboard.writeText(url);
-            
-            feedbackSystem.showNotification(
-                '链接已复制到剪贴板，您可以粘贴分享给朋友',
-                'success',
-                {
-                    title: '复制成功',
-                    icon: 'fas fa-copy',
-                    duration: 3000
-                }
-            );
-        }
-    } catch (error) {
-        console.error('分享失败:', error);
-        
-        // 如果分享失败，尝试复制到剪贴板
-        try {
-            await navigator.clipboard.writeText(url);
-            feedbackSystem.showNotification(
-                '分享功能不可用，但链接已复制到剪贴板',
-                'info',
-                {
-                    title: '已复制链接',
-                    duration: 3000
-                }
-            );
-        } catch (clipboardError) {
-            feedbackSystem.showNotification(
-                '分享功能暂时不可用，请手动复制链接',
-                'warning',
-                {
-                    title: '分享失败',
-                    actions: [
-                        {
-                            text: '查看链接',
-                            primary: true,
-                            handler: () => {
-                                prompt('请复制以下链接:', url);
-                            }
-                        }
-                    ]
-                }
-            );
-        }
-    }
-}
-
-// 显示统计数据骨架屏
-function showStatsSkeletonScreen() {
-    const statsContainer = document.querySelector('.welcome-stats');
-    if (statsContainer) {
-        const skeleton = loadingManager.createStatsSkeleton();
-        statsContainer.innerHTML = '';
-        statsContainer.appendChild(skeleton);
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            url: url
+        });
+    } else {
+        // 复制到剪贴板
+        navigator.clipboard.writeText(url).then(() => {
+            showNotification('链接已复制到剪贴板');
+        });
     }
 }
 
 // 加载内容
 async function loadContent() {
-    loadingManager.showLoading('content', '正在加载内容...');
-    
     try {
-        loadingManager.updateProgress(30);
-        
         const response = await fetch(`${API_BASE}/api/content`, {
             method: 'GET',
             headers: {
@@ -850,77 +746,28 @@ async function loadContent() {
             credentials: 'include'
         });
 
-        loadingManager.updateProgress(50);
-
         if (response.ok) {
             const content = await response.json();
             allContent = content;
-            
-            loadingManager.updateProgress(70);
-            
-            // 渲染内容
             renderContent(content);
             updateStats(content);
             updateNavigationBadges(content);
             
-            loadingManager.updateProgress(85);
-            
             // 加载并填充分类数据
             await loadAndPopulateCategories();
-            
-            loadingManager.updateProgress(95);
-            
-            // 延迟一点时间让用户看到完成状态
-            setTimeout(() => {
-                loadingManager.hideLoading('content');
-            }, 200);
-            
         } else {
             allContent = { articles: [], images: [] };
             renderContent(allContent);
             updateStats(allContent);
             updateNavigationBadges(allContent);
-            loadingManager.hideLoading('content');
-            feedbackSystem.showNotification(
-                '无法连接到服务器，请检查网络连接后重试',
-                'error',
-                {
-                    title: '加载失败',
-                    actions: [
-                        {
-                            text: '重试',
-                            primary: true,
-                            handler: () => loadContent()
-                        }
-                    ]
-                }
-            );
+            showNotification('加载内容失败，请稍后重试', false);
         }
     } catch (error) {
-        console.error('加载内容时出错:', error);
         allContent = { articles: [], images: [] };
         renderContent(allContent);
         updateStats(allContent);
         updateNavigationBadges(allContent);
-        loadingManager.hideLoading('content');
-        feedbackSystem.showNotification(
-            '网络连接异常，请检查您的网络设置',
-            'error',
-            {
-                title: '网络错误',
-                actions: [
-                    {
-                        text: '重试',
-                        primary: true,
-                        handler: () => loadContent()
-                    },
-                    {
-                        text: '刷新页面',
-                        handler: () => window.location.reload()
-                    }
-                ]
-            }
-        );
+        showNotification('网络错误，请检查网络连接', false);
     }
 }
 
@@ -1053,51 +900,36 @@ function renderArticles() {
     const container = document.getElementById('articles-container');
     if (!container) return;
     
-    const searchQuery = document.getElementById('articles-search')?.value?.toLowerCase() || '';
+    const searchQuery = document.getElementById('articles-search').value.toLowerCase();
     if (searchQuery) {
         searchAndRenderArticles(searchQuery);
         return;
     }
     
-    // 显示骨架屏
-    loadingManager.showContentSkeleton(container, 'article', 6);
+    container.innerHTML = '';
     
-    // 模拟加载延迟以展示骨架屏效果
-    setTimeout(() => {
-        let articles = sortData(allContent.articles || [], currentSort);
-        const displayCount = articlesDisplayed || itemsPerPage;
-        const articlesToShow = articles.slice(0, displayCount);
-        
-        if (articlesToShow.length > 0) {
-            const articleElements = articlesToShow.map((article, index) => {
-                return createArticleCard(article, index);
-            });
-            
-            // 隐藏骨架屏并显示内容
-            loadingManager.hideContentSkeleton(container, articleElements, true);
-            
-            // 初始化懒加载
-            setTimeout(() => {
-                loadingManager.observeImages(container);
-            }, 100);
-            
-        } else {
-            const emptyState = document.createElement('div');
-            emptyState.className = 'empty-state';
-            emptyState.innerHTML = `
-                <div class="empty-icon">📝</div>
-                <h3>暂无文章</h3>
-                <p>还没有发布任何文章</p>
-            `;
-            loadingManager.hideContentSkeleton(container, [emptyState], true);
-        }
-        
-        // 更新加载更多按钮
-        const loadMoreBtn = document.getElementById('load-more-articles');
-        if (loadMoreBtn) {
-            loadMoreBtn.style.display = displayCount < articles.length ? 'block' : 'none';
-        }
-    }, 500); // 500ms延迟展示骨架屏效果
+    let articles = sortData(allContent.articles || [], currentSort);
+    const displayCount = articlesDisplayed || itemsPerPage;
+    const articlesToShow = articles.slice(0, displayCount);
+    
+    if (articlesToShow.length > 0) {
+        articlesToShow.forEach((article, index) => {
+            const articleElement = createArticleCard(article, index);
+            container.appendChild(articleElement);
+        });
+    } else {
+        container.innerHTML = `<div class="empty-state">
+            <div class="empty-icon">📝</div>
+            <h3>暂无文章</h3>
+            <p>还没有发布任何文章</p>
+        </div>`;
+    }
+    
+    // 更新加载更多按钮
+    const loadMoreBtn = document.getElementById('load-more-articles');
+    if (loadMoreBtn) {
+        loadMoreBtn.style.display = displayCount < articles.length ? 'block' : 'none';
+    }
 }
 
 // 渲染相册
@@ -1105,52 +937,41 @@ function renderAlbums() {
     const container = document.getElementById('images-container');
     if (!container) return;
     
-    const searchQuery = document.getElementById('images-search')?.value?.toLowerCase() || '';
+    const searchQuery = document.getElementById('images-search').value.toLowerCase();
     if (searchQuery) {
         searchAndRenderAlbums(searchQuery);
         return;
     }
     
-    // 显示骨架屏
-    loadingManager.showContentSkeleton(container, 'album', 6);
+    container.innerHTML = '';
     
-    // 模拟加载延迟以展示骨架屏效果
-    setTimeout(() => {
-        let albums = sortData(allContent.images || [], currentSort);
-        const displayCount = imagesDisplayed || itemsPerPage;
-        const albumsToShow = albums.slice(0, displayCount);
+    let albums = sortData(allContent.images || [], currentSort);
+    const displayCount = imagesDisplayed || itemsPerPage;
+    const albumsToShow = albums.slice(0, displayCount);
+    
+    if (albumsToShow.length > 0) {
+        albumsToShow.forEach((album, index) => {
+            const albumElement = createAlbumCard(album, index);
+            container.appendChild(albumElement);
+        });
         
-        if (albumsToShow.length > 0) {
-            const albumElements = albumsToShow.map((album, index) => {
-                return createAlbumCard(album, index);
-            });
-            
-            // 隐藏骨架屏并显示内容
-            loadingManager.hideContentSkeleton(container, albumElements, true);
-            
-            // 初始化相册交互功能和懒加载
-            setTimeout(() => {
-                initAlbumInteractions();
-                loadingManager.observeImages(container);
-            }, 100);
-            
-        } else {
-            const emptyState = document.createElement('div');
-            emptyState.className = 'empty-state';
-            emptyState.innerHTML = `
-                <div class="empty-icon">🖼️</div>
-                <h3>暂无相册</h3>
-                <p>还没有创建任何相册</p>
-            `;
-            loadingManager.hideContentSkeleton(container, [emptyState], true);
-        }
-        
-        // 更新加载更多按钮
-        const loadMoreBtn = document.getElementById('load-more-images');
-        if (loadMoreBtn) {
-            loadMoreBtn.style.display = displayCount < albums.length ? 'block' : 'none';
-        }
-    }, 600); // 600ms延迟展示骨架屏效果
+        // 初始化相册交互功能
+        setTimeout(() => {
+            initAlbumInteractions();
+        }, 100);
+    } else {
+        container.innerHTML = `<div class="empty-state">
+            <div class="empty-icon">🖼️</div>
+            <h3>暂无相册</h3>
+            <p>还没有创建任何相册</p>
+        </div>`;
+    }
+    
+    // 更新加载更多按钮
+    const loadMoreBtn = document.getElementById('load-more-images');
+    if (loadMoreBtn) {
+        loadMoreBtn.style.display = displayCount < albums.length ? 'block' : 'none';
+    }
 }
 
 // 格式化日期
@@ -1302,44 +1123,23 @@ function shareImage() {
             } else {
                 // 复制到剪贴板
                 navigator.clipboard.writeText(imageUrl).then(() => {
-                    feedbackSystem.showToast('图片链接已复制到剪贴板', 'success');
+                    showNotification('图片链接已复制到剪贴板');
                 });
             }
         }
     } else {
-        feedbackSystem.showToast('无法分享图片', 'error');
+        showNotification('无法分享图片', false);
     }
 }
 
 // 退出登录
-async function logout() {
-    const confirmed = await feedbackSystem.showConfirm(
-        '确定要退出登录吗？退出后需要重新输入凭据才能访问管理功能。',
-        {
-            title: '确认退出',
-            confirmText: '退出登录',
-            cancelText: '取消',
-            type: 'warning'
-        }
-    );
-
-    if (confirmed) {
-        sessionStorage.removeItem('authToken');
-        sessionStorage.removeItem('userInfo');
-        
-        feedbackSystem.showNotification(
-            '已成功退出登录',
-            'success',
-            {
-                title: '退出成功',
-                duration: 2000
-            }
-        );
-        
-        setTimeout(() => {
-            window.location.reload();
-        }, 1000);
-    }
+function logout() {
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('userInfo');
+    showNotification('已退出登录');
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
 }
 
 // showNotification函数已在app.js中定义
@@ -1526,30 +1326,23 @@ function addTouchSupport() {
     });
 }
 
-// 初始化改进的延迟加载
-function initImprovedLazyLoading() {
-    // 使用加载管理器的懒加载功能
-    loadingManager.observeImages();
-    
-    // 预加载关键图片
-    const criticalImages = [
-        { type: 'image', url: 'assets/logo/ed3ac818-534b-4963-b114-b814a0a43304 (1).png' }
-    ];
-    
-    loadingManager.preloadCriticalResources(criticalImages).then(() => {
-        console.log('关键资源预加载完成');
+// 延迟加载图片
+function lazyLoadImages() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                const src = img.dataset.src;
+                if (src) {
+                    img.src = src;
+                    img.removeAttribute('data-src');
+                    observer.unobserve(img);
+                }
+            }
+        });
     });
-}
-
-// 改进的图片创建函数，支持懒加载
-function createLazyImage(src, alt, className = '') {
-    const img = document.createElement('img');
-    img.className = `lazy-loading ${className}`;
-    img.alt = alt;
-    img.dataset.src = src;
     
-    // 设置占位符
-    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuWKoOi9veS4rS4uLjwvdGV4dD48L3N2Zz4=';
-    
-    return img;
+    document.querySelectorAll('[data-src]').forEach(img => {
+        observer.observe(img);
+    });
 }

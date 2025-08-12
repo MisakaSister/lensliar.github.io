@@ -513,7 +513,7 @@ nav {
     font-size: 0.9rem;
 }
 
-/* 响应式设计（保留通用，不含 TinyMCE） */
+/* 响应式设计 */
 @media (max-width: 768px) {
     .admin-header {
         flex-direction: column;
@@ -524,16 +524,16 @@ nav {
     .admin-actions {
         flex-direction: column;
         width: 100%;
-    }
+}
 
     .tab-buttons {
         flex-direction: column;
         gap: 10px;
-    }
+}
 
     .admin-container .content-grid {
         grid-template-columns: 1fr;
-    }
+}
 
     .modal-content {
         width: 95%;
@@ -546,7 +546,46 @@ nav {
     }
 }
 
-/* TinyMCE 样式已集中到 assets/css/tinymce-custom.css */
+@media (max-width: 480px) {
+    .admin-container {
+        padding: 10px;
+    }
+    
+    .admin-header {
+        padding: 20px;
+    }
+    
+    .content-tabs {
+        padding: 20px;
+    }
+    
+    .search-box {
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .stats-bar {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .pagination {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .pagination-btn {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+}
+
+    .pagination-info {
+        width: 100%;
+        text-align: center;
+        margin: 10px 0 0 0;
+    }
+}
 
 /* 加载动画 */
 .loading {
@@ -611,6 +650,32 @@ nav {
     line-height: 1.6;
     color: #6c757d;
     font-size: 1rem;
+}
+
+.stats-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px 0;
+}
+
+.stats-info {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.search-box {
+    padding: 10px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 25px;
+    width: 250px;
+    font-size: 0.9rem;
+}
+
+.search-box:focus {
+    outline: none;
+    border-color: #667eea;
 }
 
 /* 通知样式 */
@@ -2779,30 +2844,246 @@ footer p {
     font-weight: 600;
 }
 
-/* TinyMCE 样式已集中至 assets/css/tinymce-custom.css（此处不再设定编辑器尺寸） */
+/* TinyMCE 编辑器样式 */
+.tinymce-editor {
+    min-height: 400px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
 
-/* TinyMCE 样式：容器尺寸等在 tinymce-custom.css 统一管理，这里移除高度/宽度强制规则 */
+/* TinyMCE 工具栏样式 */
+.tox-tinymce {
+    width: 100% !important;
+    min-height: 2000px !important;
+    height: 2000px !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow) !important;
+}
 
-/* 工具栏的配色也交由 tinymce-custom.css 统一管理，避免冲突 */
+.tox .tox-toolbar {
+    background: var(--background-secondary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    width: 100% !important;
+}
 
-/* 分组样式交由 tinymce-custom.css 控制 */
+.tox .tox-toolbar__group {
+    border-right: 1px solid var(--border-color) !important;
+}
 
-/* 按钮细节交由 tinymce-custom.css 控制 */
+.tox .tox-tbtn {
+    color: var(--text-primary) !important;
+}
 
-/* 内容区域样式交由 tinymce-custom.css 控制 */
+.tox .tox-tbtn:hover {
+    background: var(--primary) !important;
+    color: white !important;
+}
 
-/* 状态栏样式交由 tinymce-custom.css 控制 */
+.tox .tox-tbtn--enabled {
+    background: var(--primary) !important;
+    color: white !important;
+}
 
-/* 菜单与集合项样式交由 tinymce-custom.css 控制 */
+/* TinyMCE 内容区域样式 */
+.tox .tox-edit-area {
+    background: white !important;
+    width: 100% !important;
+    height: calc(100% - 40px) !important;
+}
 
-/* 对话框样式交由 tinymce-custom.css 控制 */
+.tox .tox-edit-area__iframe {
+    background: white !important;
+    width: 100% !important;
+    height: 100% !important;
+}
 
-/* 按钮样式交由 tinymce-custom.css 控制 */
+/* TinyMCE 状态栏样式 */
+.tox .tox-statusbar {
+    background: var(--background-secondary) !important;
+    border-top: 1px solid var(--border-color) !important;
+    color: var(--text-secondary) !important;
+}
 
-/* TinyMCE 响应式交由 tinymce-custom.css 控制 */
+/* TinyMCE 菜单样式 */
+.tox .tox-menubar {
+    background: var(--background-secondary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
 
-/* TinyMCE 暗色主题交由 tinymce-custom.css 控制 */
+.tox .tox-menu {
+    background: white !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow) !important;
+}
 
-/* TinyMCE 模态内适配交由 tinymce-custom.css 控制 */
+.tox .tox-collection__item {
+    color: var(--text-primary) !important;
+}
 
-/* TinyMCE 加载状态交由 tinymce-custom.css 控制 */
+.tox .tox-collection__item--active {
+    background: var(--primary) !important;
+    color: white !important;
+}
+
+/* TinyMCE 对话框样式 */
+.tox .tox-dialog {
+    background: white !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    box-shadow: var(--shadow-hover) !important;
+}
+
+.tox .tox-dialog__header {
+    background: var(--background-secondary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.tox .tox-dialog__footer {
+    background: var(--background-secondary) !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+
+/* TinyMCE 按钮样式 */
+.tox .tox-button {
+    background: var(--primary) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 8px 16px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+.tox .tox-button:hover {
+    background: var(--primary-hover) !important;
+    transform: translateY(-1px) !important;
+}
+
+.tox .tox-button--secondary {
+    background: var(--background-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.tox .tox-button--secondary:hover {
+    background: var(--border-color) !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .tinymce-editor {
+        min-height: 800px;
+    }
+    
+    .tox-tinymce {
+        min-height: 800px !important;
+        height: 800px !important;
+    }
+    
+    .tox .tox-toolbar__group {
+        padding: 4px !important;
+    }
+    
+    .tox .tox-tbtn {
+        padding: 6px !important;
+    }
+}
+
+/* 暗色主题支持 */
+.dark-theme .tinymce-editor {
+    background: var(--background-dark) !important;
+    color: var(--text-primary-dark) !important;
+}
+
+.dark-theme .tox-tinymce {
+    background: var(--background-dark) !important;
+    border-color: var(--border-color-dark) !important;
+}
+
+.dark-theme .tox .tox-toolbar {
+    background: var(--background-secondary-dark) !important;
+    border-color: var(--border-color-dark) !important;
+}
+
+.dark-theme .tox .tox-edit-area {
+    background: var(--background-dark) !important;
+}
+
+.dark-theme .tox .tox-edit-area__iframe {
+    background: var(--background-dark) !important;
+}
+
+.dark-theme .tox .tox-statusbar {
+    background: var(--background-secondary-dark) !important;
+    border-color: var(--border-color-dark) !important;
+    color: var(--text-secondary-dark) !important;
+}
+
+.dark-theme .tox .tox-menubar {
+    background: var(--background-secondary-dark) !important;
+    border-color: var(--border-color-dark) !important;
+}
+
+.dark-theme .tox .tox-menu {
+    background: var(--background-dark) !important;
+    border-color: var(--border-color-dark) !important;
+}
+
+.dark-theme .tox .tox-collection__item {
+    color: var(--text-primary-dark) !important;
+}
+
+.dark-theme .tox .tox-dialog {
+    background: var(--background-dark) !important;
+    border-color: var(--border-color-dark) !important;
+}
+
+.dark-theme .tox .tox-dialog__header {
+    background: var(--background-secondary-dark) !important;
+    border-color: var(--border-color-dark) !important;
+}
+
+.dark-theme .tox .tox-dialog__footer {
+    background: var(--background-secondary-dark) !important;
+    border-color: var(--border-color-dark) !important;
+}
+
+/* 确保编辑器在模态框中正确显示 */
+.modal .tinymce-editor {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.modal .tox-tinymce {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* 编辑器加载状态 */
+.tinymce-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-secondary);
+}
+
+.tinymce-loading .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-top: 2px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+} 
