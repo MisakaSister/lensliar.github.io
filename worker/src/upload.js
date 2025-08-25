@@ -56,9 +56,9 @@ export async function handleUpload(request, env) {
             });
         }
 
-        if (file.size > 10 * 1024 * 1024) { // 10MB限制
+        if (file.size > 5 * 1024 * 1024) { // 5MB限制
             return new Response(JSON.stringify({
-                error: "File size too large (max 10MB)"
+                error: "File size too large (max 5MB)"
             }), {
                 status: 400,
                 headers: {
