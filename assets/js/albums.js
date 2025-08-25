@@ -10,18 +10,68 @@ const itemsPerPage = 6;
 
 // 分类名称映射
 const categoryNameMap = {
-    'cat_article_1': '技术文章',
-    'cat_article_2': '生活随笔',
-    'cat_article_3': '学习笔记',
     'cat_album_1': '风景摄影',
-    'cat_album_2': '人物写真',
-    'cat_album_3': '生活记录'
+    'cat_album_2': '人像摄影',
+    'cat_album_3': '美食摄影',
+    'cat_album_4': '旅行记录',
+    'cat_album_5': '工作日常',
 };
 
 // 获取友好的分类名称
 function getFriendlyCategoryName(category) {
     if (!category) return '未分类';
     return categoryNameMap[category] || category;
+}
+
+// 动态更新SEO信息
+function updateSEOInfo(filter = '', search = '') {
+    let title = '相册集锦 - 创作空间';
+    let description = '浏览创作空间精美相册，记录美好瞬间，分享视觉盛宴，感受艺术魅力，激发创作灵感。';
+    
+    if (filter && filter !== '') {
+        const categoryName = getFriendlyCategoryName(filter);
+        title = `${categoryName}相册 - 创作空间`;
+        description = `浏览创作空间${categoryName}分类的精美相册，记录美好瞬间，分享视觉盛宴。`;
+    }
+    
+    if (search && search.trim() !== '') {
+        title = `"${search}"搜索结果 - 创作空间`;
+        description = `在创作空间中搜索"${search}"的结果，发现精美相册，感受视觉艺术魅力。`;
+    }
+    
+    // 更新页面标题
+    document.title = title;
+    
+    // 更新meta描述
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+        metaDescription.setAttribute('content', description);
+    }
+    
+    // 更新Open Graph标签
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    const ogDescription = document.querySelector('meta[property="og:description"]');
+    if (ogTitle) ogTitle.setAttribute('content', title);
+    if (ogDescription) ogDescription.setAttribute('content', description);
+    
+    // 更新Twitter Card标签
+    const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    const twitterDescription = document.querySelector('meta[name="twitter:description"]');
+    if (twitterTitle) twitterTitle.setAttribute('content', title);
+    if (twitterDescription) twitterDescription.setAttribute('content', description);
+    
+    // 更新canonical URL
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) {
+        let url = 'https://wengguodong.com/albums.html';
+        if (filter || search) {
+            const params = new URLSearchParams();
+            if (filter) params.append('filter', filter);
+            if (search) params.append('search', search);
+            url += '?' + params.toString();
+        }
+        canonical.setAttribute('href', url);
+    }
 }
 
 // 初始化页面
@@ -48,6 +98,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 500);
         }
     }, 800);
+    
+    // 检查URL参数并更新SEO
+    const urlParams = new URLSearchParams(window.location.search);
+    const filter = urlParams.get('filter');
+    const search = urlParams.get('search');
+    if (filter || search) {
+        updateSEOInfo(filter, search);
+    }
 });
 
 // 检查认证状态
