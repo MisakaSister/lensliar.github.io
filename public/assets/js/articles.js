@@ -27,6 +27,57 @@ function getFriendlyCategoryName(category) {
     return categoryNameMap[category] || category;
 }
 
+// 动态更新SEO信息
+function updateSEOInfo(filter = '', search = '') {
+    let title = '文章精选 - 创作空间';
+    let description = '浏览创作空间精选文章，涵盖各种主题和分类，发现优质内容，启发创意思维，提升知识储备。';
+    
+    if (filter && filter !== '') {
+        const categoryName = getFriendlyCategoryName(filter);
+        title = `${categoryName}文章 - 创作空间`;
+        description = `浏览创作空间${categoryName}分类的精选文章，发现优质内容，启发创意思维。`;
+    }
+    
+    if (search && search.trim() !== '') {
+        title = `"${search}"搜索结果 - 创作空间`;
+        description = `在创作空间中搜索"${search}"的结果，发现相关内容，启发创意思维。`;
+    }
+    
+    // 更新页面标题
+    document.title = title;
+    
+    // 更新meta描述
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+        metaDescription.setAttribute('content', description);
+    }
+    
+    // 更新Open Graph标签
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    const ogDescription = document.querySelector('meta[property="og:description"]');
+    if (ogTitle) ogTitle.setAttribute('content', title);
+    if (ogDescription) ogDescription.setAttribute('content', description);
+    
+    // 更新Twitter Card标签
+    const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    const twitterDescription = document.querySelector('meta[name="twitter:description"]');
+    if (twitterTitle) twitterTitle.setAttribute('content', title);
+    if (twitterDescription) twitterDescription.setAttribute('content', description);
+    
+    // 更新canonical URL
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) {
+        let url = 'https://wengguodong.com/articles.html';
+        if (filter || search) {
+            const params = new URLSearchParams();
+            if (filter) params.append('filter', filter);
+            if (search) params.append('search', search);
+            url += '?' + params.toString();
+        }
+        canonical.setAttribute('href', url);
+    }
+}
+
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
     // 检查是否已登录并验证token有效性
@@ -51,6 +102,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 500);
         }
     }, 800);
+    
+    // 检查URL参数并更新SEO
+    const urlParams = new URLSearchParams(window.location.search);
+    const filter = urlParams.get('filter');
+    const search = urlParams.get('search');
+    if (filter || search) {
+        updateSEOInfo(filter, search);
+    }
 });
 
 // 检查认证状态

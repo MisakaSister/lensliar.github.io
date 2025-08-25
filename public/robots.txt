@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+
+# 允许所有搜索引擎爬虫访问
+# 建议爬取频率
+Crawl-delay: 1
+
+# 站点地图位置
+Sitemap: https://wengguodong.com/sitemap.xml
+
+# 禁止访问管理页面
+Disallow: /admin.html
+Disallow: /album-admin.html
+Disallow: /article-admin.html
+Disallow: /article-edit.html
+Disallow: /login.html
+
+# 允许访问静态资源
+Allow: /assets/
+Allow: /assets/css/
+Allow: /assets/js/
+Allow: /assets/logo/
