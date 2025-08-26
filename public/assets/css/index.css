@@ -31,13 +31,6 @@
     align-items: center;
     justify-content: center;
     z-index: 9999;
-    opacity: 1;
-    transition: opacity 0.5s ease-out;
-}
-
-.page-loading.hide {
-    opacity: 0;
-    pointer-events: none;
 }
 
 .loading-content {
@@ -56,9 +49,8 @@
 }
 
 .loading-text {
-    font-size: 1.2rem;
-    font-weight: 500;
-    opacity: 0.9;
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
 /* 欢迎区域样式 */
