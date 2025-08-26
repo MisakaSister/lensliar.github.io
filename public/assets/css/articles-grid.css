@@ -298,6 +298,177 @@ a:any-link {
     }
 }
 
+/* 修复分类和排序控件样式 */
+.content-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.controls-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+}
+
+.controls-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.search-container {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+}
+
+.search-container i {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 16px 12px 48px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 1rem;
+    background: white;
+    transition: var(--transition);
+    outline: none;
+}
+
+.search-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.filter-container,
+.sort-container {
+    position: relative;
+}
+
+.filter-select,
+.sort-select {
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+    outline: none;
+    min-width: 140px;
+    transition: var(--transition);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+.filter-select:focus,
+.sort-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.filter-select option,
+.sort-select option {
+    padding: 8px 12px;
+    background: white;
+    color: var(--text-primary);
+}
+
+/* 修复加载更多按钮样式 */
+.load-more-section {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px 0;
+}
+
+.btn-load-more {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+}
+
+.btn-load-more:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+}
+
+.btn-load-more:active {
+    transform: translateY(0);
+}
+
+.btn-load-more i {
+    font-size: 1rem;
+}
+
+/* 响应式修复 */
+@media (max-width: 768px) {
+    .content-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+    
+    .controls-left,
+    .controls-right {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .search-container {
+        max-width: none;
+    }
+    
+    .filter-select,
+    .sort-select {
+        width: 100%;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .controls-left,
+    .controls-right {
+        gap: 12px;
+    }
+    
+    .search-input,
+    .filter-select,
+    .sort-select {
+        padding: 10px 14px;
+        font-size: 0.95rem;
+    }
+    
+    .btn-load-more {
+        padding: 14px 24px;
+        font-size: 1rem;
+    }
+}
+
 /* 加载状态 */
 .loading {
     text-align: center;
@@ -318,30 +489,4 @@ a:any-link {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-}
-
-/* 加载更多按钮 */
-.load-more-section {
-    text-align: center;
-    margin-top: 40px;
-}
-
-.btn-load-more {
-    background: var(--gradient-secondary);
-    color: white;
-    padding: 14px 28px;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.btn-load-more:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(240, 147, 251, 0.4);
 } 
