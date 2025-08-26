@@ -11,9 +11,12 @@
 
 /* 覆盖body样式仅在管理页面 */
 body.admin-page {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    background: url('../img/R-C1.jpg') no-repeat center center fixed !important;
+    background-size: cover !important;
+    background-position: center !important;
     min-height: 100vh;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: rgba(255, 255, 255, 0.95);
 }
 
 /* 导航栏样式 */
@@ -66,12 +69,13 @@ nav {
 }
 
 .admin-header {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
     border-radius: 20px;
     padding: 30px;
     margin-bottom: 30px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -80,7 +84,7 @@ nav {
 .admin-title {
     font-size: 2rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: rgba(255, 255, 255, 0.95);
     margin: 0;
 }
 

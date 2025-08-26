@@ -22,10 +22,12 @@
 
 /* 页面背景 */
 html {
-    background: var(--primary-gradient);
+    background: url('../img/R-C1.jpg') no-repeat center center fixed;
+    background-size: cover;
+    background-position: center;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
-    color: #2c3e50;
+    color: rgba(255, 255, 255, 0.95);
 }
 
 /* 链接样式 */
@@ -53,11 +55,11 @@ a:any-link {
     --preview--h: 280px;
     --content-padding: 20px;
     
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
     border-radius: var(--border-radius);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: var(--shadow-light);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     position: relative;
     transition: var(--transition);
@@ -66,7 +68,8 @@ a:any-link {
 
 .grid--item:hover {
     transform: translateY(-8px);
-    box-shadow: var(--shadow-heavy);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 /* 预览容器 */

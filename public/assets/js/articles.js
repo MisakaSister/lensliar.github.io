@@ -426,7 +426,7 @@ function createArticleCard(article, index) {
     
     articleElement.innerHTML = `
         <div class="preview--container">
-            <a href="#" class="preview-image--container" onclick="viewArticleDetail('${article.id}'); return false;">
+            <a href="article-detail.html?id=${article.id}" class="preview-image--container">
                 <div class="preview-image" style="background-image: url('${imageUrl}')"></div>
             </a>
             
@@ -447,7 +447,7 @@ function createArticleCard(article, index) {
         
         <div class="content--container">
             <h3 class="article--title">
-                <a href="#" onclick="viewArticleDetail('${article.id}'); return false;">${article.title}</a>
+                <a href="article-detail.html?id=${article.id}">${article.title}</a>
             </h3>
             
             <div class="article--excerpt">${excerpt}</div>
@@ -471,7 +471,7 @@ function createArticleCard(article, index) {
                 ${tags.join('')}
             </div>
             
-            <a href="#" class="read-more" onclick="viewArticleDetail('${article.id}'); return false;">
+            <a href="article-detail.html?id=${article.id}" class="read-more">
                 阅读全文
                 <i class="fas fa-arrow-right"></i>
             </a>

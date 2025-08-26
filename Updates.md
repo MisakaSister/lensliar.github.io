@@ -152,3 +152,97 @@
 - 所有按钮样式统一，符合整体设计风格
 - 响应式设计优化，移动端体验良好
 - 整体页面布局更加清晰和专业
+
+---
+
+# 项目更新记录
+
+## 2024-12-19 文章列表样式优化
+
+### 修改内容
+- **articles.html**: 调整文章列表布局结构，改为列表形式
+- **article-admin.html**: 调整文章管理页面布局结构
+- **articles-grid.css**: 实现列表布局样式，图片左侧，内容右侧
+- **admin.css**: 实现文章管理页面的列表布局样式
+- **articles.js**: 修改文章卡片生成函数，支持列表布局
+- **article-admin.js**: 修改管理页面文章卡片生成函数
+
+### 技术细节
+- 使用Flexbox实现左右布局
+- 图片容器固定宽度280px，高度200px
+- 内容区域弹性布局，自动填充剩余空间
+- 响应式设计，移动端自动切换为垂直布局
+- 添加阅读时间计算功能
+
+---
+
+## 2024-12-19 背景图和玻璃质感样式优化
+
+### 修改内容
+- **articles-grid.css**: 设置R-C1.jpg作为页面背景图
+- **articles-grid.css**: 移除渐变背景，应用玻璃质感UI
+- **articles-grid.css**: 优化颜色和透明度设置
+- **articles-grid.css**: 添加交互效果和悬停状态
+- **articles-grid.css**: 修复图片居中问题
+
+### 技术细节
+- 背景图：`background: url('../img/R-C1.jpg') no-repeat center center fixed`
+- 玻璃质感：`backdrop-filter: blur(20px)` + 半透明背景
+- CSS变量管理：`--glass-bg`, `--glass-border`, `--glass-shadow`
+- 图片居中：`background-position: center center` + `object-position: center center`
+
+---
+
+## 2024-12-19 图片居中问题修复
+
+### 修改内容
+- **articles-grid.css**: 修复背景图片居中问题
+- **articles-grid.css**: 修复文章图片居中问题
+- **articles-grid.css**: 移除鼠标悬停时的三个按钮
+- **articles.js**: 优化链接跳转功能
+
+### 技术细节
+- 背景图片：添加 `background-position: center`
+- 文章图片：添加 `object-position: center center`
+- 悬停按钮：使用 `display: none !important` 完全隐藏
+- 链接优化：所有链接直接跳转到文章详情页
+
+---
+
+## 2024-12-19 全站背景图和玻璃材质样式统一
+
+### 修改内容
+- **style.css**: 添加玻璃材质CSS变量，修改全局样式
+- **style.css**: 为所有页面添加R-C1.jpg背景图
+- **style.css**: 导航栏、按钮、卡片等元素应用玻璃质感
+- **index.css**: 首页欢迎区域应用玻璃质感样式
+- **admin.css**: 管理页面应用背景图和玻璃质感
+- **login.css**: 登录页面应用背景图和玻璃质感
+- **albums-grid.css**: 相册页面应用背景图和玻璃质感
+- **detail.css**: 详情页面应用背景图和玻璃质感
+
+### 技术细节
+- 全局背景：`background: url('../img/R-C1.jpg') no-repeat center center fixed`
+- 玻璃质感：`backdrop-filter: blur(20px)` + `rgba(255, 255, 255, 0.15)`
+- 统一变量：`--glass-bg`, `--glass-border`, `--glass-shadow`, `--text-on-glass`
+- 颜色优化：所有文字颜色调整为适合玻璃质感的白色半透明
+- 响应式：保持所有页面的响应式设计特性
+
+### 影响范围
+- 首页 (index.html)
+- 文章列表页 (articles.html)
+- 文章详情页 (article-detail.html)
+- 文章管理页 (article-admin.html)
+- 文章编辑页 (article-edit.html)
+- 相册页面 (albums.html)
+- 相册详情页 (album-detail.html)
+- 相册管理页 (album-admin.html)
+- 管理后台 (admin.html)
+- 登录页面 (login.html)
+
+### 视觉效果
+- 统一的背景图片体验
+- 现代化的玻璃质感UI设计
+- 一致的视觉风格和交互效果
+- 优雅的透明度和模糊效果
+- 专业的视觉层次和深度感
