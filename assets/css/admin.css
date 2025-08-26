@@ -108,33 +108,42 @@ nav {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .btn-success {
-    background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
-    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .btn-success:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .btn-danger:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .content-tabs {
@@ -198,12 +207,13 @@ nav {
 
 /* 文章列表项样式 */
 .article-list-item {
-    background: white;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
     border-radius: 16px;
     padding: 20px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
-    border: 1px solid #e9ecef;
+    border: 1px solid rgba(255, 255, 255, 0.25);
     display: flex;
     align-items: center;
     gap: 20px;
@@ -212,6 +222,7 @@ nav {
 .article-list-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 /* 文章封面图 */
@@ -221,12 +232,14 @@ nav {
     border-radius: 12px;
     object-fit: cover;
     flex-shrink: 0;
-    background: #f8f9fa;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #6c757d;
+    color: rgba(255, 255, 255, 0.7);
     font-size: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .article-cover img {
@@ -245,7 +258,7 @@ nav {
 .article-title {
     font-size: 1.2rem;
     font-weight: 600;
-    color: #2c3e50;
+    color: rgba(255, 255, 255, 0.95);
     margin: 0 0 8px 0;
     line-height: 1.4;
     display: -webkit-box;
@@ -255,7 +268,7 @@ nav {
 }
 
 .article-excerpt {
-    color: #495057;
+    color: rgba(255, 255, 255, 0.8);
     line-height: 1.6;
     margin-bottom: 12px;
     display: -webkit-box;
@@ -269,7 +282,7 @@ nav {
     display: flex;
     gap: 16px;
     font-size: 0.85rem;
-    color: #6c757d;
+    color: rgba(255, 255, 255, 0.7);
 }
 
 .article-meta span {
@@ -305,32 +318,38 @@ nav {
 }
 
 .action-btn.edit {
-    background: #667eea;
-    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .action-btn.edit:hover {
-    background: #5a6fd8;
+    background: rgba(255, 255, 255, 0.3);
     transform: translateY(-1px);
 }
 
 .action-btn.delete {
-    background: #dc3545;
-    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .action-btn.delete:hover {
-    background: #c82333;
+    background: rgba(255, 255, 255, 0.3);
     transform: translateY(-1px);
 }
 
 .action-btn.view {
-    background: #28a745;
-    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .action-btn.view:hover {
-    background: #218838;
+    background: rgba(255, 255, 255, 0.3);
     transform: translateY(-1px);
 }
 
@@ -1284,7 +1303,8 @@ footer p {
 }
 
 .management-card {
-    background: var(--card-bg);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
     border-radius: 16px;
     padding: 2rem;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -1292,12 +1312,13 @@ footer p {
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .management-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .management-card .card-icon {
@@ -1309,11 +1330,11 @@ footer p {
 .management-card h3 {
     font-size: 1.5rem;
     margin-bottom: 0.5rem;
-    color: var(--text-color);
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .management-card p {
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.8);
     margin-bottom: 1.5rem;
     line-height: 1.6;
 }
@@ -1329,7 +1350,7 @@ footer p {
     align-items: center;
     gap: 0.5rem;
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.7);
 }
 
 .card-features .feature i {
@@ -1342,13 +1363,13 @@ footer p {
     top: 2rem;
     right: 2rem;
     font-size: 1.2rem;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.6);
     transition: all 0.3s ease;
 }
 
 .management-card:hover .card-arrow {
     transform: translateX(8px);
-    color: var(--primary-color);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 /* 快速统计 */
@@ -1361,11 +1382,12 @@ footer p {
 }
 
 .quick-stats .stats-card {
-    background: var(--card-bg);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -1373,25 +1395,25 @@ footer p {
 
 .quick-stats .stats-icon {
     font-size: 2rem;
-    color: var(--primary-color);
+    color: rgba(255, 255, 255, 0.9);
     width: 60px;
     height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--primary-bg);
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 12px;
 }
 
 .quick-stats .stats-info h4 {
     margin: 0 0 0.5rem 0;
-    color: var(--text-color);
+    color: rgba(255, 255, 255, 0.95);
     font-size: 1rem;
 }
 
 .quick-stats .stats-info p {
     margin: 0;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.8);
     font-size: 0.9rem;
     line-height: 1.4;
 }
@@ -1399,7 +1421,7 @@ footer p {
 .stats-number {
     font-size: 1.5rem;
     font-weight: bold;
-    color: var(--primary-color);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 /* 内容区域样式 */
@@ -1431,17 +1453,19 @@ footer p {
 
 .filter-select {
     padding: 0.5rem 1rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 8px;
-    background: var(--input-bg);
-    color: var(--text-color);
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
     font-size: 0.9rem;
     cursor: pointer;
+    backdrop-filter: blur(10px);
 }
 
 .filter-select:focus {
     outline: none;
-    border-color: var(--primary-color);
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 /* 内容网格 */
@@ -1453,17 +1477,19 @@ footer p {
 }
 
 .content-card {
-    background: var(--card-bg);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .content-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .card-image {
@@ -1511,9 +1537,11 @@ footer p {
     height: 40px;
     border: none;
     border-radius: 8px;
-    background: var(--primary-color);
-    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
     cursor: pointer;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
@@ -1907,14 +1935,16 @@ footer p {
 }
 
 .stats-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    color: rgba(255, 255, 255, 0.95);
     padding: 20px 25px;
     border-radius: 16px;
     display: flex;
     align-items: center;
     gap: 15px;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .stats-info {
@@ -1945,24 +1975,27 @@ footer p {
     left: 15px;
     top: 50%;
     transform: translateY(-50%);
-    color: #6c757d;
+    color: rgba(255, 255, 255, 0.7);
     z-index: 1;
 }
 
 .search-box {
     width: 100%;
     padding: 12px 15px 12px 45px;
-    border: 2px solid #e9ecef;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 12px;
     font-size: 0.95rem;
     transition: all 0.3s ease;
-    background: white;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .search-box:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .filter-controls {
@@ -1972,10 +2005,12 @@ footer p {
 
 .filter-select {
     padding: 12px 15px;
-    border: 2px solid #e9ecef;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 12px;
     font-size: 0.95rem;
-    background: white;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    color: rgba(255, 255, 255, 0.9);
     cursor: pointer;
     transition: all 0.3s ease;
     min-width: 140px;
@@ -1983,8 +2018,9 @@ footer p {
 
 .filter-select:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 /* 内容网格优化 */
@@ -1996,17 +2032,19 @@ footer p {
 }
 
 .content-card {
-    background: white;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
-    border: 1px solid #f8f9fa;
+    border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .content-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .card-image {
@@ -2054,18 +2092,20 @@ footer p {
     height: 40px;
     border-radius: 50%;
     border: none;
-    background: rgba(255, 255, 255, 0.9);
-    color: #495057;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: rgba(255, 255, 255, 0.9);
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .btn-action:hover {
-    background: white;
-    color: #667eea;
+    background: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.95);
     transform: scale(1.1);
 }
 
@@ -2706,20 +2746,23 @@ footer p {
     height: 50px;
     border: none;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    color: rgba(255, 255, 255, 0.9);
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.2rem;
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .quick-btn:hover {
     transform: translateY(-3px) scale(1.1);
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.3);
 }
 
 /* 通知样式优化 */
