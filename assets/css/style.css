@@ -23,6 +23,14 @@
     --hover-bg: rgba(102, 126, 234, 0.1);
     --border-color: #e9ecef;
     --bg-light: #f8f9fa;
+    
+    /* 玻璃材质样式变量 */
+    --glass-bg: rgba(255, 255, 255, 0.15);
+    --glass-border: rgba(255, 255, 255, 0.25);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --glass-shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.15);
+    --text-on-glass: rgba(255, 255, 255, 0.95);
+    --text-on-glass-secondary: rgba(255, 255, 255, 0.75);
 }
 
 * {
@@ -33,11 +41,13 @@
 }
 
 body {
-    background: var(--gradient-primary);
+    background: url('../img/R-C1.jpg') no-repeat center center fixed;
+    background-size: cover;
+    background-position: center;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    color: var(--dark);
+    color: var(--text-on-glass);
     line-height: 1.6;
 }
 
@@ -49,13 +59,15 @@ body {
 }
 
 header {
-    background-color: var(--primary);
-    color: white;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    color: var(--text-on-glass);
     padding: 15px 0;
-    box-shadow: var(--shadow);
+    box-shadow: var(--glass-shadow);
     position: sticky;
     top: 0;
     z-index: 100;
+    border-bottom: 1px solid var(--glass-border);
 }
 
 nav {
@@ -114,17 +126,21 @@ header .nav-links a:hover {
 }
 
 .nav-links a {
-    color: white;
+    color: var(--text-on-glass);
     text-decoration: none;
     font-weight: 500;
     padding: 8px 16px;
     border-radius: 12px;
     transition: var(--transition);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
 }
 
 .nav-links a:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
+    box-shadow: var(--glass-shadow-hover);
 }
 
 .page {
@@ -144,10 +160,11 @@ header .nav-links a:hover {
 
 .btn {
     display: inline-block;
-    background: var(--gradient-secondary);
-    color: white;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    color: var(--text-on-glass);
     padding: 12px 24px;
-    border: none;
+    border: 1px solid var(--glass-border);
     border-radius: 12px;
     cursor: pointer;
     font-size: 0.9rem;
@@ -155,11 +172,13 @@ header .nav-links a:hover {
     transition: var(--transition);
     text-align: center;
     text-decoration: none;
+    box-shadow: var(--glass-shadow);
 }
 
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+    box-shadow: var(--glass-shadow-hover);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .btn-block {
@@ -168,36 +187,46 @@ header .nav-links a:hover {
 }
 
 .btn-danger {
-    background: var(--gradient-accent);
+    background: rgba(255, 107, 107, 0.2);
+    backdrop-filter: blur(10px);
+    border-color: rgba(255, 107, 107, 0.3);
 }
 
 .btn-danger:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+    box-shadow: var(--glass-shadow-hover);
+    background: rgba(255, 107, 107, 0.3);
 }
 
 .btn-success {
-    background: var(--gradient-secondary);
+    background: rgba(78, 205, 196, 0.2);
+    backdrop-filter: blur(10px);
+    border-color: rgba(78, 205, 196, 0.3);
 }
 
 .btn-success:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+    box-shadow: var(--glass-shadow-hover);
+    background: rgba(78, 205, 196, 0.3);
 }
 
 .btn-primary {
-    background: var(--gradient-primary);
+    background: rgba(102, 126, 234, 0.2);
+    backdrop-filter: blur(10px);
+    border-color: rgba(102, 126, 234, 0.3);
+}
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    box-shadow: var(--glass-shadow-hover);
+    background: rgba(102, 126, 234, 0.3);
 }
 
 .page-title {
     text-align: center;
     margin: 20px 0 40px 0;
-    color: white;
+    color: var(--text-on-glass);
     font-size: 2.5rem;
     font-weight: 700;
     text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -211,19 +240,20 @@ header .nav-links a:hover {
 }
 
 .card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: var(--backdrop-blur);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
     border-radius: var(--border-radius);
     overflow: hidden;
-    box-shadow: var(--shadow);
+    box-shadow: var(--glass-shadow);
     transition: var(--transition);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--glass-border);
     animation: slideInUp 0.3s ease forwards;
 }
 
 .card:hover {
     transform: translateY(-8px);
-    box-shadow: var(--shadow-hover);
+    box-shadow: var(--glass-shadow-hover);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .card-img {
@@ -240,12 +270,12 @@ header .nav-links a:hover {
     font-size: 1.3rem;
     font-weight: 600;
     margin-bottom: 12px;
-    color: var(--primary);
+    color: var(--text-on-glass);
     line-height: 1.4;
 }
 
 .card-text {
-    color: #495057;
+    color: var(--text-on-glass-secondary);
     margin-bottom: 16px;
     line-height: 1.6;
     display: -webkit-box;
@@ -255,13 +285,13 @@ header .nav-links a:hover {
 }
 
 .card-date {
-    color: #6c757d;
+    color: var(--text-on-glass-secondary);
     font-size: 0.85rem;
     font-weight: 500;
 }
 
 .card-meta {
-    color: #6c757d;
+    color: var(--text-on-glass-secondary);
     font-size: 0.85rem;
     margin-bottom: 12px;
     display: flex;

@@ -5,14 +5,18 @@
     --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    --glass-bg: rgba(255, 255, 255, 0.1);
-    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-bg: rgba(255, 255, 255, 0.15);
+    --glass-border: rgba(255, 255, 255, 0.25);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --glass-shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.15);
     --shadow-light: 0 8px 32px rgba(0, 0, 0, 0.1);
     --shadow-medium: 0 15px 35px rgba(0, 0, 0, 0.1);
     --shadow-heavy: 0 20px 40px rgba(0, 0, 0, 0.15);
     --border-radius: 16px;
     --border-radius-large: 24px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --text-on-glass: rgba(255, 255, 255, 0.95);
+    --text-on-glass-secondary: rgba(255, 255, 255, 0.75);
 }
 
 /* 页面加载动画 */
@@ -59,13 +63,15 @@
 
 /* 欢迎区域样式 */
 .welcome-section {
-    background: var(--primary-gradient);
-    color: white;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    color: var(--text-on-glass);
     padding: 100px 0;
     text-align: center;
     margin-bottom: 60px;
     border-radius: var(--border-radius-large);
-    box-shadow: var(--shadow-heavy);
+    box-shadow: var(--glass-shadow);
+    border: 1px solid var(--glass-border);
     position: relative;
     overflow: hidden;
 }

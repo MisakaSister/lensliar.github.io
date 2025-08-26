@@ -10,7 +10,9 @@
 }
 
 body {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: url('../img/R-C1.jpg') no-repeat center center fixed;
+    background-size: cover;
+    background-position: center;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -42,12 +44,12 @@ body {
 }
 
 .login-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(15px);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
     border-radius: 24px;
     padding: 50px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     animation: slideInUp 0.8s ease;
     width: 100%;
 }
@@ -77,12 +79,12 @@ body {
 .login-title {
     font-size: 2rem;
     font-weight: 700;
-    color: var(--primary);
+    color: rgba(255, 255, 255, 0.95);
     margin-bottom: 10px;
 }
 
 .login-subtitle {
-    color: #6c757d;
+    color: rgba(255, 255, 255, 0.75);
     font-size: 1rem;
     margin: 0;
 }
@@ -97,7 +99,7 @@ body {
     gap: 8px;
     margin-bottom: 8px;
     font-weight: 600;
-    color: var(--primary);
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .form-label i {
