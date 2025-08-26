@@ -233,33 +233,34 @@ function createAlbumCard(album) {
     const coverImage = album.coverImage?.url || (images.length > 0 ? images[0].url : 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg');
     
     return `
-        <div class="content-card" data-id="${album.id}">
-            <div class="card-image">
+        <div class="album-grid-item" data-id="${album.id}">
+            <div class="album-cover">
                 <img src="${decodeHtmlEntities(coverImage)}" alt="${album.title}" loading="lazy">
-                <div class="card-overlay">
-                    <div class="card-actions">
-                        <button class="btn-action" onclick="editAlbum('${album.id}')" title="编辑">
+                <div class="album-overlay">
+                    <div class="album-actions">
+                        <button class="album-action-btn" onclick="editAlbum('${album.id}')" title="编辑">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-action" onclick="deleteAlbum('${album.id}')" title="删除">
+                        <button class="album-action-btn" onclick="deleteAlbum('${album.id}')" title="删除">
                             <i class="fas fa-trash"></i>
                         </button>
-                        <button class="btn-action" onclick="viewAlbum('${album.id}')" title="预览">
+                        <button class="album-action-btn" onclick="viewAlbum('${album.id}')" title="预览">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
                 </div>
-                ${images.length > 1 ? `<div class="image-count">${images.length} 张</div>` : ''}
+                ${images.length > 1 ? `<div class="album-image-count">${images.length} 张</div>` : ''}
             </div>
-            <div class="card-content">
-                <h3 class="card-title">${album.title}</h3>
-                <p class="card-text">${album.description || '暂无描述'}</p>
-                <div class="card-meta">
-                    <span class="card-category">
+            <div class="album-info">
+                <h3 class="album-title">${album.title}</h3>
+                <p class="album-description">${album.description || '暂无描述'}</p>
+                <div class="album-meta">
+                    <span class="album-category">
                         <i class="fas fa-tag"></i>
                         ${getFriendlyCategoryName(album.category)}
                     </span>
-                    <span class="card-date">
+                    <span class="meta-separator">•</span>
+                    <span class="album-date">
                         <i class="fas fa-calendar"></i>
                         ${formatDate(album.createdAt)}
                     </span>
