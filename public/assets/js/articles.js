@@ -406,65 +406,76 @@ function filterAndRenderArticles(category) {
     }
 }
 
-// 创建文章卡片
+// 创建文章卡片 - 列表形式
 function createArticleCard(article, index) {
     const articleElement = document.createElement('div');
-    articleElement.className = 'grid--cell';
+    articleElement.className = 'grid--item';
     articleElement.style.animationDelay = `${index * 0.1}s`;
     
     const imageUrl = article.coverImage?.url ? decodeHtmlEntities(article.coverImage.url) : 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg';
     
     // 获取文章摘要
     const contentText = decodeContentImages(article.content).replace(/<[^>]*>/g, '').trim();
-    const excerpt = contentText.length > 120 ? contentText.substring(0, 120) + '...' : contentText;
+    const excerpt = contentText.length > 150 ? contentText.substring(0, 150) + '...' : contentText;
     
     // 创建标签列表
     const tags = [];
     if (article.category) {
-        tags.push(`<li><a href="#" class="tag">${getFriendlyCategoryName(article.category)}</a></li>`);
+        tags.push(`<span class="article--tag">${getFriendlyCategoryName(article.category)}</span>`);
     }
-    tags.push(`<li><a href="#" class="tag">${formatDate(article.date || article.createdAt)}</a></li>`);
     
     articleElement.innerHTML = `
-        <article class="grid--item">
-            <div class="preview--container">
-                <a href="#" class="preview-image--container" onclick="viewArticleDetail('${article.id}'); return false;">
-                    <div class="preview-image" style="background-image: url('${imageUrl}')"></div>
+        <div class="preview--container">
+            <a href="#" class="preview-image--container" onclick="viewArticleDetail('${article.id}'); return false;">
+                <div class="preview-image" style="background-image: url('${imageUrl}')"></div>
+            </a>
+            
+            <div class="hover--options">
+                <a href="#" class="hover--option" onclick="viewArticleDetail('${article.id}'); return false;" title="阅读全文">
+                    <i class="fas fa-eye"></i>
                 </a>
-                <div class="meta--container">
-                    <a href="#" class="issue">文章</a>
-                    <a href="#" class="page">${getFriendlyCategoryName(article.category)}</a>
-                </div>
                 
-                <div class="hover--options">
-                    <a href="#" class="series button" onclick="viewArticleDetail('${article.id}'); return false;" title="阅读全文">
-                        <i class="fas fa-eye"></i>
-                    </a>
-                    
-                    <a href="#" class="latest button" onclick="shareArticle('${article.id}', '${article.title}'); return false;" title="分享文章">
-                        <i class="fas fa-share"></i>
-                    </a>
-                    
-                    <a href="#" class="follow button" onclick="viewArticleDetail('${article.id}'); return false;" title="查看文章">
-                        <i class="fas fa-newspaper"></i>
-                    </a>
-                </div>
+                <a href="#" class="hover--option" onclick="shareArticle('${article.id}', '${article.title}'); return false;" title="分享文章">
+                    <i class="fas fa-share"></i>
+                </a>
+                
+                <a href="#" class="hover--option" onclick="viewArticleDetail('${article.id}'); return false;" title="查看文章">
+                    <i class="fas fa-newspaper"></i>
+                </a>
+            </div>
+        </div>
+        
+        <div class="content--container">
+            <h3 class="article--title">
+                <a href="#" onclick="viewArticleDetail('${article.id}'); return false;">${article.title}</a>
+            </h3>
+            
+            <div class="article--excerpt">${excerpt}</div>
+            
+            <div class="article--meta">
+                <span>
+                    <i class="fas fa-calendar-alt"></i>
+                    ${formatDate(article.date || article.createdAt)}
+                </span>
+                <span>
+                    <i class="fas fa-folder"></i>
+                    ${getFriendlyCategoryName(article.category)}
+                </span>
+                <span>
+                    <i class="fas fa-clock"></i>
+                    ${getReadingTime(contentText)}分钟阅读
+                </span>
             </div>
             
-            <div class="content--container">
-                <div class="title--container">
-                    <a class="title--text" href="#" onclick="viewArticleDetail('${article.id}'); return false;">${article.title}</a>
-                </div>
-                
-                <div class="article-excerpt">${excerpt}</div>
-                
-                <div class="tags--overflow-container">
-                    <ul class="tags--container">
-                        ${tags.join('')}
-                    </ul>
-                </div>
+            <div class="article--tags">
+                ${tags.join('')}
             </div>
-        </article>
+            
+            <a href="#" class="read-more" onclick="viewArticleDetail('${article.id}'); return false;">
+                阅读全文
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
     `;
     
     return articleElement;
@@ -608,4 +619,12 @@ function formatDate(dateString) {
         console.error('formatDate: 日期格式化错误:', error, '原始值:', dateString);
         return '未知日期';
     }
+} 
+
+// 计算阅读时间
+function getReadingTime(text) {
+    const wordsPerMinute = 200;
+    const wordCount = text.trim().split(/\s+/).length;
+    const readingTime = Math.ceil(wordCount / wordsPerMinute);
+    return readingTime < 1 ? 1 : readingTime;
 } 

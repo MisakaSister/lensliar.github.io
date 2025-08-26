@@ -367,41 +367,52 @@ function renderArticles() {
     renderPagination(Math.ceil(filteredArticles.length / pageSize));
 }
 
-// 创建文章卡片
+// 创建文章卡片 - 列表形式
 function createArticleCard(article) {
     const imageUrl = article.coverImage?.url ? decodeHtmlEntities(article.coverImage.url) : 'https://images.wengguodong.com/images/1751426822812-c829f00f46b7dda6428d04330b57f890.jpg';
     
+    // 获取文章摘要
+    const contentText = decodeContentImages(article.content).replace(/<[^>]*>/g, '').trim();
+    const excerpt = contentText.length > 120 ? contentText.substring(0, 120) + '...' : contentText;
+    
     return `
-        <div class="content-card" data-id="${article.id}">
-            <div class="card-image">
+        <div class="article-list-item" data-id="${article.id}">
+            <div class="article-cover">
                 <img src="${imageUrl}" alt="${article.title}" loading="lazy">
-                <div class="card-overlay">
-                    <div class="card-actions">
-                        <button class="btn-action" onclick="editArticle('${article.id}')" title="编辑">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-action" onclick="deleteArticle('${article.id}')" title="删除">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                        <button class="btn-action" onclick="viewArticle('${article.id}')" title="预览">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
             </div>
-            <div class="card-content">
-                <h3 class="card-title">${article.title}</h3>
-                <p class="card-text">${decodeContentImages(article.content).substring(0, 100)}...</p>
-                <div class="card-meta">
-                    <span class="card-category">
-                        <i class="fas fa-tag"></i>
-                        ${getFriendlyCategoryName(article.category)}
-                    </span>
-                    <span class="card-date">
-                        <i class="fas fa-calendar"></i>
+            
+            <div class="article-info">
+                <h3 class="article-title">${article.title}</h3>
+                <div class="article-excerpt">${excerpt}</div>
+                <div class="article-meta">
+                    <span>
+                        <i class="fas fa-calendar-alt"></i>
                         ${formatDate(article.createdAt)}
                     </span>
+                    <span>
+                        <i class="fas fa-folder"></i>
+                        ${getFriendlyCategoryName(article.category)}
+                    </span>
+                    <span>
+                        <i class="fas fa-clock"></i>
+                        ${getReadingTime(contentText)}分钟阅读
+                    </span>
                 </div>
+            </div>
+            
+            <div class="article-actions">
+                <a href="#" class="action-btn view" onclick="viewArticle('${article.id}'); return false;" title="预览">
+                    <i class="fas fa-eye"></i>
+                    预览
+                </a>
+                <a href="#" class="action-btn edit" onclick="editArticle('${article.id}'); return false;" title="编辑">
+                    <i class="fas fa-edit"></i>
+                    编辑
+                </a>
+                <a href="#" class="action-btn delete" onclick="deleteArticle('${article.id}'); return false;" title="删除">
+                    <i class="fas fa-trash"></i>
+                    删除
+                </a>
             </div>
         </div>
     `;
@@ -883,4 +894,12 @@ function toggleTheme() {
         icon.classList.toggle('fa-moon', !isDark);
     }
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+
+// 计算阅读时间
+function getReadingTime(text) {
+    const wordsPerMinute = 200;
+    const wordCount = text.trim().split(/\s+/).length;
+    const readingTime = Math.ceil(wordCount / wordsPerMinute);
+    return readingTime < 1 ? 1 : readingTime;
 }
