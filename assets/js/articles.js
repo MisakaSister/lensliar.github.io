@@ -467,7 +467,7 @@ function createArticleCard(article, index) {
                 </span>
             </div>
             
-            <div class="article--tags">
+                        <div class="article--tags">
                 ${tags.join('')}
             </div>
             
