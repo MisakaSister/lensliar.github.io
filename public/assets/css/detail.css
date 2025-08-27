@@ -1,6 +1,6 @@
 /* detail.css - 现代化详情页面样式 */
 
-/* 根变量继承自index.css */
+/* 根变量 - 玻璃材质风格 */
 :root {
     --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
@@ -14,6 +14,10 @@
     --border-radius: 16px;
     --border-radius-large: 24px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --primary-color: #667eea;
+    --text-primary: #2c3e50;
+    --text-secondary: #6c757d;
+    --border-color: rgba(255, 255, 255, 0.3);
     --text-on-glass: rgba(255, 255, 255, 0.95);
     --text-on-glass-secondary: rgba(255, 255, 255, 0.75);
 }
@@ -51,6 +55,21 @@
     font-weight: 600;
 }
 
+/* 页面背景 - 使用R-C1.jpg作为背景图 */
+html {
+    background: url('../img/R-C1.jpg') no-repeat center center fixed;
+    background-size: cover;
+    background-position: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    color: var(--text-on-glass);
+}
+
+body {
+    background: transparent;
+    min-height: 100vh;
+}
+
 /* 背景装饰元素 */
 .page-background {
     position: fixed;
@@ -60,9 +79,6 @@
     height: 100%;
     pointer-events: none;
     z-index: -1;
-    background: url('../img/R-C1.jpg') no-repeat center center fixed;
-    background-size: cover;
-    background-position: center;
 }
 
 .floating-shapes {
@@ -109,15 +125,15 @@
     50% { transform: translateY(-30px) rotate(180deg); opacity: 1; }
 }
 
-/* 导航栏样式 */
+/* 导航栏样式 - 玻璃材质 */
 header {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--glass-bg);
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid var(--glass-border);
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: var(--shadow-light);
+    box-shadow: var(--glass-shadow);
 }
 
 nav {
@@ -135,7 +151,7 @@ nav {
     gap: 12px;
     font-size: 1.5rem;
     font-weight: 800;
-    color: var(--text-primary);
+    color: var(--text-on-glass);
     text-decoration: none;
 }
 
@@ -161,17 +177,20 @@ nav {
     border-radius: var(--border-radius);
     transition: var(--transition);
     text-decoration: none;
-    color: var(--text-secondary);
+    color: var(--text-on-glass);
     font-weight: 500;
     position: relative;
     overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
 }
 
 .nav-item:hover {
-    background: var(--glass-bg);
+    background: rgba(255, 255, 255, 0.2);
     color: var(--primary-color);
     transform: translateY(-2px);
-    box-shadow: var(--shadow-light);
+    box-shadow: var(--glass-shadow-hover);
 }
 
 .nav-item i {
@@ -243,14 +262,14 @@ nav {
     justify-content: flex-end;
 }
 
-/* 详情容器 */
+/* 详情容器 - 玻璃材质 */
 .detail-container {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--glass-bg);
     backdrop-filter: blur(20px);
     border-radius: var(--border-radius-large);
     padding: 50px;
-    box-shadow: var(--shadow-heavy);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: var(--glass-shadow);
+    border: 1px solid var(--glass-border);
     margin-bottom: 40px;
     position: relative;
     overflow: hidden;
@@ -290,10 +309,7 @@ nav {
     font-size: 2.8rem;
     font-weight: 800;
     margin-bottom: 20px;
-    background: var(--primary-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--text-on-glass);
     line-height: 1.2;
 }
 
@@ -301,7 +317,7 @@ nav {
     display: flex;
     justify-content: center;
     gap: 30px;
-    color: var(--text-secondary);
+    color: var(--text-on-glass-secondary);
     font-size: 1rem;
     flex-wrap: wrap;
 }
@@ -311,9 +327,11 @@ nav {
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background: rgba(102, 126, 234, 0.1);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
     border-radius: var(--border-radius);
     font-weight: 500;
+    border: 1px solid var(--glass-border);
 }
 
 .detail-meta i {
@@ -337,17 +355,17 @@ nav {
     box-shadow: var(--shadow-heavy);
 }
 
-/* 详情内容 */
+/* 详情内容 - 玻璃材质 */
 .detail-content {
     line-height: 1.8;
     font-size: 1.1rem;
-    color: var(--text-primary);
+    color: var(--text-on-glass);
     position: relative;
     z-index: 1;
 }
 
 .detail-content h1, .detail-content h2, .detail-content h3 {
-    color: var(--text-primary);
+    color: var(--text-on-glass);
     margin: 30px 0 15px 0;
     font-weight: 700;
 }
@@ -369,6 +387,7 @@ nav {
 .detail-content p {
     margin-bottom: 20px;
     text-align: justify;
+    color: var(--text-on-glass-secondary);
 }
 
 .detail-content img {
@@ -406,20 +425,21 @@ nav {
     margin: 20px 0;
 }
 
-/* 描述样式 */
+/* 描述样式 - 玻璃材质 */
 .detail-description {
-    background: rgba(102, 126, 234, 0.05);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
     padding: 30px;
     border-radius: var(--border-radius);
     margin: 30px 0;
-    border-left: 4px solid var(--primary-color);
+    border: 1px solid var(--glass-border);
 }
 
 .detail-description p {
     margin: 0;
     font-size: 1.1rem;
     line-height: 1.6;
-    color: var(--text-secondary);
+    color: var(--text-on-glass-secondary);
 }
 
 /* 相册网格 */
@@ -480,7 +500,7 @@ nav {
 .related-title {
     font-size: 2rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--text-on-glass);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -499,10 +519,12 @@ nav {
 }
 
 .related-item {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
     border-radius: var(--border-radius);
     overflow: hidden;
-    box-shadow: var(--shadow-light);
+    box-shadow: var(--glass-shadow);
+    border: 1px solid var(--glass-border);
     transition: var(--transition);
     cursor: pointer;
 }
@@ -526,11 +548,11 @@ nav {
     font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 8px;
-    color: var(--text-primary);
+    color: var(--text-on-glass);
 }
 
 .related-info p {
-    color: var(--text-secondary);
+    color: var(--text-on-glass-secondary);
     font-size: 0.9rem;
     line-height: 1.4;
     margin: 0;
