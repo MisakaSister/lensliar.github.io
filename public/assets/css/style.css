@@ -107,16 +107,20 @@ header .logo .logo-text {
     color: #fff !important;
 }
 
-/* 导航链接在header区域内保持白色，避免被index.css的.nav-item覆盖为灰/紫 */
+/* 导航链接在header区域内保持白色（兼容 a 与 .nav-item 两种写法） */
 header .nav-links a,
 header .nav-links a:link,
-header .nav-links a:visited {
+header .nav-links a:visited,
+header .nav-links .nav-item,
+header .nav-links .nav-item:link,
+header .nav-links .nav-item:visited {
     color: #fff !important;
     text-decoration: none;
 }
 
 /* 悬停时维持既有白色方案的悬停背景 */
-header .nav-links a:hover {
+header .nav-links a:hover,
+header .nav-links .nav-item:hover {
     background: rgba(255, 255, 255, 0.1);
 }
 
@@ -125,11 +129,12 @@ header .nav-links a:hover {
     gap: 20px;
 }
 
-.nav-links a {
+.nav-links a,
+.nav-links .nav-item {
     color: var(--text-on-glass);
     text-decoration: none;
     font-weight: 500;
-    padding: 8px 16px;
+    padding: 12px 20px; /* 统一高度与内边距，避免不平整 */
     border-radius: 12px;
     transition: var(--transition);
     background: rgba(255, 255, 255, 0.1);
@@ -137,10 +142,30 @@ header .nav-links a:hover {
     border: 1px solid var(--glass-border);
 }
 
-.nav-links a:hover {
+.nav-links a:hover,
+.nav-links .nav-item:hover {
     background: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
     box-shadow: var(--glass-shadow-hover);
+}
+
+/* 统一选中状态（与 index.html 一致：变蓝、白字、阴影） */
+.nav-links a.active,
+.nav-links .nav-item.active {
+    background: var(--primary-color) !important;
+    color: #fff !important;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    border-color: transparent;
+}
+
+/* 图标尺寸与过渡，防止不同页面出现高低不平 */
+.nav-links i {
+    font-size: 1.2rem;
+    transition: var(--transition);
+}
+.nav-links a:hover i,
+.nav-links .nav-item:hover i {
+    transform: scale(1.1);
 }
 
 .page {

@@ -125,82 +125,8 @@ body {
     50% { transform: translateY(-30px) rotate(180deg); opacity: 1; }
 }
 
-/* 导航栏样式 - 玻璃材质 */
-header {
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--glass-border);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: var(--glass-shadow);
-}
-
-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 15px 20px;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--text-on-glass);
-    text-decoration: none;
-}
-
-.logo i {
-    font-size: 1.8rem;
-    background: var(--primary-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.nav-links {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.nav-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 20px;
-    border-radius: var(--border-radius);
-    transition: var(--transition);
-    text-decoration: none;
-    color: var(--text-on-glass);
-    font-weight: 500;
-    position: relative;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--glass-border);
-}
-
-.nav-item:hover {
-    background: rgba(255, 255, 255, 0.2);
-    color: var(--primary-color);
-    transform: translateY(-2px);
-    box-shadow: var(--glass-shadow-hover);
-}
-
-.nav-item i {
-    font-size: 1.2rem;
-    transition: var(--transition);
-}
-
-.nav-item:hover i {
-    transform: scale(1.1);
-}
+/* 导航样式统一由 style.css 控制，避免重复定义 */
+/* 此处不再定义 .logo/.nav-links/.nav-item 相关规则 */
 
 /* 容器样式 */
 .container {
