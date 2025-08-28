@@ -19,47 +19,7 @@ body.admin-page {
     color: rgba(255, 255, 255, 0.95);
 }
 
-/* 导航栏样式 */
-header {
-    background-color: #2c3e50;
-    color: white;
-    padding: 15px 0;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-.logo {
-    font-size: 1.5rem;
-    font-weight: 700;
-}
-
-.nav-links {
-    display: flex;
-    gap: 20px;
-}
-
-.nav-links a {
-    color: white;
-    text-decoration: none;
-    font-weight: 500;
-    padding: 5px 10px;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-}
-
-.nav-links a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
+/* 导航样式统一由 assets/css/style.css 控制，移除后台的重复定义 */
 
 /* 管理后台容器 */
 .admin-container {

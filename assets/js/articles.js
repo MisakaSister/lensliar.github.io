@@ -467,14 +467,13 @@ function createArticleCard(article, index) {
                 </span>
             </div>
             
-                        <div class="article--tags">
-                ${tags.join('')}
+            <div class="article--footer">
+                <div class="article--tags">${tags.join('')}</div>
+                <a href="article-detail.html?id=${article.id}" class="read-more">
+                    阅读全文
+                    <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
-            
-            <a href="article-detail.html?id=${article.id}" class="read-more">
-                阅读全文
-                <i class="fas fa-arrow-right"></i>
-            </a>
         </div>
     `;
     
