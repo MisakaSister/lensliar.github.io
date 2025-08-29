@@ -149,30 +149,9 @@ async function checkAuthStatus() {
     }
 }
 
-// 初始化主题
-function initTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-        isDarkTheme = true;
-        document.body.classList.add('dark-theme');
-        document.querySelector('.quick-btn i').classList.replace('fa-moon', 'fa-sun');
-    }
-}
-
-// 切换主题
-function toggleTheme() {
-    isDarkTheme = !isDarkTheme;
-    document.body.classList.toggle('dark-theme');
-    
-    const themeIcon = document.querySelector('.quick-btn i');
-    if (isDarkTheme) {
-        themeIcon.classList.replace('fa-moon', 'fa-sun');
-        localStorage.setItem('theme', 'dark');
-    } else {
-        themeIcon.classList.replace('fa-sun', 'fa-moon');
-        localStorage.setItem('theme', 'light');
-    }
-}
+// 初始化/切换主题统一由 AppTheme 管理
+function initTheme() { try { window.AppTheme.init(); } catch(_){} }
+function toggleTheme() { try { window.AppTheme.toggle(); } catch(_){} }
 
 // 返回顶部
 function scrollToTop() {

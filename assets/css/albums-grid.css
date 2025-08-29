@@ -484,69 +484,7 @@ a.tag:hover,
 .grid--cell:nth-child(5) { animation-delay: 0.5s; }
 .grid--cell:nth-child(6) { animation-delay: 0.6s; } 
 
-/* 快捷功能面板 */
-.quick-actions {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    z-index: 100;
-}
-
-.quick-btn {
-    width: 50px;
-    height: 50px;
-    border: none;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
-}
-
-.quick-btn:hover {
-    transform: translateY(-3px) scale(1.1);
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-}
-
-/* 深色主题下的快捷按钮 */
-.dark-theme .quick-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
-
-.dark-theme .quick-btn:hover {
-    transform: translateY(-3px) scale(1.1);
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
-}
-
-/* 移动端快捷按钮 */
-@media (max-width: 768px) {
-    .quick-actions {
-        bottom: 20px;
-        right: 20px;
-    }
-    
-    .quick-btn {
-        width: 45px;
-        height: 45px;
-        font-size: 1.1rem;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    }
-    
-    .quick-btn:hover {
-        transform: translateY(-2px) scale(1.05);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-    }
-} 
+/* 快捷功能面板样式统一由 assets/css/style.css 控制 */
 
 /* 统一页面加载样式 */
 .page-loading {

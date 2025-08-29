@@ -107,3 +107,60 @@ function showNotification(message, isSuccess = true) {
 }
 
 // 全局工具函数 - 供所有页面使用
+
+// 统一深色主题管理（全站）
+window.AppTheme = (function() {
+    const STORAGE_KEY = 'theme';
+    const DARK = 'dark';
+
+    function setIcon(isDark) {
+        try {
+            const btn = document.querySelector('button.quick-btn[title="切换主题"] i');
+            if (!btn) return;
+            // 兼容 FontAwesome 月亮/太阳
+            if (btn.classList.contains('fa-moon') || btn.classList.contains('fa-sun')) {
+                btn.classList.remove('fa-moon', 'fa-sun');
+                btn.classList.add(isDark ? 'fa-sun' : 'fa-moon');
+            } else {
+                // 其他情况不强制切换，避免覆盖自定义图标
+            }
+        } catch (_) { /* noop */ }
+    }
+
+    function applyTheme(isDark) {
+        document.body.classList.toggle('dark-theme', isDark);
+        setIcon(isDark);
+    }
+
+    function init() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        const isDark = saved === DARK;
+        applyTheme(isDark);
+    }
+
+    function toggle() {
+        const isDark = !document.body.classList.contains('dark-theme');
+        applyTheme(isDark);
+        localStorage.setItem(STORAGE_KEY, isDark ? DARK : 'light');
+    }
+
+    // DOM 就绪后自动初始化（幂等）
+    document.addEventListener('DOMContentLoaded', () => {
+        try { init(); } catch (_) { /* noop */ }
+        // 统一隐藏页面级加载蒙层（若存在）
+        try {
+            const pageLoading = document.getElementById('page-loading');
+            if (pageLoading) {
+                pageLoading.classList.add('hide');
+                setTimeout(() => { pageLoading.style.display = 'none'; }, 500);
+            }
+        } catch (_) { /* noop */ }
+    });
+
+    return { init, toggle };
+})();
+
+// 兼容页面内已有 onclick="toggleTheme()" 调用
+if (!window.toggleTheme) {
+    window.toggleTheme = function() { window.AppTheme.toggle(); };
+}

@@ -1074,37 +1074,7 @@
     font-weight: 500;
 }
 
-/* 快捷功能面板 */
-.quick-actions {
-    position: fixed;
-    right: 30px;
-    bottom: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    z-index: 100;
-}
-
-.quick-btn {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: var(--primary-gradient);
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
-}
-
-.quick-btn:hover {
-    transform: translateY(-3px) scale(1.1);
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-}
+/* 快捷功能面板统一由 assets/css/style.css 控制 */
 
 /* 加载动画 */
 .loading {
