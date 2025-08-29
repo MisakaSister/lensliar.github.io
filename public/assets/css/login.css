@@ -150,15 +150,21 @@ body {
 .checkbox-container {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     cursor: pointer;
     user-select: none;
     color: #495057;
     font-size: 0.95rem;
+    height: 20px; /* 与复选框高度一致，确保垂直对齐 */
+    line-height: 20px;
 }
 
 .checkbox-container input[type="checkbox"] {
-    display: none;
+    /* 隐藏原生样式但保留可访问性与点击区域 */
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
 }
 
 .checkmark {
@@ -167,8 +173,22 @@ body {
     border: 2px solid #e9ecef;
     border-radius: 4px;
     position: relative;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     background: white;
+    box-sizing: border-box;
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 让文字与方框垂直居中对齐 */
+.checkbox-text {
+    display: inline-flex;
+    align-items: center;
+    height: 20px; /* 与 .checkmark 高度保持一致 */
+    line-height: 20px;
+    position: static;
 }
 
 .checkbox-container:hover .checkmark {
@@ -180,16 +200,28 @@ body {
     border-color: transparent;
 }
 
-.checkbox-container input[type="checkbox"]:checked + .checkmark::after {
-    content: '\f00c';
-    font-family: 'Font Awesome 6 Free';
-    font-weight: 900;
+.checkbox-container input[type="checkbox"] + .checkmark::after {
+    content: '';
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 0.8rem;
+    width: 10px;
+    height: 5px;
+    border: 2px solid white;
+    border-top: none;
+    border-right: none;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.checkbox-container input[type="checkbox"]:checked + .checkmark::after {
+    opacity: 1;
+}
+
+/* 键盘聚焦可见态：可访问性高亮 */
+.checkbox-container input[type="checkbox"]:focus-visible + .checkmark {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.35);
 }
 
 .btn-login {

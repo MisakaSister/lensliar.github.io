@@ -874,27 +874,10 @@ function scrollToTop() {
 }
 
 // 初始化主题（localStorage 统一存储）
-function initTheme() {
-    const saved = localStorage.getItem('theme');
-    if (saved === 'dark') {
-        document.body.classList.add('dark-theme');
-        const icon = document.querySelector('.quick-btn .fa-moon');
-        if (icon) {
-            icon.classList.add('fa-sun');
-        }
-    }
-}
+function initTheme() { try { window.AppTheme.init(); } catch(_){} }
 
 // 切换主题（并持久化）
-function toggleTheme() {
-    const isDark = document.body.classList.toggle('dark-theme');
-    const icon = document.querySelector('.quick-btn .fa-moon, .quick-btn .fa-sun');
-    if (icon) {
-        icon.classList.toggle('fa-sun', isDark);
-        icon.classList.toggle('fa-moon', !isDark);
-    }
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-}
+function toggleTheme() { try { window.AppTheme.toggle(); } catch(_){} }
 
 // 计算阅读时间
 function getReadingTime(text) {
