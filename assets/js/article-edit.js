@@ -531,13 +531,13 @@ async function saveArticle() {
             title: title,
             category: category,
             content: content,
-            coverImage: coverImage
+            coverImage: coverImage ? JSON.parse(coverImage) : null
         };
         
         const token = sessionStorage.getItem('authToken');
         const url = editingArticle 
-            ? `${API_BASE}/content/articles/${editingArticle.id}`
-            : `${API_BASE}/content/articles`;
+            ? `${API_BASE}/content/${editingArticle.id}`
+            : `${API_BASE}/content`;
         
         const method = editingArticle ? 'PUT' : 'POST';
         
@@ -612,15 +612,18 @@ function showArticleImagePreview(imageData) {
     const previewContainer = document.getElementById('article-image-preview');
     const hiddenInput = document.getElementById('article-cover-image');
     
+    const dataObj = typeof imageData === 'string' ? { url: imageData } : imageData;
+    const src = dataObj?.url || '';
+    
     previewContainer.innerHTML = `
         <div class="preview-item">
-            <img src="${imageData}" alt="封面图片">
+            <img src="${src}" alt="封面图片">
             <button class="preview-remove" onclick="removeArticleImage()">×</button>
         </div>
     `;
     
     previewContainer.style.display = 'grid';
-    hiddenInput.value = imageData;
+    hiddenInput.value = JSON.stringify(dataObj);
 }
 
 // 移除图片
@@ -653,7 +656,7 @@ async function uploadFile(file) {
         throw new Error('服务器返回的数据格式错误');
     }
     
-    return result.url;
+    return result; // 返回包含url等信息的对象，保持与后端一致
 }
 
 // 返回上一页
