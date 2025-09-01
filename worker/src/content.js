@@ -86,14 +86,18 @@ async function getAllArticles(env) {
         
         console.log(`[文章] 查询结果数量: ${results?.length || 0}`);
         
-        // 转换字段名称以匹配前端期望的格式
-        const articles = (results || []).map(article => ({
-            ...article,
-            coverImage: article.cover_image ? JSON.parse(article.cover_image) : null,
-            createdAt: article.created_at,
-            updatedAt: article.updated_at,
-            publishedAt: article.published_at
-        }));
+        // 转换字段名称以匹配前端期望的格式（并兼容历史字符串形式的封面）
+        const articles = (results || []).map(article => {
+            const parsed = article.cover_image ? JSON.parse(article.cover_image) : null;
+            const coverImage = typeof parsed === 'string' ? { url: parsed } : parsed;
+            return {
+                ...article,
+                coverImage,
+                createdAt: article.created_at,
+                updatedAt: article.updated_at,
+                publishedAt: article.published_at
+            };
+        });
         
         return new Response(JSON.stringify({
             articles: articles,
@@ -129,10 +133,12 @@ async function getArticle(id, env) {
             });
         }
 
-        // 转换字段名称以匹配前端期望的格式
+        // 转换字段名称以匹配前端期望的格式（并兼容历史字符串形式的封面）
+        const parsed = results[0].cover_image ? JSON.parse(results[0].cover_image) : null;
+        const coverImage = typeof parsed === 'string' ? { url: parsed } : parsed;
         const article = {
             ...results[0],
-            coverImage: results[0].cover_image ? JSON.parse(results[0].cover_image) : null,
+            coverImage,
             createdAt: results[0].created_at,
             updatedAt: results[0].updated_at,
             publishedAt: results[0].published_at

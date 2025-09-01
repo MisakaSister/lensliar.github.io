@@ -60,14 +60,18 @@ async function getPublicContent(request, env) {
                 LIMIT ? OFFSET ?
             `).bind(limit, (page - 1) * limit).all();
             
-            // 转换字段名称以匹配前端期望的格式
-            articles = (results || []).map(article => ({
-                ...article,
-                coverImage: article.cover_image ? JSON.parse(article.cover_image) : null,
-                createdAt: article.created_at,
-                updatedAt: article.updated_at,
-                publishedAt: article.published_at
-            }));
+            // 转换字段名称以匹配前端期望的格式（并兼容历史字符串形式的封面）
+            articles = (results || []).map(article => {
+                const parsed = article.cover_image ? JSON.parse(article.cover_image) : null;
+                const coverImage = typeof parsed === 'string' ? { url: parsed } : parsed;
+                return {
+                    ...article,
+                    coverImage,
+                    createdAt: article.created_at,
+                    updatedAt: article.updated_at,
+                    publishedAt: article.published_at
+                };
+            });
         } catch (error) {
             console.error('Error fetching articles:', error);
             articles = [];
@@ -159,7 +163,7 @@ async function getPublicArticle(articleId, env) {
             summary: article.summary,
             category: article.category,
             tags: JSON.parse(article.tags || '[]'),
-            coverImage: JSON.parse(article.cover_image || 'null'),
+            coverImage: (() => { const p = JSON.parse(article.cover_image || 'null'); return typeof p === 'string' ? { url: p } : p; })(),
             images: JSON.parse(article.images || '[]'),
             attachments: JSON.parse(article.attachments || '[]'),
             author: article.author,
