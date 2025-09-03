@@ -7,3 +7,6 @@ package-lock.json
 package.json
 .cursor/rules/decode1.mdc
 .kilocode/mcp.json
+/.playwright-mcp/
+np./cursor-rules/
+.claude/settings.local.json
