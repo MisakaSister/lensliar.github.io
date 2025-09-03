@@ -24,6 +24,9 @@ function getFriendlyCategoryName(category) {
 
 // 初始化页面
 document.addEventListener('DOMContentLoaded', function() {
+    // 初始化统一导航栏
+    Utils.initNavigation('albums');
+    
     // 检查是否已登录并验证token有效性
     checkAuthStatus();
 
