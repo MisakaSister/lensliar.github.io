@@ -119,5 +119,60 @@ const Utils = {
             reader.onerror = reject;
             reader.readAsDataURL(file);
         });
+    },
+
+    // 初始化主题
+    initTheme() {
+        try { 
+            if (window.AppTheme) {
+                window.AppTheme.init(); 
+            }
+        } catch(_){}
+    },
+
+    // 登出功能
+    logout() {
+        sessionStorage.removeItem('authToken');
+        localStorage.removeItem('authToken');
+        window.location.href = 'login.html';
+    },
+
+    // HTML实体解码
+    decodeHtmlEntities(text) {
+        if (!text) return '';
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = text;
+        const result = textarea.value;
+        textarea.remove();
+        return result;
+    },
+
+    // 获取友好的分类名称
+    getFriendlyCategoryName(category) {
+        const categoryMap = {
+            'cat_article_1': '技术分享', 'cat_article_2': '生活随笔', 'cat_article_3': '学习笔记', 'cat_article_4': '项目展示',
+            'cat_album_1': '风景摄影', 'cat_album_2': '人像摄影', 'cat_album_3': '美食摄影', 'cat_album_4': '旅行记录', 'cat_album_5': '工作日常'
+        };
+        return categoryMap[category] || category;
+    },
+
+    // 通用的认证状态检查
+    async checkAuthStatus() {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) return false;
+        
+        try {
+            const response = await fetch('/api/auth/verify', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            return response.ok;
+        } catch (error) {
+            console.error('Auth verification failed:', error);
+            return false;
+        }
     }
 }; 

@@ -28,10 +28,9 @@ const categoryNameMap = {
     'cat_album_5': '工作日常',
 };
 
-// 获取友好的分类名称
+// 使用Utils中的函数
 function getFriendlyCategoryName(category) {
-    if (!category) return '未分类';
-    return categoryNameMap[category] || category;
+    return Utils.getFriendlyCategoryName(category);
 }
 
 // 初始化页面
@@ -130,16 +129,11 @@ async function checkAuthStatus() {
     }
 }
 
-function initTheme() { try { window.AppTheme.init(); } catch(_){} }
-function toggleTheme() { try { window.AppTheme.toggle(); } catch(_){} }
+function initTheme() { Utils.initTheme(); }
+function toggleTheme() { Utils.toggleTheme(); }
 
 // 返回顶部
-function scrollToTop() {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
-}
+function scrollToTop() { Utils.scrollToTop(); }
 
 // 检查目标区域
 function checkTargetSection() {
@@ -437,17 +431,7 @@ function setupSearchFunctionality() {
 }
 
 // 防抖函数
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+function debounce(func, wait) { return Utils.debounce(func, wait); }
 
 // 排序数据
 function sortData(data, sortType) {
@@ -798,21 +782,7 @@ function updateNavigationBadges(content) {
 }
 
 // 解码HTML实体
-function decodeHtmlEntities(text) {
-    if (!text || typeof text !== 'string') return text;
-
-    let decoded = text;
-    let previousDecoded = '';
-
-    while (decoded !== previousDecoded) {
-        previousDecoded = decoded;
-        const textarea = document.createElement('textarea');
-        textarea.innerHTML = decoded;
-        decoded = textarea.value;
-    }
-
-    return decoded;
-}
+function decodeHtmlEntities(text) { return Utils.decodeHtmlEntities(text); }
 
 // 解码内容图片
 function decodeContentImages(content) {
@@ -953,31 +923,7 @@ function renderAlbums() {
 }
 
 // 格式化日期
-function formatDate(dateString) {
-    if (!dateString) {
-        console.warn('formatDate: 日期字符串为空');
-        return '未知日期';
-    }
-    
-    try {
-        const date = new Date(dateString);
-        
-        // 检查日期是否有效
-        if (isNaN(date.getTime())) {
-            console.warn('formatDate: 无效的日期字符串:', dateString);
-            return '未知日期';
-        }
-        
-        return date.toLocaleDateString('zh-CN', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    } catch (error) {
-        console.error('formatDate: 日期格式化错误:', error, '原始值:', dateString);
-        return '未知日期';
-    }
-}
+function formatDate(dateString) { return Utils.formatDate(dateString); }
 
 // 查看详情
 function viewDetail(type, id) {
@@ -1111,14 +1057,7 @@ function shareImage() {
 }
 
 // 退出登录
-function logout() {
-    sessionStorage.removeItem('authToken');
-    sessionStorage.removeItem('userInfo');
-    showNotification('已退出登录');
-    setTimeout(() => {
-        window.location.reload();
-    }, 1000);
-}
+function logout() { Utils.logout(); }
 
 // showNotification函数已在app.js中定义
 
