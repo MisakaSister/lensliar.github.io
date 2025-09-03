@@ -1,5 +1,8 @@
 // 管理后台仪表板
 document.addEventListener('DOMContentLoaded', async function() {
+    // 初始化统一导航栏
+    Utils.initNavigation('admin');
+    
     // 检查登录状态并验证token有效性
     await checkAuthStatus();
     

@@ -1,0 +1,286 @@
+/* 统一导航栏样式 */
+.unified-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.dark-theme .unified-header {
+    background: rgba(30, 30, 30, 0.95);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+
+.unified-nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 70px;
+    position: relative;
+}
+
+/* Logo 样式 */
+.unified-nav .logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--primary-color, #4a90e2);
+    font-size: 1.5rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.unified-nav .logo:hover {
+    transform: scale(1.05);
+    color: var(--accent-color, #ff6b6b);
+}
+
+.unified-nav .logo i {
+    font-size: 1.8rem;
+    margin-right: 0.5rem;
+    background: linear-gradient(135deg, var(--primary-color, #4a90e2), var(--accent-color, #ff6b6b));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.logo-text {
+    background: linear-gradient(135deg, #333, #666);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.dark-theme .logo-text {
+    background: linear-gradient(135deg, #fff, #ccc);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* 导航链接容器 */
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* 导航链接项目 */
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.2rem;
+    text-decoration: none;
+    color: var(--text-color, #333);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.nav-item:hover::before {
+    left: 100%;
+}
+
+.nav-item:hover {
+    background: rgba(var(--primary-color-rgb, 74, 144, 226), 0.1);
+    color: var(--primary-color, #4a90e2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(var(--primary-color-rgb, 74, 144, 226), 0.2);
+}
+
+.nav-item.active {
+    background: linear-gradient(135deg, var(--primary-color, #4a90e2), var(--accent-color, #ff6b6b));
+    color: white;
+    box-shadow: 0 4px 15px rgba(var(--primary-color-rgb, 74, 144, 226), 0.3);
+}
+
+.nav-item.active:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(var(--primary-color-rgb, 74, 144, 226), 0.4);
+}
+
+.nav-item i {
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.nav-item:hover i {
+    transform: scale(1.1);
+}
+
+.nav-item span {
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+/* 移动端菜单按钮 */
+.mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-color, #333);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle:hover {
+    background: rgba(var(--primary-color-rgb, 74, 144, 226), 0.1);
+    color: var(--primary-color, #4a90e2);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .unified-nav {
+        padding: 0 1rem;
+    }
+    
+    .mobile-menu-toggle {
+        display: block;
+    }
+    
+    .nav-links {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(20px);
+        flex-direction: column;
+        gap: 0;
+        padding: 1rem 0;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        transform: translateY(-100%);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .dark-theme .nav-links {
+        background: rgba(30, 30, 30, 0.98);
+        border-top-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .nav-links.show {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .nav-item {
+        width: 100%;
+        justify-content: center;
+        padding: 1rem 2rem;
+        border-radius: 0;
+        margin: 0;
+    }
+    
+    .nav-item:hover {
+        transform: none;
+        background: rgba(var(--primary-color-rgb, 74, 144, 226), 0.1);
+    }
+    
+    .logo-text {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .unified-nav {
+        height: 60px;
+    }
+    
+    .unified-nav .logo {
+        font-size: 1.3rem;
+    }
+    
+    .unified-nav .logo i {
+        font-size: 1.5rem;
+    }
+    
+    .nav-item span {
+        font-size: 0.9rem;
+    }
+}
+
+/* 页面内容适配 */
+body {
+    padding-top: 70px;
+}
+
+@media (max-width: 480px) {
+    body {
+        padding-top: 60px;
+    }
+}
+
+/* 动画效果 */
+.nav-item {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.nav-item:nth-child(1) { animation-delay: 0.1s; }
+.nav-item:nth-child(2) { animation-delay: 0.2s; }
+.nav-item:nth-child(3) { animation-delay: 0.3s; }
+.nav-item:nth-child(4) { animation-delay: 0.4s; }
+.nav-item:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 滚动时的导航栏效果 */
+.unified-header.scrolled {
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 2px 30px rgba(0, 0, 0, 0.15);
+}
+
+.dark-theme .unified-header.scrolled {
+    background: rgba(30, 30, 30, 0.98);
+}
+
+/* 特殊页面适配 */
+.admin-page .unified-header {
+    background: rgba(248, 249, 250, 0.95);
+}
+
+.dark-theme.admin-page .unified-header {
+    background: rgba(20, 20, 20, 0.95);
+}

@@ -25,7 +25,10 @@ function getFriendlyCategoryName(category) {
 }
 
 // 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化统一导航栏
+    Utils.initNavigation('admin');
+    
     try {
         console.log('页面开始加载...');
         
